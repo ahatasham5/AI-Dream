@@ -349,15 +349,128 @@ export default function Counter() {
 
 ---
 
+## Rendering Strategy and Server Cost
+
+Next.js App Router-এ component defaultভাবে **Server Component** হলেও এর মানে এই না যে প্রতিটা page সবসময় costly server request করবে।
+
+মূল idea:
+
+```txt
+Server Component = server-side render হতে পারে
+Static Rendering / Cached Rendering = build/cache থেকে serve হতে পারে
+Dynamic Rendering = প্রতিটা request-এ fresh server/API/database work হতে পারে
+```
+
+Cost সাধারণত বাড়ে যখন:
+
+- সব page dynamic বানানো হয়
+- প্রতিটা request-এ FastAPI / database call করা হয়
+- caching বা revalidation ব্যবহার করা হয় না
+- সব জায়গায় blindly `"use client"` দেওয়া হয়
+- React Query refetch বেশি হয়
+- middleware বা backend query heavy হয়
+
+Static public page হলে simple Server Component রাখাই ভালো:
+
+```tsx
+export default function AboutPage() {
+  return <h1>About Us</h1>;
+}
+```
+
+Public data যদি কিছু সময় পর পর update হলেই চলে, তাহলে revalidate ব্যবহার করা যায়:
+
+```tsx
+export default async function ProductsPage() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/products`, {
+    next: { revalidate: 60 },
+  });
+
+  const products = await res.json();
+
+  return (
+    <div>
+      {products.map((product: { id: number; name: string }) => (
+        <p key={product.id}>{product.name}</p>
+      ))}
+    </div>
+  );
+}
+```
+
+Private, real-time বা user-specific data হলে `no-store` ব্যবহার করা যায়:
+
+```tsx
+export default async function DashboardPage() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/me/dashboard`, {
+    cache: "no-store",
+  });
+
+  const data = await res.json();
+
+  return <div>{data.name}</div>;
+}
+```
+
+Rule:
+
+```txt
+Public static page          → Server Component + static rendering
+Public semi-dynamic data    → Server Component + revalidate
+Private dashboard/profile   → dynamic/no-store অথবা Client Component + React Query
+Interactive UI              → ছোট Client Component
+```
+
+ভালো pattern হলো পুরো page client না করে শুধু interactive অংশ client করা।
+
+```tsx
+// app/products/page.tsx
+import ProductFilter from "./ProductFilter";
+
+export default async function ProductsPage() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/products`, {
+    next: { revalidate: 60 },
+  });
+
+  const products = await res.json();
+
+  return (
+    <div>
+      <ProductFilter />
+      {products.map((product: { id: number; name: string }) => (
+        <p key={product.id}>{product.name}</p>
+      ))}
+    </div>
+  );
+}
+```
+
+```tsx
+// app/products/ProductFilter.tsx
+"use client";
+
+export default function ProductFilter() {
+  return <input placeholder="Search product" />;
+}
+```
+
+---
+
 ## Environment Variables
 
 Root folder-এ `.env.local` file তৈরি করুন।
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
 ```
 
-এই value Axios wrapper-এ ব্যবহার করা হবে backend API connect করার জন্য।
+FastAPI backend যদি `/api/v1` prefix ব্যবহার না করে, তাহলে value হতে পারে:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+```
+
+এই value Axios wrapper-এ ব্যবহার করা হবে FastAPI backend API connect করার জন্য।
 
 ---
 
@@ -397,6 +510,77 @@ api.interceptors.request.use((config) => {
 
 এভাবে সব API request centralized থাকবে।
 
+FastAPI যদি HTTP-only cookie auth ব্যবহার করে, তাহলে Axios config-এ `withCredentials: true` লাগতে পারে। তখন FastAPI CORS config-এও credential allow করতে হবে।
+
+---
+
+## FastAPI Backend Connection Notes
+
+এই frontend scaffold FastAPI backend-এর সাথে connect করার জন্য service layer ব্যবহার করবে। Next.js-এর `src/app/api/` route optional। FastAPI project থাকলে main backend logic FastAPI-তেই রাখা ভালো।
+
+Common local setup:
+
+```txt
+Next.js frontend  → http://localhost:3000
+FastAPI backend   → http://localhost:8000
+API prefix        → /api/v1
+```
+
+FastAPI backend-এ CORS allow করতে হবে, না হলে browser request block করবে।
+
+```py
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+FastAPI endpoint example:
+
+```py
+from fastapi import APIRouter
+from pydantic import BaseModel
+
+router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
+
+class LoginPayload(BaseModel):
+    email: str
+    password: str
+
+@router.post("/login")
+async def login(payload: LoginPayload):
+    return {
+        "access_token": "jwt-token-here",
+        "token_type": "bearer",
+        "user": {
+            "id": 1,
+            "email": payload.email,
+        },
+    }
+```
+
+Frontend service call তখন হবে:
+
+```txt
+POST http://localhost:8000/api/v1/auth/login
+```
+
+Important:
+
+- Frontend Zod validation user experience ভালো করে।
+- FastAPI Pydantic validation backend-এর real validation।
+- Frontend type এবং backend schema match রাখতে হবে।
+- FastAPI response অনেক সময় `snake_case` হয়, যেমন `access_token`।
+- Frontend চাইলে response map করে `camelCase` ব্যবহার করতে পারে।
+
 ---
 
 ## Service Layer Example
@@ -415,13 +599,25 @@ type LoginPayload = {
   password: string;
 };
 
+type LoginResponse = {
+  access_token: string;
+  token_type: "bearer";
+  user?: {
+    id: number;
+    email: string;
+    name?: string;
+  };
+};
+
 export async function loginUser(payload: LoginPayload) {
-  const response = await api.post("/auth/login", payload);
+  const response = await api.post<LoginResponse>("/auth/login", payload);
   return response.data;
 }
 ```
 
 Service layer-এর কাজ হলো backend API communication handle করা।
+
+FastAPI backend যদি `/api/v1` prefix `.env.local`-এর `NEXT_PUBLIC_API_BASE_URL`-এ already থাকে, তাহলে service path শুধু `/auth/login` হবে।
 
 ---
 
@@ -446,7 +642,7 @@ export function useLogin() {
 
       const data = await loginUser({ email, password });
 
-      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("accessToken", data.access_token);
 
       return data;
     } finally {
@@ -467,6 +663,77 @@ Example:
 - API call trigger
 - LocalStorage update
 - Error handling
+
+---
+
+## React Query, Zustand and Zod Notes
+
+`@tanstack/react-query` server state manage করে। মানে backend API থেকে আসা data, loading state, error state, caching, refetching এগুলো handle করে।
+
+Next.js App Router-এ `useQuery()` বা `useMutation()` ব্যবহার করলে component client হতে হবে:
+
+```tsx
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/axios";
+
+export function ProductSearch({ search }: { search: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["products", search],
+    queryFn: async () => {
+      const response = await api.get("/products", {
+        params: { search },
+      });
+
+      return response.data;
+    },
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  if (isLoading) return <p>Loading...</p>;
+
+  return <pre>{JSON.stringify(data, null, 2)}</pre>;
+}
+```
+
+React Query use করার সময়:
+
+- `staleTime` দিলে একই data বারবার FastAPI থেকে fetch কম হবে।
+- `refetchOnWindowFocus: false` দিলে tab focus হলেই automatic refetch হবে না।
+- Search/filter/pagination/dashboard widget-এর জন্য useful।
+- Static public page-এর জন্য সবসময় React Query দরকার নেই।
+
+Zustand global client state রাখে:
+
+```txt
+Auth user
+Theme
+Sidebar open/close
+Cart
+Temporary UI state
+```
+
+Zustand আর React Query এক জিনিস না:
+
+```txt
+Zustand     → frontend/global UI state
+React Query → backend/API/server state
+```
+
+Zod frontend form validation করে:
+
+```ts
+import { z } from "zod";
+
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+```
+
+কিন্তু FastAPI backend-এ Pydantic model validation অবশ্যই রাখতে হবে। Frontend validation bypass করা যায়, backend validation bypass করা যায় না।
 
 ---
 
@@ -606,6 +873,11 @@ Project clean রাখার জন্য নিচের rules follow কর�
 8. Environment variable `.env.local` file-এ রাখতে হবে।
 9. `"use client"` শুধু তখনই ব্যবহার করতে হবে যখন browser-side feature দরকার।
 10. Component ছোট এবং focused রাখা উচিত।
+11. Public/static page dynamic বানাবেন না যদি দরকার না থাকে।
+12. FastAPI থেকে public data আনলে possible হলে cache/revalidate strategy ভাবতে হবে।
+13. Private/user-specific data হলে `no-store`, auth header বা cookie flow ঠিকভাবে handle করতে হবে।
+14. React Query use করলে `staleTime` এবং refetch behavior control করতে হবে।
+15. FastAPI backend schema change হলে frontend TypeScript type update করতে হবে।
 
 ---
 
@@ -640,7 +912,7 @@ Backend API
 - Authentication-based frontend
 - API-connected frontend
 - Supabase frontend
-- Node.js / Express backend connected frontend
+- FastAPI backend connected frontend
 - Production-ready frontend starter
 
 ---
