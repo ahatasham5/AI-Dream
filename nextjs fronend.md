@@ -1,61 +1,98 @@
-# Next.js Frontend Scaffold
+# Next.js Frontend Notes with FastAPI Backend
 
-এটি একটি **Next.js Frontend Scaffold** প্রজেক্ট।  
-এই scaffold ব্যবহার করে একটি clean, scalable এবং maintainable frontend project তৈরি করা যায়।
+এই note-টা আমার Next.js frontend শেখার জন্য।  
+আমার backend focus হলো **FastAPI**, Express.js না।
 
-এই প্রজেক্টে ব্যবহার করা হয়েছে:
-
-- Next.js
-- React
-- TypeScript
-- Tailwind CSS
-- Axios
-- Zustand
-- React Hook Form
-- Zod
-- TanStack Query
-- Lucide React
-
-এই structure dashboard app, admin panel, LMS frontend, SaaS frontend, authentication-based app অথবা backend API-connected frontend project-এর জন্য ব্যবহার করা যাবে।
-
----
-
-## Project Objective
-
-এই scaffold-এর মূল উদ্দেশ্য হলো frontend project-কে organized রাখা।
-
-সাধারণত project বড় হলে সব component, API call, form logic এবং state management একসাথে mixed হয়ে যায়।  
-তাই এই project-এ code আলাদা আলাদা layer-এ রাখা হয়েছে:
+Main goal:
 
 ```txt
-Page
- ↓
-Component
- ↓
-Custom Hook
- ↓
-Service Function
- ↓
-Axios Wrapper
- ↓
-Backend API
+Clean frontend structure
+FastAPI backend-এর সাথে API connection
+Code যেন বড় হলে messy না হয়
 ```
-
-এই pattern follow করলে project maintain করা সহজ হয়।
 
 ---
 
-## Installation Process
+## 1. Big Picture
 
-প্রথমে আপনার computer-এ **Node.js LTS version** install থাকতে হবে।
+একটা frontend app-এ সাধারণত এই flow থাকে:
 
-তারপর terminal-এ নিচের command চালান:
+```txt
+User Browser
+  ↓
+Next.js Page
+  ↓
+Component
+  ↓
+Custom Hook
+  ↓
+Service Function
+  ↓
+Axios / Fetch
+  ↓
+FastAPI Backend
+```
+
+সহজভাবে:
+
+```txt
+Page       = কোন route-এ কী দেখাবে
+Component  = UI part
+Hook       = frontend logic
+Service    = API call
+Axios      = backend request পাঠানোর common setup
+FastAPI    = real backend logic, database, auth, validation
+```
+
+Important rule:
+
+```txt
+Component-এর ভিতরে সরাসরি API call লিখবো না।
+API call services folder-এ রাখবো।
+Logic hook-এ রাখবো।
+UI component clean রাখবো।
+```
+
+---
+
+## 2. Tools and Packages
+
+| Package | কাজ |
+|---|---|
+| `next` | React framework. Routing, rendering, layout manage করে। |
+| `react` | Component-based UI বানানোর library। |
+| `typescript` | Type safety দেয়, ভুল কমায়। |
+| `tailwindcss` | Utility class দিয়ে দ্রুত UI design করা যায়। |
+| `axios` | FastAPI backend-এ HTTP request পাঠায়। |
+| `react-hook-form` | Form input ও submit efficiently handle করে। |
+| `zod` | Frontend form validation করে। |
+| `zustand` | Global frontend state রাখে। যেমন auth user, theme, sidebar। |
+| `@tanstack/react-query` | Backend/API data fetch, cache, loading/error state manage করে। |
+| `lucide-react` | Icon library। |
+| `clsx` | Conditional className manage করে। |
+| `tailwind-merge` | Tailwind class conflict clean করে। |
+
+Short memory:
+
+```txt
+Zod         = frontend validation
+Pydantic    = FastAPI backend validation
+Axios       = API request
+React Query = API data cache/loading/refetch
+Zustand     = global frontend state
+```
+
+---
+
+## 3. Installation
+
+প্রথমে Node.js LTS install থাকতে হবে।
 
 ```bash
 npx create-next-app@latest my-frontend
 ```
 
-Setup করার সময় recommended option:
+Recommended setup:
 
 ```txt
 TypeScript: Yes
@@ -68,25 +105,25 @@ Import alias: Yes
 Alias: @/*
 ```
 
-তারপর project folder-এ যান:
+Project folder-এ যান:
 
 ```bash
 cd my-frontend
 ```
 
-Required packages install করুন:
+Packages install:
 
 ```bash
 npm install axios react-hook-form zod zustand lucide-react clsx tailwind-merge @tanstack/react-query
 ```
 
-Development server চালু করুন:
+Run:
 
 ```bash
 npm run dev
 ```
 
-Browser-এ open করুন:
+Browser:
 
 ```txt
 http://localhost:3000
@@ -94,28 +131,7 @@ http://localhost:3000
 
 ---
 
-## Package List and Work Purpose
-
-| Package Name | Type | কাজ / Purpose |
-|---|---|---|
-| `next` | Framework | React ভিত্তিক frontend application তৈরি করার main framework। Routing, rendering, layout এবং API route handle করে। |
-| `react` | UI Library | Component-based user interface তৈরি করতে ব্যবহৃত হয়। |
-| `react-dom` | UI Renderer | React component browser DOM-এ render করে। |
-| `typescript` | Language Tool | Code-এ type safety যোগ করে, error কমায় এবং maintainability বাড়ায়। |
-| `tailwindcss` | Styling | Utility-first CSS framework। দ্রুত responsive UI design করতে সাহায্য করে। |
-| `eslint` | Code Quality | Code-এর error, bad practice এবং linting issue check করে। |
-| `axios` | API Client | Backend API-তে HTTP request পাঠানোর জন্য ব্যবহার করা হয়। |
-| `react-hook-form` | Form Management | Form input, validation এবং submission efficiently handle করে। |
-| `zod` | Validation | Schema-based validation করার জন্য ব্যবহৃত হয়। Form এবং API data validate করতে helpful। |
-| `zustand` | State Management | Lightweight global state management। Auth, theme, sidebar state ইত্যাদির জন্য useful। |
-| `@tanstack/react-query` | Server State Management | API data fetching, caching, loading state, refetching এবং server state manage করে। |
-| `lucide-react` | Icon Library | Clean এবং modern icon ব্যবহার করার জন্য। |
-| `clsx` | Utility | Conditional className manage করতে ব্যবহৃত হয়। |
-| `tailwind-merge` | Utility | Tailwind CSS class conflict remove করে final class merge করে। |
-
----
-
-## Project Folder Structure
+## 4. Recommended Folder Structure
 
 ```txt
 my-frontend/
@@ -131,157 +147,75 @@ my-frontend/
 │   │   ├── loading.tsx
 │   │   ├── error.tsx
 │   │   ├── not-found.tsx
-│   │   │
-│   │   ├── dashboard/
-│   │   │   ├── layout.tsx
-│   │   │   └── page.tsx
-│   │   │
 │   │   ├── login/
 │   │   │   └── page.tsx
-│   │   │
-│   │   └── api/
-│   │       └── health/
-│   │           └── route.ts
+│   │   └── dashboard/
+│   │       └── page.tsx
 │   │
 │   ├── components/
 │   │   ├── ui/
-│   │   │   ├── Button.tsx
-│   │   │   ├── Input.tsx
-│   │   │   └── Modal.tsx
-│   │   │
 │   │   ├── layout/
-│   │   │   ├── Navbar.tsx
-│   │   │   ├── Sidebar.tsx
-│   │   │   └── Footer.tsx
-│   │   │
 │   │   └── common/
-│   │       ├── PageHeader.tsx
-│   │       └── EmptyState.tsx
 │   │
 │   ├── features/
 │   │   ├── auth/
 │   │   │   ├── components/
-│   │   │   │   └── LoginForm.tsx
-│   │   │   ├── services/
-│   │   │   │   └── authService.ts
 │   │   │   ├── hooks/
-│   │   │   │   └── useLogin.ts
+│   │   │   ├── services/
 │   │   │   └── types/
-│   │   │       └── auth.types.ts
-│   │   │
 │   │   └── users/
 │   │       ├── components/
-│   │       ├── services/
 │   │       ├── hooks/
+│   │       ├── services/
 │   │       └── types/
 │   │
 │   ├── lib/
 │   │   ├── axios.ts
-│   │   ├── env.ts
-│   │   ├── utils.ts
-│   │   └── validators.ts
-│   │
-│   ├── hooks/
-│   │   └── useDebounce.ts
+│   │   └── utils.ts
 │   │
 │   ├── store/
 │   │   └── authStore.ts
 │   │
 │   ├── types/
-│   │   └── common.types.ts
-│   │
-│   ├── constants/
-│   │   └── routes.ts
-│   │
-│   └── styles/
-│       └── globals.css
+│   └── constants/
 │
 ├── .env.local
-├── .gitignore
-├── next.config.ts
 ├── package.json
 ├── tsconfig.json
-└── README.md
+└── next.config.ts
 ```
 
----
+Folder meaning:
 
-## Folder Explanation
-
-| Folder / File | কাজ |
+| Folder | কাজ |
 |---|---|
-| `public/` | Static file যেমন image, icon, logo রাখার জন্য। |
-| `src/app/` | Next.js App Router-এর routes, pages, layouts, loading UI, error UI রাখার জায়গা। |
-| `src/app/layout.tsx` | Application-এর main root layout। |
-| `src/app/page.tsx` | Homepage route `/`। |
-| `src/app/loading.tsx` | Route loading state-এর UI। |
-| `src/app/error.tsx` | Runtime error handle করার UI। |
-| `src/app/not-found.tsx` | Custom 404 page। |
-| `src/components/` | Reusable UI components রাখার জায়গা। |
-| `src/components/ui/` | Button, Input, Modal, Card এর মতো small reusable UI component। |
-| `src/components/layout/` | Navbar, Sidebar, Footer এর মতো layout component। |
-| `src/components/common/` | PageHeader, EmptyState, Loader এর মতো common component। |
-| `src/features/` | Feature-based module যেমন auth, users, products, dashboard। |
-| `src/features/auth/` | Authentication related component, service, hook এবং type। |
-| `src/lib/` | Axios setup, utility function, environment helper ইত্যাদি। |
-| `src/hooks/` | Reusable custom React hooks। |
-| `src/store/` | Global state management file। |
-| `src/types/` | Shared TypeScript type এবং interface। |
-| `src/constants/` | Fixed value যেমন route path, menu item, config value। |
-| `.env.local` | Local environment variable রাখার file। |
-| `next.config.ts` | Next.js configuration file। |
-| `tsconfig.json` | TypeScript configuration file। |
-| `package.json` | Project scripts, dependencies এবং metadata। |
+| `src/app/` | Routes/pages/layouts রাখার জায়গা। |
+| `src/components/ui/` | Button, Input, Modal, Card type reusable UI। |
+| `src/components/layout/` | Navbar, Sidebar, Footer। |
+| `src/features/` | Feature-wise code. যেমন auth, users, products। |
+| `features/*/components/` | ঐ feature-এর UI component। |
+| `features/*/hooks/` | ঐ feature-এর frontend logic। |
+| `features/*/services/` | ঐ feature-এর API call। |
+| `features/*/types/` | ঐ feature-এর TypeScript type। |
+| `src/lib/` | Axios setup, utility। |
+| `src/store/` | Zustand global state। |
+| `src/constants/` | Route path, fixed config। |
 
----
-
-## Frontend Architecture
-
-এই project layered architecture follow করে।
+Main rule:
 
 ```txt
-User Browser
-   ↓
-Next.js App Router
-   ↓
-Page
-   ↓
-Feature Component
-   ↓
-Custom Hook
-   ↓
-Service Function
-   ↓
-Axios Wrapper
-   ↓
-Backend API
-```
-
-Example login flow:
-
-```txt
-src/app/login/page.tsx
-   ↓
-src/features/auth/components/LoginForm.tsx
-   ↓
-src/features/auth/hooks/useLogin.ts
-   ↓
-src/features/auth/services/authService.ts
-   ↓
-src/lib/axios.ts
-   ↓
-Backend API: /auth/login
+Reusable UI       → components/
+Feature-specific  → features/
+API call          → services/
+Logic             → hooks/
+Global state      → store/
 ```
 
 ---
 
-## App Router Concept
+## 5. App Router Basics
 
-Next.js App Router folder-based routing ব্যবহার করে।
-
-যে folder-এর ভিতরে `page.tsx` থাকবে, সেটি route হিসেবে কাজ করবে।
-
-Example:
+Next.js App Router folder-based routing use করে।
 
 ```txt
 src/app/page.tsx              → /
@@ -292,38 +226,504 @@ src/app/users/page.tsx        → /users
 
 Special files:
 
-| File Name | কাজ |
+| File | কাজ |
 |---|---|
-| `layout.tsx` | Shared layout তৈরি করে। |
-| `page.tsx` | Actual route page তৈরি করে। |
-| `loading.tsx` | Loading state দেখায়। |
-| `error.tsx` | Error state handle করে। |
-| `not-found.tsx` | 404 page দেখায়। |
-| `route.ts` | API route handler তৈরি করে। |
+| `page.tsx` | Route-এর main page। |
+| `layout.tsx` | Shared layout। |
+| `loading.tsx` | Loading UI। |
+| `error.tsx` | Error UI। |
+| `not-found.tsx` | 404 page। |
+| `route.ts` | Next.js API route। FastAPI থাকলে এটা optional। |
+
+Important:
+
+```txt
+FastAPI backend থাকলে real backend logic FastAPI-তেই রাখবো।
+Next.js route.ts শুধু proxy, health check, বা small frontend-side server utility-এর জন্য use করা যেতে পারে।
+```
 
 ---
 
-## Server Component and Client Component
+## 6. App Router vs Pages Router
 
-Next.js App Router-এ default component হলো **Server Component**।
+Next.js-এ দুই ধরনের routing style আছে:
+
+```txt
+App Router   → src/app/
+Pages Router → src/pages/
+```
+
+এই scaffold **App Router** follow করে।
+
+App Router structure:
+
+```txt
+src/app/
+  page.tsx              → /
+  login/
+    page.tsx            → /login
+  dashboard/
+    page.tsx            → /dashboard
+```
+
+Pages Router structure:
+
+```txt
+src/pages/
+  index.tsx             → /
+  login.tsx             → /login
+  dashboard.tsx         → /dashboard
+```
+
+Folder diye route করার পার্থক্য:
+
+| বিষয় | App Router | Pages Router |
+|---|---|---|
+| Main folder | `src/app/` | `src/pages/` |
+| Route file | `page.tsx` | file name নিজেই route |
+| `/login` | `app/login/page.tsx` | `pages/login.tsx` |
+| Layout | nested `layout.tsx` | `_app.tsx` বা custom layout pattern |
+| Loading/error UI | `loading.tsx`, `error.tsx` | manually handle করতে হয় |
+| Route group | `(group)` folder | নেই |
+| New project-এর জন্য | Recommended | Mostly legacy/old project |
+
+Important confusion:
+
+```txt
+App Router-এ page file-এর নাম page.tsx।
+কিন্তু page.tsx থাকা মানেই Pages Router না।
+
+src/app/.../page.tsx   → App Router
+src/pages/...          → Pages Router
+```
+
+Decision:
+
+```txt
+New complex project হলে App Router use করবো।
+Old project Pages Router হলে slowly migrate করা যায়।
+Role-based dashboard/admin panel-এর জন্য App Router বেশি clean।
+```
+
+---
+
+## 7. Role-Based App Router Scaffold
+
+Project ছোট হলে simple structure enough:
+
+```txt
+src/app/
+  login/
+    page.tsx
+  dashboard/
+    page.tsx
+```
+
+কিন্তু project বড় হলে role-based structure দরকার হতে পারে।
+
+Example roles:
+
+```txt
+admin
+teacher
+student
+```
+
+Role-based App Router scaffold:
+
+```txt
+src/app/
+│
+├── (auth)/
+│   ├── login/
+│   │   └── page.tsx
+│   └── register/
+│       └── page.tsx
+│
+├── (protected)/
+│   ├── layout.tsx
+│   │
+│   ├── admin/
+│   │   ├── layout.tsx
+│   │   ├── dashboard/
+│   │   │   └── page.tsx
+│   │   ├── users/
+│   │   │   └── page.tsx
+│   │   └── settings/
+│   │       └── page.tsx
+│   │
+│   ├── teacher/
+│   │   ├── layout.tsx
+│   │   ├── dashboard/
+│   │   │   └── page.tsx
+│   │   └── courses/
+│   │       └── page.tsx
+│   │
+│   └── student/
+│       ├── layout.tsx
+│       ├── dashboard/
+│       │   └── page.tsx
+│       └── courses/
+│           └── page.tsx
+│
+├── unauthorized/
+│   └── page.tsx
+└── not-found.tsx
+```
+
+URL result:
+
+```txt
+(auth)/login/page.tsx                  → /login
+(protected)/admin/dashboard/page.tsx   → /admin/dashboard
+(protected)/teacher/courses/page.tsx   → /teacher/courses
+(protected)/student/courses/page.tsx   → /student/courses
+```
+
+`(auth)` এবং `(protected)` হলো **route group**। এগুলো URL-এ আসে না। এগুলো শুধু folder organize করার জন্য।
+
+Role-based feature folder:
+
+```txt
+src/features/
+  auth/
+  admin/
+  teacher/
+  student/
+  users/
+  courses/
+```
+
+কখন role-based scaffold দরকার:
+
+- admin/teacher/student আলাদা dashboard থাকলে
+- আলাদা sidebar/menu/layout দরকার হলে
+- role অনুযায়ী route permission আলাদা হলে
+- project বড় এবং long-term maintain করতে হলে
+
+Simple vs role-based scaffold:
+
+| Scaffold | কখন use করবো |
+|---|---|
+| Simple `dashboard/page.tsx` | ছোট app, একটাই dashboard |
+| Role-based `/admin`, `/teacher`, `/student` | বড় app, আলাদা role, আলাদা layout |
+| Route group `(protected)` | protected routes একসাথে organize করতে |
+| Feature folder `features/admin` | role-specific component/hook/service রাখতে |
+
+---
+
+## 8. Route Guard and Route Protection
+
+Route guard মানে user route-এ ঢোকার আগে check করা:
+
+```txt
+User logged in কিনা?
+User-এর role ঠিক আছে কিনা?
+Token/session valid কিনা?
+```
+
+দুইটা word আলাদা:
+
+```txt
+Authentication = user logged in কিনা
+Authorization  = user কোন role/data access করতে পারবে
+```
+
+Protection তিন জায়গায় ভাবতে হবে:
+
+| Layer | কাজ |
+|---|---|
+| FastAPI backend | Real security. Token/role/database permission check। |
+| Next.js proxy/layout/page | Frontend route redirect বা UX guard। |
+| UI menu/sidebar | User যেটা access করতে পারবে না সেটা hide করা। |
+
+Important:
+
+```txt
+Frontend route guard security না, UX.
+Real security সবসময় FastAPI backend-এ enforce করতে হবে।
+```
+
+Next.js v16 docs-এ `middleware` rename হয়ে `proxy.ts` হয়েছে। অনেক পুরোনো tutorial-এ এখনও `middleware.ts` দেখা যায়।
+
+File location:
+
+```txt
+src/proxy.ts
+```
+
+অথবা `src/` না থাকলে project root-এ:
+
+```txt
+proxy.ts
+```
+
+Basic `proxy.ts` guard example:
+
+```ts
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+export function proxy(request: NextRequest) {
+  const token = request.cookies.get("accessToken")?.value;
+  const pathname = request.nextUrl.pathname;
+
+  const isProtectedRoute =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/teacher") ||
+    pathname.startsWith("/student");
+
+  if (isProtectedRoute && !token) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/admin/:path*", "/teacher/:path*", "/student/:path*"],
+};
+```
+
+Role check layout/page level-এ করা যায়:
+
+```tsx
+import { redirect } from "next/navigation";
+
+async function getCurrentUser() {
+  // FastAPI /me endpoint call করে current user আনতে হবে
+  return {
+    id: 1,
+    email: "admin@example.com",
+    role: "admin",
+  };
+}
+
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  if (user.role !== "admin") {
+    redirect("/unauthorized");
+  }
+
+  return <>{children}</>;
+}
+```
+
+FastAPI backend protection idea:
+
+```py
+from fastapi import Depends, HTTPException
+
+def require_role(required_role: str):
+    def checker(current_user = Depends(get_current_user)):
+        if current_user.role != required_role:
+            raise HTTPException(status_code=403, detail="Forbidden")
+        return current_user
+
+    return checker
+```
+
+Then route:
+
+```py
+@router.get("/admin/users")
+async def get_users(current_user = Depends(require_role("admin"))):
+    return []
+```
+
+Best rule:
+
+```txt
+Next.js guard → redirect / user experience
+FastAPI guard → real permission/security
+```
+
+---
+
+## 9. Params and Query Params
+
+URL থেকে data দুইভাবে আসে:
+
+```txt
+Route params / dynamic params
+Query params / search params
+```
+
+Dynamic route param:
+
+```txt
+/users/123
+```
+
+এখানে `123` হলো route param।
+
+App Router folder:
+
+```txt
+src/app/users/[id]/page.tsx
+```
+
+Page example:
+
+```tsx
+type PageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export default async function UserDetailsPage({ params }: PageProps) {
+  const { id } = await params;
+
+  return <div>User ID: {id}</div>;
+}
+```
+
+More examples:
+
+```txt
+src/app/products/[slug]/page.tsx       → /products/iphone-15
+src/app/courses/[courseId]/page.tsx    → /courses/10
+src/app/users/[id]/page.tsx            → /users/123
+```
+
+Query/search params:
+
+```txt
+/products?search=phone&page=2&sort=price
+```
+
+এখানে:
+
+```txt
+search = phone
+page   = 2
+sort   = price
+```
+
+Server Component page-এ query পড়া:
+
+```tsx
+type ProductsPageProps = {
+  searchParams: Promise<{
+    search?: string;
+    page?: string;
+    sort?: string;
+  }>;
+};
+
+export default async function ProductsPage({
+  searchParams,
+}: ProductsPageProps) {
+  const query = await searchParams;
+
+  const search = query.search ?? "";
+  const page = Number(query.page ?? "1");
+  const sort = query.sort ?? "latest";
+
+  return (
+    <div>
+      Search: {search}, Page: {page}, Sort: {sort}
+    </div>
+  );
+}
+```
+
+Client Component-এ query পড়া:
+
+```tsx
+"use client";
+
+import { useSearchParams } from "next/navigation";
+
+export function ProductFilterInfo() {
+  const searchParams = useSearchParams();
+
+  const search = searchParams.get("search") ?? "";
+  const page = searchParams.get("page") ?? "1";
+
+  return (
+    <p>
+      Search: {search}, Page: {page}
+    </p>
+  );
+}
+```
+
+Param vs query compare:
+
+| Type | Example URL | Use case |
+|---|---|---|
+| Param | `/users/123` | specific resource/details page |
+| Param | `/products/iphone-15` | product details by slug |
+| Query | `/products?search=phone` | filter/search |
+| Query | `/products?page=2` | pagination |
+| Query | `/products?sort=price` | sort |
+
+Rule:
+
+```txt
+যেটা page/resource identify করে → route param
+যেটা filter/search/sort/page control করে → query param
+```
+
+FastAPI connection example:
+
+```ts
+export async function getProducts(params: {
+  search?: string;
+  page?: number;
+  sort?: string;
+}) {
+  const response = await api.get("/products", {
+    params,
+  });
+
+  return response.data;
+}
+```
+
+Final request URL:
+
+```txt
+GET http://localhost:8000/api/v1/products?search=phone&page=2&sort=price
+```
+
+---
+
+## 10. Server Component vs Client Component
+
+Next.js App Router-এ component defaultভাবে **Server Component**।
 
 Server Component ভালো:
 
-- SEO-এর জন্য
-- Fast initial load-এর জন্য
-- Server-side data fetching-এর জন্য
-- Static content render করার জন্য
+- Static page
+- SEO দরকার
+- Initial load fast রাখতে
+- Server-side data fetch করতে
 
-Client Component দরকার যখন:
+Client Component দরকার:
 
-- `useState` দরকার
-- `useEffect` দরকার
-- Button click/event দরকার
-- Form input manage করতে হবে
-- `localStorage` ব্যবহার করতে হবে
-- Browser API ব্যবহার করতে হবে
+- `useState`
+- `useEffect`
+- button click
+- form input
+- modal open/close
+- `localStorage`
+- browser API
+- Zustand
+- React Query hooks
 
-Client Component লিখতে হলে file-এর শুরুতে দিতে হবে:
+Client Component লিখতে file-এর প্রথম লাইনে দিতে হয়:
 
 ```tsx
 "use client";
@@ -347,30 +747,28 @@ export default function Counter() {
 }
 ```
 
----
-
-## Rendering Strategy and Server Cost
-
-Next.js App Router-এ component defaultভাবে **Server Component** হলেও এর মানে এই না যে প্রতিটা page সবসময় costly server request করবে।
-
-মূল idea:
+Simple rule:
 
 ```txt
-Server Component = server-side render হতে পারে
-Static Rendering / Cached Rendering = build/cache থেকে serve হতে পারে
-Dynamic Rendering = প্রতিটা request-এ fresh server/API/database work হতে পারে
+যেখানে interaction নেই  → Server Component
+যেখানে interaction আছে → Client Component
 ```
 
-Cost সাধারণত বাড়ে যখন:
+---
 
-- সব page dynamic বানানো হয়
-- প্রতিটা request-এ FastAPI / database call করা হয়
-- caching বা revalidation ব্যবহার করা হয় না
-- সব জায়গায় blindly `"use client"` দেওয়া হয়
-- React Query refetch বেশি হয়
-- middleware বা backend query heavy হয়
+## 11. Rendering and Server Cost
 
-Static public page হলে simple Server Component রাখাই ভালো:
+Server Component মানেই বেশি server cost না।
+
+Cost depend করে page কীভাবে data আনছে:
+
+```txt
+Static page       = cost কম
+Cached data page  = cost কম/medium
+Dynamic page      = cost বেশি হতে পারে
+```
+
+Static page:
 
 ```tsx
 export default function AboutPage() {
@@ -378,11 +776,13 @@ export default function AboutPage() {
 }
 ```
 
-Public data যদি কিছু সময় পর পর update হলেই চলে, তাহলে revalidate ব্যবহার করা যায়:
+এখানে FastAPI call নেই, user-specific data নেই। তাই cost কম।
+
+Public data যদি ১ মিনিট পর পর update হলেই চলে:
 
 ```tsx
 export default async function ProductsPage() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/products`, {
+  const res = await fetch(`${process.env.API_BASE_URL}/products`, {
     next: { revalidate: 60 },
   });
 
@@ -398,11 +798,11 @@ export default async function ProductsPage() {
 }
 ```
 
-Private, real-time বা user-specific data হলে `no-store` ব্যবহার করা যায়:
+Private/user-specific data:
 
 ```tsx
 export default async function DashboardPage() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/me/dashboard`, {
+  const res = await fetch(`${process.env.API_BASE_URL}/me/dashboard`, {
     cache: "no-store",
   });
 
@@ -412,77 +812,128 @@ export default async function DashboardPage() {
 }
 ```
 
-Rule:
+When to use what:
 
-```txt
-Public static page          → Server Component + static rendering
-Public semi-dynamic data    → Server Component + revalidate
-Private dashboard/profile   → dynamic/no-store অথবা Client Component + React Query
-Interactive UI              → ছোট Client Component
-```
+| Situation | Best choice |
+|---|---|
+| About, Contact, Landing | Static Server Component |
+| Public product/blog list | Server Component + `revalidate` |
+| Dashboard/profile/private data | Dynamic fetch / `no-store` |
+| Search/filter/pagination | Client Component + React Query |
+| Modal/form/sidebar | Client Component |
 
-ভালো pattern হলো পুরো page client না করে শুধু interactive অংশ client করা।
+Cost কমানোর rules:
 
-```tsx
-// app/products/page.tsx
-import ProductFilter from "./ProductFilter";
-
-export default async function ProductsPage() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/products`, {
-    next: { revalidate: 60 },
-  });
-
-  const products = await res.json();
-
-  return (
-    <div>
-      <ProductFilter />
-      {products.map((product: { id: number; name: string }) => (
-        <p key={product.id}>{product.name}</p>
-      ))}
-    </div>
-  );
-}
-```
-
-```tsx
-// app/products/ProductFilter.tsx
-"use client";
-
-export default function ProductFilter() {
-  return <input placeholder="Search product" />;
-}
-```
+1. সব page-এ blindly `"use client"` দেবো না।
+2. সব fetch-এ blindly `cache: "no-store"` দেবো না।
+3. Public data হলে `revalidate` ভাববো।
+4. Private data হলে auth + `no-store` ঠিক আছে।
+5. React Query use করলে `staleTime` set করবো।
 
 ---
 
-## Environment Variables
+## 12. Environment Variables
 
-Root folder-এ `.env.local` file তৈরি করুন।
+`.env.local`:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
+API_BASE_URL=http://localhost:8000/api/v1
 ```
 
-FastAPI backend যদি `/api/v1` prefix ব্যবহার না করে, তাহলে value হতে পারে:
+Difference:
+
+```txt
+NEXT_PUBLIC_API_BASE_URL = browser/client component থেকে use করা যায়
+API_BASE_URL             = server component/server-side code থেকে use করা ভালো
+```
+
+FastAPI backend যদি `/api/v1` prefix না use করে:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+API_BASE_URL=http://localhost:8000
 ```
-
-এই value Axios wrapper-এ ব্যবহার করা হবে FastAPI backend API connect করার জন্য।
 
 ---
 
-## Axios Setup
+## 13. FastAPI Backend Connection
 
-File path:
+Local setup:
+
+```txt
+Next.js frontend → http://localhost:3000
+FastAPI backend  → http://localhost:8000
+API prefix       → /api/v1
+```
+
+Browser থেকে FastAPI call করলে CORS দরকার।
+
+FastAPI CORS example:
+
+```py
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+FastAPI login endpoint example:
+
+```py
+from fastapi import APIRouter
+from pydantic import BaseModel
+
+router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
+
+class LoginPayload(BaseModel):
+    email: str
+    password: str
+
+@router.post("/login")
+async def login(payload: LoginPayload):
+    return {
+        "access_token": "jwt-token-here",
+        "token_type": "bearer",
+        "user": {
+            "id": 1,
+            "email": payload.email,
+        },
+    }
+```
+
+Frontend request URL:
+
+```txt
+POST http://localhost:8000/api/v1/auth/login
+```
+
+Important:
+
+```txt
+Frontend Zod validation = user experience ভালো করার জন্য
+FastAPI Pydantic validation = real backend validation
+```
+
+Frontend validation bypass করা যায়। Backend validation bypass করা যায় না।
+
+---
+
+## 14. Axios Setup
+
+File:
 
 ```txt
 src/lib/axios.ts
 ```
-
-Example:
 
 ```ts
 import axios from "axios";
@@ -508,84 +959,32 @@ api.interceptors.request.use((config) => {
 });
 ```
 
-এভাবে সব API request centralized থাকবে।
+কাজ:
 
-FastAPI যদি HTTP-only cookie auth ব্যবহার করে, তাহলে Axios config-এ `withCredentials: true` লাগতে পারে। তখন FastAPI CORS config-এও credential allow করতে হবে।
+```txt
+এক জায়গায় baseURL থাকবে
+এক জায়গায় auth token attach হবে
+সব service একই api instance use করবে
+```
+
+HTTP-only cookie auth use করলে:
+
+```ts
+export const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  withCredentials: true,
+});
+```
+
+তখন FastAPI CORS-এ `allow_credentials=True` লাগবে।
 
 ---
 
-## FastAPI Backend Connection Notes
+## 15. Service Layer
 
-এই frontend scaffold FastAPI backend-এর সাথে connect করার জন্য service layer ব্যবহার করবে। Next.js-এর `src/app/api/` route optional। FastAPI project থাকলে main backend logic FastAPI-তেই রাখা ভালো।
+Service layer-এর কাজ হলো backend API call করা।
 
-Common local setup:
-
-```txt
-Next.js frontend  → http://localhost:3000
-FastAPI backend   → http://localhost:8000
-API prefix        → /api/v1
-```
-
-FastAPI backend-এ CORS allow করতে হবে, না হলে browser request block করবে।
-
-```py
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-```
-
-FastAPI endpoint example:
-
-```py
-from fastapi import APIRouter
-from pydantic import BaseModel
-
-router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
-
-class LoginPayload(BaseModel):
-    email: str
-    password: str
-
-@router.post("/login")
-async def login(payload: LoginPayload):
-    return {
-        "access_token": "jwt-token-here",
-        "token_type": "bearer",
-        "user": {
-            "id": 1,
-            "email": payload.email,
-        },
-    }
-```
-
-Frontend service call তখন হবে:
-
-```txt
-POST http://localhost:8000/api/v1/auth/login
-```
-
-Important:
-
-- Frontend Zod validation user experience ভালো করে।
-- FastAPI Pydantic validation backend-এর real validation।
-- Frontend type এবং backend schema match রাখতে হবে।
-- FastAPI response অনেক সময় `snake_case` হয়, যেমন `access_token`।
-- Frontend চাইলে response map করে `camelCase` ব্যবহার করতে পারে।
-
----
-
-## Service Layer Example
-
-File path:
+File:
 
 ```txt
 src/features/auth/services/authService.ts
@@ -594,15 +993,15 @@ src/features/auth/services/authService.ts
 ```ts
 import { api } from "@/lib/axios";
 
-type LoginPayload = {
+export type LoginPayload = {
   email: string;
   password: string;
 };
 
-type LoginResponse = {
+export type LoginResponse = {
   access_token: string;
   token_type: "bearer";
-  user?: {
+  user: {
     id: number;
     email: string;
     name?: string;
@@ -615,15 +1014,21 @@ export async function loginUser(payload: LoginPayload) {
 }
 ```
 
-Service layer-এর কাজ হলো backend API communication handle করা।
+Note:
 
-FastAPI backend যদি `/api/v1` prefix `.env.local`-এর `NEXT_PUBLIC_API_BASE_URL`-এ already থাকে, তাহলে service path শুধু `/auth/login` হবে।
+```txt
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
+service path=/auth/login
+final URL=http://localhost:8000/api/v1/auth/login
+```
 
 ---
 
-## Custom Hook Example
+## 16. Custom Hook
 
-File path:
+Hook-এর কাজ হলো frontend logic handle করা।
+
+File:
 
 ```txt
 src/features/auth/hooks/useLogin.ts
@@ -654,92 +1059,21 @@ export function useLogin() {
 }
 ```
 
-Hook layer frontend logic handle করে।
+Hook-এ রাখা যায়:
 
-Example:
-
-- Loading state
-- Form submit logic
-- API call trigger
-- LocalStorage update
-- Error handling
+- loading state
+- submit logic
+- error handling
+- service function call
+- localStorage update
 
 ---
 
-## React Query, Zustand and Zod Notes
+## 17. Component
 
-`@tanstack/react-query` server state manage করে। মানে backend API থেকে আসা data, loading state, error state, caching, refetching এগুলো handle করে।
+Component-এর কাজ UI দেখানো।
 
-Next.js App Router-এ `useQuery()` বা `useMutation()` ব্যবহার করলে component client হতে হবে:
-
-```tsx
-"use client";
-
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/axios";
-
-export function ProductSearch({ search }: { search: string }) {
-  const { data, isLoading } = useQuery({
-    queryKey: ["products", search],
-    queryFn: async () => {
-      const response = await api.get("/products", {
-        params: { search },
-      });
-
-      return response.data;
-    },
-    staleTime: 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
-
-  if (isLoading) return <p>Loading...</p>;
-
-  return <pre>{JSON.stringify(data, null, 2)}</pre>;
-}
-```
-
-React Query use করার সময়:
-
-- `staleTime` দিলে একই data বারবার FastAPI থেকে fetch কম হবে।
-- `refetchOnWindowFocus: false` দিলে tab focus হলেই automatic refetch হবে না।
-- Search/filter/pagination/dashboard widget-এর জন্য useful।
-- Static public page-এর জন্য সবসময় React Query দরকার নেই।
-
-Zustand global client state রাখে:
-
-```txt
-Auth user
-Theme
-Sidebar open/close
-Cart
-Temporary UI state
-```
-
-Zustand আর React Query এক জিনিস না:
-
-```txt
-Zustand     → frontend/global UI state
-React Query → backend/API/server state
-```
-
-Zod frontend form validation করে:
-
-```ts
-import { z } from "zod";
-
-export const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
-```
-
-কিন্তু FastAPI backend-এ Pydantic model validation অবশ্যই রাখতে হবে। Frontend validation bypass করা যায়, backend validation bypass করা যায় না।
-
----
-
-## Component Example
-
-File path:
+File:
 
 ```txt
 src/features/auth/components/LoginForm.tsx
@@ -759,7 +1093,6 @@ export default function LoginForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
     await login(email, password);
   }
 
@@ -767,16 +1100,16 @@ export default function LoginForm() {
     <form onSubmit={handleSubmit}>
       <input
         type="email"
-        placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
       />
 
       <input
         type="password"
-        placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
       />
 
       <button disabled={loading}>
@@ -787,11 +1120,15 @@ export default function LoginForm() {
 }
 ```
 
+এখানে component শুধু UI + event handle করছে। API call সরাসরি component-এ নেই।
+
 ---
 
-## Page Example
+## 18. Page
 
-File path:
+Page route তৈরি করে।
+
+File:
 
 ```txt
 src/app/login/page.tsx
@@ -812,9 +1149,134 @@ export default function LoginPage() {
 
 ---
 
-## Route Constants Example
+## 19. React Query
 
-File path:
+React Query use করবো যখন API data cache/loading/error/refetch দরকার।
+
+Example use cases:
+
+- Search
+- Filter
+- Pagination
+- Dashboard widgets
+- Data list বারবার fetch করা
+
+Example:
+
+```tsx
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/axios";
+
+export function ProductSearch({ search }: { search: string }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["products", search],
+    queryFn: async () => {
+      const response = await api.get("/products", {
+        params: { search },
+      });
+
+      return response.data;
+    },
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Something went wrong</p>;
+
+  return <pre>{JSON.stringify(data, null, 2)}</pre>;
+}
+```
+
+Remember:
+
+```txt
+React Query hook use করলে component client হতে হবে।
+staleTime দিলে FastAPI call কম হয়।
+```
+
+---
+
+## 20. Zustand
+
+Zustand global frontend state রাখে।
+
+Use cases:
+
+- logged in user
+- auth token
+- theme
+- sidebar open/close
+- cart
+- temporary UI state
+
+React Query আর Zustand আলাদা:
+
+```txt
+React Query = backend/API data
+Zustand     = frontend/global UI state
+```
+
+Example:
+
+```ts
+import { create } from "zustand";
+
+type AuthState = {
+  token: string | null;
+  setToken: (token: string) => void;
+  logout: () => void;
+};
+
+export const useAuthStore = create<AuthState>((set) => ({
+  token: null,
+  setToken: (token) => set({ token }),
+  logout: () => set({ token: null }),
+}));
+```
+
+---
+
+## 21. Zod
+
+Zod frontend form validation করে।
+
+```ts
+import { z } from "zod";
+
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+```
+
+Validation flow:
+
+```txt
+User form fill করে
+  ↓
+Zod frontend-এ check করে
+  ↓
+Valid হলে service API call করে
+  ↓
+FastAPI আবার Pydantic দিয়ে validate করে
+```
+
+Important:
+
+```txt
+Zod user experience ভালো করে।
+Pydantic backend security/data correctness রাখে।
+দুই জায়গাতেই validation দরকার।
+```
+
+---
+
+## 22. Route Constants
+
+File:
 
 ```txt
 src/constants/routes.ts
@@ -848,60 +1310,74 @@ export default function Navbar() {
 
 ---
 
-## Available Scripts
+## 23. Development Rules
+
+1. Component-এর ভিতরে direct API call লিখবো না।
+2. API call `services/` folder-এ রাখবো।
+3. Frontend logic `hooks/` folder-এ রাখবো।
+4. Feature-specific code `features/` folder-এ রাখবো।
+5. Reusable UI `components/` folder-এ রাখবো।
+6. Backend response-এর TypeScript type লিখবো।
+7. FastAPI schema change হলে frontend type update করবো।
+8. `"use client"` শুধু দরকার হলে দেবো।
+9. Public page static রাখার চেষ্টা করবো।
+10. Public data হলে `revalidate` ব্যবহার ভাববো।
+11. Private data হলে `no-store` বা React Query use করবো।
+12. React Query use করলে `staleTime` set করবো।
+13. Zod frontend validation দিবো।
+14. FastAPI Pydantic validation অবশ্যই রাখবো।
+15. Auth token কোথায় রাখবো সেটা শুরুতেই decide করবো: localStorage না HTTP-only cookie।
+16. Role-based route হলে `/admin`, `/teacher`, `/student` আলাদা folder/layout করবো।
+17. Route group `(auth)` এবং `(protected)` URL change না করে organize করতে use করবো।
+18. Next.js route guard UX-এর জন্য, FastAPI permission check security-এর জন্য।
+19. Details page হলে `[id]` বা `[slug]` param use করবো।
+20. Search/filter/pagination হলে query/search params use করবো।
+
+---
+
+## 24. Simple Login Flow
+
+```txt
+src/app/login/page.tsx
+  ↓
+LoginForm.tsx
+  ↓
+useLogin.ts
+  ↓
+authService.ts
+  ↓
+src/lib/axios.ts
+  ↓
+FastAPI: POST /api/v1/auth/login
+  ↓
+Response: access_token + user
+```
+
+Layer meaning:
+
+```txt
+Page      = route
+Form      = UI
+Hook      = submit/loading/error logic
+Service   = API request
+Axios     = baseURL/token setup
+FastAPI   = auth/database/validation
+```
+
+---
+
+## 25. Common Scripts
 
 | Command | কাজ |
 |---|---|
 | `npm run dev` | Development server চালু করে। |
 | `npm run build` | Production build তৈরি করে। |
 | `npm run start` | Production build locally run করে। |
-| `npm run lint` | Code quality এবং linting issue check করে। |
+| `npm run lint` | Linting issue check করে। |
 
 ---
 
-## Development Rules
-
-Project clean রাখার জন্য নিচের rules follow করা উচিত:
-
-1. Component-এর ভিতরে সরাসরি API call লেখা যাবে না।
-2. API call সবসময় `services/` folder-এ রাখতে হবে।
-3. Frontend logic custom hook-এর ভিতরে রাখা ভালো।
-4. Reusable UI component `components/` folder-এ রাখতে হবে।
-5. Feature-specific code `features/` folder-এ রাখতে হবে।
-6. API payload এবং response-এর জন্য TypeScript type ব্যবহার করতে হবে।
-7. Route path `constants/routes.ts` file-এ রাখা ভালো।
-8. Environment variable `.env.local` file-এ রাখতে হবে।
-9. `"use client"` শুধু তখনই ব্যবহার করতে হবে যখন browser-side feature দরকার।
-10. Component ছোট এবং focused রাখা উচিত।
-11. Public/static page dynamic বানাবেন না যদি দরকার না থাকে।
-12. FastAPI থেকে public data আনলে possible হলে cache/revalidate strategy ভাবতে হবে।
-13. Private/user-specific data হলে `no-store`, auth header বা cookie flow ঠিকভাবে handle করতে হবে।
-14. React Query use করলে `staleTime` এবং refetch behavior control করতে হবে।
-15. FastAPI backend schema change হলে frontend TypeScript type update করতে হবে।
-
----
-
-## Recommended Data Flow
-
-```txt
-Page
- ↓
-Component
- ↓
-Hook
- ↓
-Service
- ↓
-Axios
- ↓
-Backend API
-```
-
-এই flow follow করলে code debug, test এবং maintain করা সহজ হয়।
-
----
-
-## Project Use Cases
+## 26. Use Cases
 
 এই scaffold ব্যবহার করা যাবে:
 
@@ -909,19 +1385,49 @@ Backend API
 - Admin panel
 - LMS frontend
 - SaaS frontend
-- Authentication-based frontend
-- API-connected frontend
-- Supabase frontend
+- Authentication-based app
 - FastAPI backend connected frontend
 - Production-ready frontend starter
 
 ---
 
-## Final Notes
+## 27. Official Docs References
 
-এই project structure medium to large frontend application-এর জন্য suitable।
+- App Router: https://nextjs.org/docs/app
+- Pages Router: https://nextjs.org/docs/pages
+- Route Groups: https://nextjs.org/docs/app/api-reference/file-conventions/route-groups
+- Dynamic Routes: https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes
+- Search Params: https://nextjs.org/docs/app/api-reference/functions/use-search-params
+- Authentication and Authorization: https://nextjs.org/docs/app/guides/authentication
+- Proxy for route guard/redirect: https://nextjs.org/docs/app/api-reference/file-conventions/proxy
 
-Routing, UI, business logic, API service, global state এবং shared utility আলাদা রাখার কারণে project বড় হলেও code clean থাকে।
+---
 
-Project-এ নতুন feature add করতে হলে সেটি `src/features/` folder-এর ভিতরে add করা উচিত।  
-সবকিছু `components/` folder-এ রাখলে project messy হয়ে যাবে।
+## 28. Final Summary
+
+এই structure মনে রাখলেই অনেক confusion কমবে:
+
+```txt
+app/        → route/page
+components/ → reusable UI
+features/   → feature-wise code
+hooks/      → frontend logic
+services/   → FastAPI API call
+lib/axios   → common API setup
+store/      → global frontend state
+types/      → TypeScript types
+proxy.ts    → early route guard / redirect
+```
+
+সবচেয়ে important:
+
+```txt
+UI আলাদা
+Logic আলাদা
+API call আলাদা
+Backend FastAPI আলাদা
+Route guard frontend UX
+Permission check backend security
+```
+
+এভাবে লিখলে project বড় হলেও code clean, understandable এবং maintainable থাকে।
