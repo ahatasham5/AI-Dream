@@ -700,7 +700,400 @@ GET http://localhost:8000/api/v1/products?search=phone&page=2&sort=price
 
 ---
 
-## 10. Server Component vs Client Component
+## 10. Synchronous and Asynchronous JavaScript
+
+Next.js frontend শেখার জন্য **synchronous** আর **asynchronous** বুঝা খুব important।
+
+সহজভাবে:
+
+```txt
+Synchronous  = একটার পর একটা কাজ হবে, আগের কাজ শেষ না হলে পরের কাজ শুরু হবে না
+Asynchronous = long task চলতে পারে, meanwhile অন্য কাজ চলতে পারে
+```
+
+Real-life example:
+
+```txt
+Synchronous:
+চা বানানো শেষ না হওয়া পর্যন্ত তুমি অন্য কিছু করছো না।
+
+Asynchronous:
+চা বসিয়ে দিলে, চা ফুটতে থাকলো, meanwhile তুমি অন্য কাজ করলে।
+```
+
+JavaScript single-threaded হলেও async কাজ handle করতে পারে। API request, timer, file upload, database request এগুলো সাধারণত async।
+
+---
+
+### 10.1 Synchronous Example
+
+```ts
+console.log("Step 1");
+console.log("Step 2");
+console.log("Step 3");
+```
+
+Output:
+
+```txt
+Step 1
+Step 2
+Step 3
+```
+
+এখানে line by line execute হয়।
+
+আরেকটা example:
+
+```ts
+function add(a: number, b: number) {
+  return a + b;
+}
+
+const result = add(10, 20);
+console.log(result);
+```
+
+এখানে `add()` function immediately result return করে। তাই এটা synchronous।
+
+---
+
+### 10.2 Asynchronous Example
+
+```ts
+console.log("Step 1");
+
+setTimeout(() => {
+  console.log("Step 2");
+}, 1000);
+
+console.log("Step 3");
+```
+
+Output:
+
+```txt
+Step 1
+Step 3
+Step 2
+```
+
+কারণ `setTimeout` async। JavaScript wait না করে পরের line execute করে।
+
+---
+
+### 10.3 Promise কী
+
+Promise মানে future result।
+
+```txt
+Promise pending   = কাজ চলছে
+Promise fulfilled = কাজ successful
+Promise rejected  = error হয়েছে
+```
+
+Example:
+
+```ts
+const promise = fetch("http://localhost:8000/api/v1/products");
+```
+
+`fetch()` সাথে সাথে data return করে না। এটা একটা Promise return করে। পরে response আসবে।
+
+---
+
+### 10.4 async/await কী
+
+`async/await` Promise handle করার clean syntax।
+
+```ts
+async function getProducts() {
+  const response = await fetch("http://localhost:8000/api/v1/products");
+  const data = await response.json();
+
+  return data;
+}
+```
+
+এখানে:
+
+```txt
+async = এই function Promise return করবে
+await = Promise resolve হওয়া পর্যন্ত অপেক্ষা করবে
+```
+
+Important:
+
+```txt
+await শুধু async function-এর ভিতরে use করা যায়।
+```
+
+---
+
+### 10.5 FastAPI API Call Async কেন
+
+Frontend যখন FastAPI backend-এ request পাঠায়, তখন result আসতে সময় লাগে।
+
+কারণ backend-এ হতে পারে:
+
+- database query
+- authentication check
+- file processing
+- AI model call
+- external API call
+
+তাই frontend API call async হয়।
+
+Service example:
+
+```ts
+import { api } from "@/lib/axios";
+
+export async function getUsers() {
+  const response = await api.get("/users");
+  return response.data;
+}
+```
+
+Usage:
+
+```ts
+const users = await getUsers();
+```
+
+---
+
+### 10.6 try/catch/finally
+
+Async API call করলে error handle করতে হবে।
+
+```ts
+async function loadUsers() {
+  try {
+    const users = await getUsers();
+    console.log(users);
+  } catch (error) {
+    console.log("Failed to load users", error);
+  } finally {
+    console.log("Request finished");
+  }
+}
+```
+
+Meaning:
+
+```txt
+try     = normal কাজ
+catch   = error হলে কী হবে
+finally = success/error যাই হোক শেষে চলবে
+```
+
+Custom hook-এ loading state manage করার জন্য `finally` useful।
+
+```ts
+async function login(email: string, password: string) {
+  try {
+    setLoading(true);
+    const data = await loginUser({ email, password });
+    return data;
+  } catch (error) {
+    setError("Login failed");
+  } finally {
+    setLoading(false);
+  }
+}
+```
+
+---
+
+### 10.7 Sequential vs Parallel Async
+
+Sequential মানে একটার পর একটা:
+
+```ts
+const user = await getUser();
+const orders = await getOrders();
+const notifications = await getNotifications();
+```
+
+এখানে `getOrders()` শুরু হবে `getUser()` শেষ হওয়ার পরে।
+
+যদি request গুলো একে অপরের উপর depend না করে, তাহলে parallel ভালো:
+
+```ts
+const [user, orders, notifications] = await Promise.all([
+  getUser(),
+  getOrders(),
+  getNotifications(),
+]);
+```
+
+এতে তিনটা request একসাথে শুরু হয়।
+
+Rule:
+
+```txt
+একটার result অন্যটার দরকার হলে → sequential await
+স্বাধীন request হলে → Promise.all
+```
+
+---
+
+### 10.8 Server Component-এ Async
+
+Next.js Server Component async হতে পারে।
+
+```tsx
+export default async function ProductsPage() {
+  const response = await fetch(`${process.env.API_BASE_URL}/products`, {
+    next: { revalidate: 60 },
+  });
+
+  const products = await response.json();
+
+  return (
+    <div>
+      {products.map((product: { id: number; name: string }) => (
+        <p key={product.id}>{product.name}</p>
+      ))}
+    </div>
+  );
+}
+```
+
+এটা server-side data fetch করার জন্য useful।
+
+---
+
+### 10.9 Client Component-এ Async
+
+Client Component-এর main component function সাধারণত async করা হয় না। Event handler async করা হয়।
+
+```tsx
+"use client";
+
+export default function SaveButton() {
+  async function handleClick() {
+    await fetch("/api/save", {
+      method: "POST",
+    });
+  }
+
+  return <button onClick={handleClick}>Save</button>;
+}
+```
+
+Form submit example:
+
+```tsx
+async function handleSubmit(e: React.FormEvent) {
+  e.preventDefault();
+  await login(email, password);
+}
+```
+
+---
+
+### 10.10 React Query Async
+
+React Query-এর `queryFn` async হয়।
+
+```tsx
+const { data, isLoading, error } = useQuery({
+  queryKey: ["users"],
+  queryFn: async () => {
+    const response = await api.get("/users");
+    return response.data;
+  },
+});
+```
+
+React Query নিজে loading/error/cache manage করে।
+
+তাই সবসময় manual `useState` দিয়ে loading manage করতে হয় না।
+
+---
+
+### 10.11 Common Mistakes
+
+ভুল ১: `await` না দেওয়া।
+
+```ts
+const data = getUsers();
+console.log(data);
+```
+
+এখানে `data` actual users না, Promise হতে পারে।
+
+ঠিক:
+
+```ts
+const data = await getUsers();
+console.log(data);
+```
+
+ভুল ২: `async` ছাড়া `await` use করা।
+
+```ts
+function loadUsers() {
+  const users = await getUsers();
+}
+```
+
+ঠিক:
+
+```ts
+async function loadUsers() {
+  const users = await getUsers();
+}
+```
+
+ভুল ৩: independent request sequential করা।
+
+```ts
+const users = await getUsers();
+const products = await getProducts();
+```
+
+যদি দুইটা independent হয়:
+
+```ts
+const [users, products] = await Promise.all([
+  getUsers(),
+  getProducts(),
+]);
+```
+
+ভুল ৪: error handle না করা।
+
+```ts
+const data = await getUsers();
+```
+
+ভালো:
+
+```ts
+try {
+  const data = await getUsers();
+} catch (error) {
+  console.log(error);
+}
+```
+
+Final memory:
+
+```txt
+Normal calculation       → synchronous
+API call                 → asynchronous
+FastAPI request          → asynchronous
+Server Component fetch   → async/await
+Client button/form event → async handler
+React Query queryFn      → async function
+```
+
+---
+
+## 11. Server Component vs Client Component
 
 Next.js App Router-এ component defaultভাবে **Server Component**।
 
@@ -756,7 +1149,7 @@ Simple rule:
 
 ---
 
-## 11. Rendering and Server Cost
+## 12. Rendering and Server Cost
 
 Server Component মানেই বেশি server cost না।
 
@@ -832,7 +1225,7 @@ Cost কমানোর rules:
 
 ---
 
-## 12. Environment Variables
+## 13. Environment Variables
 
 `.env.local`:
 
@@ -857,7 +1250,7 @@ API_BASE_URL=http://localhost:8000
 
 ---
 
-## 13. FastAPI Backend Connection
+## 14. FastAPI Backend Connection
 
 Local setup:
 
@@ -927,7 +1320,7 @@ Frontend validation bypass করা যায়। Backend validation bypass ক�
 
 ---
 
-## 14. Axios Setup
+## 15. Axios Setup
 
 File:
 
@@ -980,7 +1373,7 @@ export const api = axios.create({
 
 ---
 
-## 15. Service Layer
+## 16. Service Layer
 
 Service layer-এর কাজ হলো backend API call করা।
 
@@ -1024,7 +1417,7 @@ final URL=http://localhost:8000/api/v1/auth/login
 
 ---
 
-## 16. Custom Hook
+## 17. Custom Hook
 
 Hook-এর কাজ হলো frontend logic handle করা।
 
@@ -1069,7 +1462,7 @@ Hook-এ রাখা যায়:
 
 ---
 
-## 17. Component
+## 18. Component
 
 Component-এর কাজ UI দেখানো।
 
@@ -1124,7 +1517,7 @@ export default function LoginForm() {
 
 ---
 
-## 18. Page
+## 19. Page
 
 Page route তৈরি করে।
 
@@ -1149,7 +1542,7 @@ export default function LoginPage() {
 
 ---
 
-## 19. React Query
+## 20. React Query
 
 React Query use করবো যখন API data cache/loading/error/refetch দরকার।
 
@@ -1199,7 +1592,7 @@ staleTime দিলে FastAPI call কম হয়।
 
 ---
 
-## 20. Zustand
+## 21. Zustand
 
 Zustand global frontend state রাখে।
 
@@ -1239,7 +1632,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 ---
 
-## 21. Zod
+## 22. Zod
 
 Zod frontend form validation করে।
 
@@ -1274,7 +1667,7 @@ Pydantic backend security/data correctness রাখে।
 
 ---
 
-## 22. Route Constants
+## 23. Route Constants
 
 File:
 
@@ -1310,7 +1703,7 @@ export default function Navbar() {
 
 ---
 
-## 23. Development Rules
+## 24. Development Rules
 
 1. Component-এর ভিতরে direct API call লিখবো না।
 2. API call `services/` folder-এ রাখবো।
@@ -1332,10 +1725,14 @@ export default function Navbar() {
 18. Next.js route guard UX-এর জন্য, FastAPI permission check security-এর জন্য।
 19. Details page হলে `[id]` বা `[slug]` param use করবো।
 20. Search/filter/pagination হলে query/search params use করবো।
+21. API call সবসময় async হিসেবে ভাববো।
+22. `await` use করলে function `async` হতে হবে।
+23. Independent multiple API call হলে `Promise.all` use করা যায়।
+24. Async API call-এ `try/catch/finally` দিয়ে error/loading handle করবো।
 
 ---
 
-## 24. Simple Login Flow
+## 25. Simple Login Flow
 
 ```txt
 src/app/login/page.tsx
@@ -1366,7 +1763,7 @@ FastAPI   = auth/database/validation
 
 ---
 
-## 25. Common Scripts
+## 26. Common Scripts
 
 | Command | কাজ |
 |---|---|
@@ -1377,7 +1774,7 @@ FastAPI   = auth/database/validation
 
 ---
 
-## 26. Use Cases
+## 27. Use Cases
 
 এই scaffold ব্যবহার করা যাবে:
 
@@ -1391,7 +1788,7 @@ FastAPI   = auth/database/validation
 
 ---
 
-## 27. Official Docs References
+## 28. Official Docs References
 
 - App Router: https://nextjs.org/docs/app
 - Pages Router: https://nextjs.org/docs/pages
@@ -1403,7 +1800,7 @@ FastAPI   = auth/database/validation
 
 ---
 
-## 28. Final Summary
+## 29. Final Summary
 
 এই structure মনে রাখলেই অনেক confusion কমবে:
 
@@ -1417,6 +1814,7 @@ lib/axios   → common API setup
 store/      → global frontend state
 types/      → TypeScript types
 proxy.ts    → early route guard / redirect
+async/await → API call এবং server data fetching
 ```
 
 সবচেয়ে important:
@@ -1428,6 +1826,8 @@ API call আলাদা
 Backend FastAPI আলাদা
 Route guard frontend UX
 Permission check backend security
+API call async
+Error/loading handle করতে হবে
 ```
 
 এভাবে লিখলে project বড় হলেও code clean, understandable এবং maintainable থাকে।
