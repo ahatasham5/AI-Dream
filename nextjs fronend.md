@@ -1,7 +1,7 @@
 # Next.js Frontend Notes with FastAPI Backend
 
 এই note-টা আমার Next.js frontend শেখার জন্য।  
-আমার backend focus হলো **FastAPI**, Express.js না।
+আমার backend focus হলো **FastAPI**।
 
 Main goal:
 
