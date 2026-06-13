@@ -182,49 +182,78 @@ Response model protects output
 
 ## 04. Installation এবং Local Setup
 
-Windows local setup:
+Modern FastAPI backend setup-এর জন্য আমরা **uv** use করবো। `uv` Python version, virtual environment, dependency, lockfile, command run - সব একসাথে manage করে।
 
-```bash
-py -m venv .venv
-.venv\Scripts\activate
+Windows-এ uv install:
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-Install:
+Check:
 
 ```bash
-python -m pip install "fastapi[standard]" uvicorn python-dotenv
+uv --version
 ```
 
-Database/auth packages:
+New backend project:
 
 ```bash
-python -m pip install sqlmodel passlib[bcrypt] python-jose[cryptography] python-multipart pytest
+uv init backend
+cd backend
 ```
 
-Common `requirements.txt`:
+Python version pin:
 
-```txt
-fastapi[standard]
-uvicorn
-python-dotenv
-sqlmodel
-passlib[bcrypt]
-python-jose[cryptography]
-python-multipart
-pytest
+```bash
+uv python install 3.12
+uv python pin 3.12
+```
+
+Main dependencies:
+
+```bash
+uv add "fastapi[standard]" uvicorn python-dotenv
+```
+
+Database/auth/upload dependencies:
+
+```bash
+uv add sqlmodel "passlib[bcrypt]" "python-jose[cryptography]" python-multipart
+```
+
+Test dependency:
+
+```bash
+uv add --dev pytest
+```
+
+Project sync:
+
+```bash
+uv sync
 ```
 
 Run:
 
 ```bash
-uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload
 ```
 
-Alternative:
+Alternative FastAPI dev command:
 
 ```bash
-fastapi dev app/main.py
+uv run fastapi dev app/main.py
 ```
+
+Project dependency files:
+
+| File | কাজ |
+|---|---|
+| `pyproject.toml` | project metadata এবং dependencies |
+| `uv.lock` | exact resolved dependency versions |
+| `.python-version` | project Python version |
+| `.venv/` | uv managed virtual environment |
 
 Open:
 
@@ -265,7 +294,7 @@ async def root():
 Run:
 
 ```bash
-uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload
 ```
 
 Visit:
@@ -617,7 +646,8 @@ backend/
       auth.py
       users.py
   .env
-  requirements.txt
+  pyproject.toml
+  uv.lock
 ```
 
 Learning/MVP-এর জন্য enough।
@@ -666,7 +696,8 @@ backend/
 
   tests/
   .env
-  requirements.txt
+  pyproject.toml
+  uv.lock
 ```
 
 Scaffold decision:
@@ -749,12 +780,6 @@ FastAPI নিজে database force করে না। Common choices:
 ```txt
 SQLAlchemy = professional/common ORM
 SQLModel   = SQLAlchemy + Pydantic style, learning-friendly
-```
-
-Install:
-
-```bash
-python -m pip install sqlmodel
 ```
 
 Database setup:
@@ -1255,11 +1280,7 @@ Validation error হলে Pydantic 422 দিবে।
 
 ## 19. File Upload এবং Background Tasks
 
-File upload:
-
-```bash
-python -m pip install python-multipart
-```
+File upload করতে `python-multipart` dependency দরকার। এই note-এর setup section-এ আমরা already `uv add ... python-multipart` করেছি।
 
 ```py
 from fastapi import APIRouter, UploadFile, File
@@ -1491,7 +1512,7 @@ def test_health_check():
 Run:
 
 ```bash
-pytest
+uv run pytest
 ```
 
 Test first:
@@ -1619,6 +1640,9 @@ Rules:
 18. Critical endpoint-এর test রাখবো।
 19. MVP-তে clean monolith যথেষ্ট।
 20. Redis/queue/microservice পরে দরকার হলে add করবো।
+21. Dependency add করবো `uv add` দিয়ে।
+22. Command run করবো `uv run` দিয়ে।
+23. Team/project setup sync করবো `uv sync` দিয়ে।
 
 Final memory:
 
