@@ -1,118 +1,91 @@
-# FastAPI Backend Notes for Next.js Frontend
+# FastAPI Backend Tutorial for Next.js Frontend
+
+এই note-টা FastAPI backend শেখার জন্য। Frontend side হিসেবে ধরা হয়েছে **Next.js App Router**।
+
+Main goal:
+
+```txt
+Backend কেন দরকার বুঝা
+Request কীভাবে backend-এর ভিতর দিয়ে যায় বুঝা
+কোন component/file কেন ব্যবহার করছি বুঝা
+Next.js frontend-এর জন্য clean, secure JSON API বানানো
+Project বড় হলেও structure maintainable রাখা
+```
+
+Learning order:
+
+```txt
+Concept -> Request flow -> Building blocks -> Small app -> Structure -> Database -> Auth -> Permission -> Frontend connection
+```
 
 <a id="index"></a>
 
 ## Index
 
 <!-- tutorial-index:start -->
-- [1. Big Picture](#section-1)
-- [2. Backend Architecture Flow](#section-2)
-- [3. Installation](#section-3)
-- [4. Simple Project Structure](#section-4)
-- [5. Bigger Project Structure](#section-5)
-- [6. FastAPI Scaffold Types](#section-6)
-  - [6.1 Simple / Flat Scaffold](#section-7)
-  - [6.2 Router-Based Scaffold](#section-8)
-  - [6.3 Feature-Based / Modular Scaffold](#section-9)
-  - [6.4 Layered Architecture Scaffold](#section-10)
-  - [6.5 Clean Architecture Scaffold](#section-11)
-  - [6.6 Microservice-Style Scaffold](#section-12)
-- [7. Scaffold Decision Guide](#section-13)
-- [8. Model vs Schema Vocabulary](#section-14)
-- [9. Transport/Fleet/Uber-Type Scaffold Example](#section-15)
-- [10. MVP, Advanced Features, and Redis](#section-16)
-- [11. First FastAPI App](#section-17)
-- [12. API Prefix and Versioning](#section-18)
-- [13. APIRouter](#section-19)
-- [14. Path Parameters](#section-20)
-- [15. Query Parameters](#section-21)
-- [16. Request Body](#section-22)
-- [17. Pydantic Schemas](#section-23)
-- [18. Response Model](#section-24)
-- [19. Synchronous and Asynchronous in FastAPI](#section-25)
-- [20. CORS for Next.js Frontend](#section-26)
-- [21. Environment Variables](#section-27)
-- [22. Database Basics with SQLModel](#section-28)
-- [23. Database Models](#section-29)
-- [24. CRUD Example](#section-30)
-- [25. Dependencies](#section-31)
-- [26. Authentication](#section-32)
-- [27. Authorization and Role Protection](#section-33)
-- [28. Error Handling](#section-34)
-- [29. File Upload](#section-35)
-- [30. Background Tasks](#section-36)
-- [31. Next.js Frontend Connection](#section-37)
-- [32. API Docs and OpenAPI](#section-38)
-- [33. Testing](#section-39)
-- [34. Development Rules](#section-40)
-- [35. Simple Auth Flow](#section-41)
-- [36. Common Commands](#section-42)
-- [37. Use Cases](#section-43)
-- [38. Official Docs References](#section-44)
-- [39. Final Summary](#section-45)
+- [01. Big Picture: Backend আসলে কী করে](#section-1)
+- [02. Request Lifecycle: Browser থেকে Database পর্যন্ত](#section-2)
+- [03. FastAPI Building Blocks: কোন অংশ কেন](#section-3)
+- [04. Installation এবং Local Setup](#section-4)
+- [05. First FastAPI App](#section-5)
+- [06. API Prefix, Versioning এবং APIRouter](#section-6)
+- [07. Path, Query এবং Request Body](#section-7)
+- [08. Pydantic Schema এবং Response Model](#section-8)
+- [09. Sync, Async এবং Await](#section-9)
+- [10. Project Structure: Simple থেকে Production Style](#section-10)
+- [11. Model vs Schema vs Service vs Repository](#section-11)
+- [12. Database Basics with SQLModel](#section-12)
+- [13. CRUD Flow: Create, Read, Update, Delete](#section-13)
+- [14. Dependencies: Reusable Logic Inject করা](#section-14)
+- [15. Environment Variables এবং CORS](#section-15)
+- [16. Authentication: Login, Password Hash, JWT](#section-16)
+- [17. Authorization: Role এবং Permission Protection](#section-17)
+- [18. Error Handling এবং Status Code](#section-18)
+- [19. File Upload এবং Background Tasks](#section-19)
+- [20. MVP, Redis, Queue এবং Scaling Decision](#section-20)
+- [21. Next.js Frontend Connection](#section-21)
+- [22. API Docs, OpenAPI এবং Testing](#section-22)
+- [23. Practical Domain Example: Fleet/Uber-Type Backend](#section-23)
+- [24. Development Rules, Checklist এবং Summary](#section-24)
 <!-- tutorial-index:end -->
-
----
-
-
-এই note-টা FastAPI backend শেখার জন্য।  
-Frontend side হিসেবে আমি Next.js App Router use করবো।
-
-Main goal:
-
-```txt
-Clean FastAPI backend structure
-Next.js frontend-এর জন্য API তৈরি করা
-Auth, role protection, database, validation বুঝা
-Project বড় হলেও code যেন maintainable থাকে
-```
 
 ---
 
 <a id="section-1"></a>
 
-## 1. Big Picture
+## 01. Big Picture: Backend আসলে কী করে
 
-Full-stack app-এর flow:
+Backend হলো app-এর real brain। Frontend user-এর সাথে কথা বলে, backend business rule enforce করে।
 
-```txt
-User Browser
-  ↓
-Next.js Frontend
-  ↓
-Axios / Fetch
-  ↓
-FastAPI Backend
-  ↓
-Service / Business Logic
-  ↓
-Database
-```
-
-সহজভাবে:
+Simple responsibility:
 
 ```txt
-Next.js  = UI, page, form, frontend state
-FastAPI  = API, auth, validation, database logic
+Next.js  = UI, routing, forms, frontend state
+FastAPI  = API, validation, auth, permission, business logic
 Database = permanent data storage
 ```
 
-FastAPI backend-এর কাজ:
+FastAPI backend-এর main কাজ:
 
-- API route তৈরি করা
-- request data validate করা
-- database query করা
-- authentication/authorization check করা
-- response পাঠানো
-- error/status code handle করা
-- frontend-এর জন্য clean JSON API provide করা
+| কাজ | কেন দরকার |
+|---|---|
+| API route তৈরি | frontend যেন data চাইতে পারে |
+| Request validation | ভুল/অসম্পূর্ণ data reject করতে |
+| Authentication | user কে verify করতে |
+| Authorization | user কী access করতে পারবে তা control করতে |
+| Database operation | permanent data create/read/update/delete করতে |
+| Business logic | app-এর real rule apply করতে |
+| Response formatting | frontend যেন clean JSON পায় |
+| Error handling | frontend/user যেন meaningful error পায় |
 
 Important rule:
 
 ```txt
 Frontend validation = user experience
-Backend validation  = real security/data correctness
+Backend validation  = real data correctness/security
 ```
+
+User browser থেকে কেউ চাইলে frontend validation bypass করতে পারে। কিন্তু backend validation bypass করা উচিত না।
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -121,39 +94,47 @@ Backend validation  = real security/data correctness
 
 <a id="section-2"></a>
 
-## 2. Backend Architecture Flow
+## 02. Request Lifecycle: Browser থেকে Database পর্যন্ত
 
-একটা clean FastAPI backend সাধারণত এই flow follow করে:
+একটা request backend-এর ভিতরে সাধারণত এইভাবে যায়:
 
 ```txt
-Request
-  ↓
-Router / Endpoint
-  ↓
-Dependency
-  ↓
-Service Function
-  ↓
-Repository / Database Query
-  ↓
-Database
-  ↓
-Response Schema
+Next.js Frontend
+  -> HTTP Request
+  -> FastAPI Router/Endpoint
+  -> Dependency
+  -> Pydantic Schema Validation
+  -> Service/Business Logic
+  -> Repository/Database Query
+  -> Database
+  -> Response Schema
+  -> JSON Response
+  -> Next.js Frontend
 ```
 
-Layer meaning:
+Login example:
 
 ```txt
-Router      = URL endpoint define করে
-Schema      = request/response data shape
-Dependency  = common logic inject করে, যেমন DB session/current user
-Service     = business logic
+POST /api/v1/auth/login
+  -> LoginPayload schema email/password validate করে
+  -> auth_service user খুঁজে
+  -> password verify করে
+  -> JWT token create করে
+  -> LoginResponse schema safe data পাঠায়
+```
+
+কেন layer ভাগ করি:
+
+```txt
+Router      = URL and HTTP method
+Schema      = data shape and validation
+Service     = business rule
 Repository  = database query
-Model       = database table structure
-Config      = env/settings
+Model       = database table
+Dependency  = repeated common logic
 ```
 
-ছোট project হলে সব layer আলাদা না করলেও চলে। কিন্তু বড় project হলে আলাদা রাখা ভালো।
+ছোট project-এ সব layer আলাদা না করলেও চলে। কিন্তু বড় project-এ আলাদা রাখলে code easier to test, debug, and maintain.
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -162,17 +143,49 @@ Config      = env/settings
 
 <a id="section-3"></a>
 
-## 3. Installation
+## 03. FastAPI Building Blocks: কোন অংশ কেন
+
+FastAPI শেখার সময় এই words বারবার আসবে:
+
+| Name | কাজ | Example file |
+|---|---|---|
+| `FastAPI()` app | backend application create করে | `app/main.py` |
+| Router | API endpoints group করে | `app/api/v1/routes/users.py` |
+| Path param | URL-এর part থেকে value নেয় | `/users/{user_id}` |
+| Query param | `?search=...` value নেয় | `/users?role=admin` |
+| Request body | POST/PATCH data নেয় | login/register payload |
+| Pydantic schema | input/output validate করে | `schemas/user.py` |
+| Response model | frontend-এ safe data পাঠায় | `UserPublic` |
+| DB model | database table define করে | `models/user.py` |
+| Dependency | reusable logic inject করে | `get_session`, `get_current_user` |
+| Service | business logic রাখে | `services/auth_service.py` |
+| Repository | database query রাখে | `repositories/user_repository.py` |
+| Middleware | request/response মাঝখানে কাজ করে | CORS |
+
+Short memory:
+
+```txt
+Route receives request
+Schema checks data
+Service applies rule
+Repository talks to DB
+Model defines DB table
+Response model protects output
+```
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+---
+
+<a id="section-4"></a>
+
+## 04. Installation এবং Local Setup
 
 Windows local setup:
 
 ```bash
 py -m venv .venv
-```
-
-Activate:
-
-```bash
 .venv\Scripts\activate
 ```
 
@@ -182,10 +195,10 @@ Install:
 python -m pip install "fastapi[standard]" uvicorn python-dotenv
 ```
 
-Database + auth package দরকার হলে:
+Database/auth packages:
 
 ```bash
-python -m pip install sqlmodel passlib[bcrypt] python-jose[cryptography]
+python -m pip install sqlmodel passlib[bcrypt] python-jose[cryptography] python-multipart pytest
 ```
 
 Common `requirements.txt`:
@@ -197,18 +210,20 @@ python-dotenv
 sqlmodel
 passlib[bcrypt]
 python-jose[cryptography]
+python-multipart
+pytest
 ```
 
 Run:
 
 ```bash
-fastapi dev app/main.py
+uvicorn app.main:app --reload
 ```
 
 Alternative:
 
 ```bash
-uvicorn app.main:app --reload
+fastapi dev app/main.py
 ```
 
 Open:
@@ -224,819 +239,9 @@ ReDoc docs:   http://localhost:8000/redoc
 
 ---
 
-<a id="section-4"></a>
-
-## 4. Simple Project Structure
-
-শুরুতে simple structure:
-
-```txt
-backend/
-│
-├── app/
-│   ├── main.py
-│   ├── config.py
-│   ├── database.py
-│   ├── models.py
-│   ├── schemas.py
-│   └── routers/
-│       ├── auth.py
-│       └── users.py
-│
-├── .env
-├── requirements.txt
-└── README.md
-```
-
-Folder/file meaning:
-
-| File/Folder | কাজ |
-|---|---|
-| `app/main.py` | FastAPI app create করে, routers include করে। |
-| `app/config.py` | Environment variable/settings manage করে। |
-| `app/database.py` | Database engine/session setup। |
-| `app/models.py` | Database table model। |
-| `app/schemas.py` | Request/response Pydantic schema। |
-| `app/routers/` | API endpoints। |
-| `.env` | Secret/config value। |
-| `requirements.txt` | Python packages list। |
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
 <a id="section-5"></a>
 
-## 5. Bigger Project Structure
-
-Project বড় হলে feature/domain based structure ভালো।
-
-```txt
-backend/
-│
-├── app/
-│   ├── main.py
-│   ├── core/
-│   │   ├── config.py
-│   │   └── security.py
-│   │
-│   ├── db/
-│   │   ├── database.py
-│   │   └── session.py
-│   │
-│   ├── api/
-│   │   └── v1/
-│   │       ├── router.py
-│   │       └── endpoints/
-│   │           ├── auth.py
-│   │           ├── users.py
-│   │           ├── admin.py
-│   │           └── courses.py
-│   │
-│   ├── models/
-│   │   ├── user.py
-│   │   └── course.py
-│   │
-│   ├── schemas/
-│   │   ├── auth.py
-│   │   ├── user.py
-│   │   └── course.py
-│   │
-│   ├── services/
-│   │   ├── auth_service.py
-│   │   ├── user_service.py
-│   │   └── course_service.py
-│   │
-│   └── dependencies/
-│       ├── auth.py
-│       └── roles.py
-│
-├── tests/
-├── .env
-└── requirements.txt
-```
-
-Simple vs bigger scaffold:
-
-| Scaffold | কখন use করবো |
-|---|---|
-| Single `models.py`, `schemas.py` | ছোট learning project |
-| `models/`, `schemas/`, `services/` folders | medium/large project |
-| `api/v1/endpoints/` | versioned production-style API |
-| `dependencies/` | reusable auth/DB/role logic |
-| `services/` | business logic clean রাখতে |
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-6"></a>
-
-## 6. FastAPI Scaffold Types
-
-FastAPI scaffold মানে হলো:
-
-```txt
-Project folder structure
-Code organization pattern
-কোন logic কোন file/folder-এ থাকবে
-```
-
-Project ছোট না বড়, feature কত complex, team কয়জন, future scaling লাগবে কিনা — এগুলোর উপর scaffold depend করে।
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
-<a id="section-7"></a>
-
-### 6.1 Simple / Flat Scaffold
-
-ছোট project, demo, learning, quick MVP test-এর জন্য।
-
-```txt
-app/
-  main.py
-  database.py
-  models.py
-  schemas.py
-  crud.py
-  auth.py
-```
-
-Use করবো যখন:
-
-```txt
-ছোট API
-১-৫টা table
-একজন developer
-দ্রুত prototype
-```
-
-Problem:
-
-```txt
-Project বড় হলে models.py, schemas.py, crud.py অনেক বড় হয়ে যায়।
-```
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-8"></a>
-
-### 6.2 Router-Based Scaffold
-
-এটা FastAPI-এর common clean starting structure। Feature অনুযায়ী route আলাদা থাকে।
-
-```txt
-app/
-  main.py
-  core/
-    config.py
-    security.py
-  db/
-    database.py
-  models/
-    user.py
-    ride.py
-    driver.py
-  schemas/
-    user.py
-    ride.py
-    driver.py
-  routers/
-    auth.py
-    users.py
-    rides.py
-    drivers.py
-  services/
-    auth_service.py
-    ride_service.py
-```
-
-Use করবো যখন:
-
-```txt
-MVP backend
-Medium-size app
-API route বেশি হচ্ছে
-Team-based development শুরু হচ্ছে
-```
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-9"></a>
-
-### 6.3 Feature-Based / Modular Scaffold
-
-এখানে প্রতিটি feature/module নিজের ভিতরে router, schema, model, service রাখে।
-
-```txt
-app/
-  main.py
-  core/
-    config.py
-    security.py
-  db/
-    database.py
-  modules/
-    auth/
-      router.py
-      schemas.py
-      service.py
-    users/
-      router.py
-      models.py
-      schemas.py
-      service.py
-    drivers/
-      router.py
-      models.py
-      schemas.py
-      service.py
-    rides/
-      router.py
-      models.py
-      schemas.py
-      service.py
-    payments/
-      router.py
-      models.py
-      schemas.py
-      service.py
-```
-
-Use করবো যখন:
-
-```txt
-Project বড় হবে
-Feature অনেক
-Multiple developer কাজ করবে
-Long-term maintain করতে হবে
-```
-
-LMS, marketplace, SaaS, Uber-type app-এর জন্য এই pattern useful।
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-10"></a>
-
-### 6.4 Layered Architecture Scaffold
-
-এখানে code layer অনুযায়ী ভাগ হয়: API layer, service layer, repository layer, model layer।
-
-```txt
-app/
-  main.py
-  api/
-    v1/
-      routes/
-        auth.py
-        users.py
-        rides.py
-  core/
-    config.py
-    security.py
-  db/
-    session.py
-    base.py
-  models/
-    user.py
-    ride.py
-  schemas/
-    user.py
-    ride.py
-  services/
-    user_service.py
-    ride_service.py
-  repositories/
-    user_repository.py
-    ride_repository.py
-```
-
-Layer meaning:
-
-```txt
-router      = request receive করে
-schema      = input/output validation করে
-service     = business logic handle করে
-repository  = database query handle করে
-model       = database table structure
-```
-
-Professional backend-এর জন্য এটা খুব useful, কারণ code test করা সহজ হয়।
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-11"></a>
-
-### 6.5 Clean Architecture Scaffold
-
-আরও advanced structure। Business logic framework/database থেকে আলাদা রাখে।
-
-```txt
-app/
-  main.py
-  domain/
-    entities/
-      user.py
-      ride.py
-  application/
-    use_cases/
-      create_ride.py
-      assign_driver.py
-  infrastructure/
-    database/
-      models.py
-      repositories.py
-  presentation/
-    api/
-      routes/
-        rides.py
-        users.py
-```
-
-Use করবো যখন:
-
-```txt
-Very large project
-Enterprise backend
-Business logic খুব complex
-Long-term scaling দরকার
-```
-
-Learning/MVP-এর জন্য সাধারণত এটা overkill।
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-12"></a>
-
-### 6.6 Microservice-Style Scaffold
-
-Backend একাধিক service-এ ভাগ করলে microservice-style হয়।
-
-```txt
-services/
-  auth-service/
-    app/
-      main.py
-  ride-service/
-    app/
-      main.py
-  payment-service/
-    app/
-      main.py
-  notification-service/
-    app/
-      main.py
-```
-
-Use করবো যখন:
-
-```txt
-অনেক user
-অনেক team
-প্রতিটি service আলাদা deploy করতে হবে
-High scaling দরকার
-```
-
-শুরুতে এটা দরকার নেই। MVP-তে monolith backend রাখাই ভালো।
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-13"></a>
-
-## 7. Scaffold Decision Guide
-
-কোন scaffold বেছে নিবো:
-
-| Situation | Best scaffold |
-|---|---|
-| শেখা/demo | Simple / Flat |
-| ছোট MVP | Router-based |
-| Medium app | Router-based + Services |
-| Complex business logic | Layered Architecture |
-| অনেক feature/team | Feature-based / Modular |
-| Enterprise/highly complex | Clean Architecture |
-| Huge scale/many deployable services | Microservices |
-
-আমার practical default:
-
-```txt
-FastAPI Monolith Backend
-Router-based + Layered Architecture
-PostgreSQL
-SQLAlchemy বা SQLModel
-Alembic migration
-Pydantic schemas
-JWT Auth
-RBAC/Permission layer
-Redis optional
-Celery optional
-```
-
-Important:
-
-```txt
-শুরুতেই microservice বানাবো না।
-প্রথমে clean monolith বানাবো।
-Project বড় হলে module/service/repository আলাদা করবো।
-```
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-14"></a>
-
-## 8. Model vs Schema Vocabulary
-
-FastAPI learning-এ **model** word একটু confusing, কারণ দুইভাবে use হয়:
-
-```txt
-Database Model       = database table structure
-Pydantic Model/Schema = API request/response validation
-```
-
-এই note-এ আমি সহজ করার জন্য বলবো:
-
-```txt
-Model  = database table-এর জন্য
-Schema = API data-এর জন্য
-```
-
-Database model example:
-
-```py
-from sqlalchemy import Column, Integer, String, Boolean
-from app.database import Base
-
-class Vehicle(Base):
-    __tablename__ = "vehicles"
-
-    id = Column(Integer, primary_key=True, index=True)
-    vehicle_number = Column(String, unique=True, nullable=False)
-    vehicle_type = Column(String, nullable=False)
-    status = Column(String, default="available")
-    is_active = Column(Boolean, default=True)
-```
-
-এখানে:
-
-```txt
-Vehicle class     = vehicles table-এর Python version
-__tablename__     = database table name
-id                = table column
-vehicle_number    = table column
-nullable=False    = required column
-unique=True       = duplicate allowed না
-default=True      = default value
-```
-
-Schema example:
-
-```py
-from pydantic import BaseModel
-
-class VehicleCreate(BaseModel):
-    vehicle_number: str
-    vehicle_type: str
-
-class VehicleUpdate(BaseModel):
-    vehicle_number: str | None = None
-    vehicle_type: str | None = None
-    status: str | None = None
-    is_active: bool | None = None
-
-class VehicleResponse(BaseModel):
-    id: int
-    vehicle_number: str
-    vehicle_type: str
-    status: str
-    is_active: bool
-
-    class Config:
-        from_attributes = True
-```
-
-Schema type:
-
-```txt
-VehicleCreate   = frontend থেকে create করার সময় যা আসবে
-VehicleUpdate   = update করার সময় optional data
-VehicleResponse = backend frontend-এ যা পাঠাবে
-```
-
-Model vs schema:
-
-| বিষয় | Model | Schema |
-|---|---|---|
-| কাজ | Database table define করে | API data validate/format করে |
-| Folder | `models/` | `schemas/` |
-| Example | `Vehicle` | `VehicleCreate`, `VehicleResponse` |
-| Sensitive field | থাকতে পারে | response-এ hide করা যায় |
-| Frontend direct use | না | হ্যাঁ, request/response shape হিসেবে |
-
-Example:
-
-```txt
-User model:
-id
-name
-email
-hashed_password
-role
-is_active
-created_at
-updated_at
-
-UserResponse schema:
-id
-name
-email
-role
-is_active
-```
-
-`hashed_password` database model-এ থাকবে, কিন্তু API response schema-তে যাবে না।
-
-Final memory:
-
-```txt
-models/  → database কীভাবে data রাখবে
-schemas/ → API দিয়ে কোন data ঢুকবে/বের হবে
-routes/  → URL endpoint
-services/ → business logic
-repositories/ → database query
-```
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-15"></a>
-
-## 9. Transport/Fleet/Uber-Type Scaffold Example
-
-Transport, fleet, Uber-type, LMS, SaaS-এর মতো বড় app-এ role, permission, payment, trip/booking, profile — অনেক domain থাকে।
-
-Example roles:
-
-```txt
-customer
-driver
-admin
-super_admin
-support
-accounts
-fleet_manager
-```
-
-Recommended scaffold:
-
-```txt
-backend/
-  app/
-    main.py
-
-    core/
-      config.py
-      security.py
-      permissions.py
-      dependencies.py
-
-    db/
-      session.py
-      base.py
-
-    api/
-      v1/
-        routes/
-          auth.py
-          users.py
-          customers.py
-          drivers.py
-          rides.py
-          vehicles.py
-          payments.py
-          admin.py
-          support.py
-
-    models/
-      user.py
-      role.py
-      permission.py
-      customer_profile.py
-      driver_profile.py
-      ride.py
-      vehicle.py
-      payment.py
-
-    schemas/
-      auth.py
-      user.py
-      role.py
-      customer.py
-      driver.py
-      ride.py
-      vehicle.py
-      payment.py
-
-    services/
-      auth_service.py
-      user_service.py
-      role_service.py
-      ride_service.py
-      driver_service.py
-      payment_service.py
-
-    repositories/
-      user_repository.py
-      role_repository.py
-      ride_repository.py
-      driver_repository.py
-      payment_repository.py
-
-    utils/
-      otp.py
-      fare.py
-      location.py
-
-  migrations/
-  tests/
-  requirements.txt
-  .env
-```
-
-Fleet/Transport app model examples:
-
-```txt
-models/user.py               → users table
-models/role.py               → roles table
-models/permission.py         → permissions table
-models/driver.py             → drivers table
-models/vehicle.py            → vehicles table
-models/trip.py               → trips table
-models/trip_schedule.py      → trip_schedules table
-models/fuel_log.py           → fuel_logs table
-models/maintenance_log.py    → maintenance_logs table
-models/driver_attendance.py  → driver_attendance table
-```
-
-Fleet Manager role:
-
-```txt
-Fleet Manager = vehicle + driver operation manager
-```
-
-এই role করতে পারে:
-
-- Vehicle add/edit
-- Driver assign
-- Trip approve/assign
-- Fuel log add/view
-- Maintenance record manage
-- Driver attendance view
-- Reports view
-
-Request flow:
-
-```txt
-Frontend
-  ↓
-api/v1/routes/vehicles.py
-  ↓
-schemas/vehicle.py দিয়ে request validate
-  ↓
-services/vehicle_service.py দিয়ে business logic
-  ↓
-repositories/vehicle_repository.py দিয়ে database query
-  ↓
-models/vehicle.py দিয়ে DB table read/write
-  ↓
-schemas/vehicle.py দিয়ে response format
-  ↓
-Frontend
-```
-
-Example:
-
-```txt
-Frontend sends:
-{
-  "vehicle_number": "Dhaka Metro Ga 1234",
-  "vehicle_type": "Microbus"
-}
-
-schemas/vehicle.py → VehicleCreate
-models/vehicle.py  → Vehicle table
-schemas/vehicle.py → VehicleResponse
-```
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-16"></a>
-
-## 10. MVP, Advanced Features, and Redis
-
-MVP = **Minimum Viable Product**.
-
-মানে:
-
-```txt
-সবকিছু না, কিন্তু main কাজটা চলবে।
-```
-
-Uber-type MVP:
-
-```txt
-User login
-Ride request
-Driver assign
-Trip start/end
-Fare calculate
-Basic admin panel
-```
-
-Advanced features পরে add করা যায়:
-
-```txt
-Live tracking
-Online payment
-Promo code
-Rating
-Chat
-Notification
-Analytics
-Auto scaling
-```
-
-Redis কী:
-
-```txt
-Database = permanent storage
-Redis    = very fast temporary storage/cache
-```
-
-Redis use cases:
-
-- Cache
-- Session/token storage
-- OTP temporary storage
-- Rate limiting
-- Queue/background jobs
-- Real-time status
-- Driver online/offline state
-- Ride request timeout
-- Token blacklist
-
-FastAPI + Redis ecosystem:
-
-```txt
-redis-py
-Celery + Redis
-RQ + Redis
-```
-
-Decision:
-
-```txt
-Small MVP শুরুতে Redis বাধ্যতামূলক না।
-PostgreSQL + FastAPI দিয়েই শুরু করা যায়।
-OTP, queue, rate limit, live status দরকার হলে Redis add করা ভালো।
-```
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-17"></a>
-
-## 11. First FastAPI App
+## 05. First FastAPI App
 
 File:
 
@@ -1077,14 +282,21 @@ Response:
 }
 ```
 
+কেন `async def`:
+
+```txt
+Endpoint future-এ database/API/file/network operation await করতে পারবে।
+FastAPI async endpoint efficiently handle করতে পারে।
+```
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
 ---
 
-<a id="section-18"></a>
+<a id="section-6"></a>
 
-## 12. API Prefix and Versioning
+## 06. API Prefix, Versioning এবং APIRouter
 
 Production-style API usually versioned হয়:
 
@@ -1097,48 +309,15 @@ Production-style API usually versioned হয়:
 Why versioning:
 
 ```txt
-Future-এ API change করলে /api/v2 বানানো যাবে
-Old frontend /api/v1 use করতে পারবে
-Breaking change safely handle করা যায়
+Future-এ breaking change হলে /api/v2 করা যায়
+Old frontend /api/v1 use করতে পারে
+Mobile app/frontend একসাথে migrate করা সহজ হয়
 ```
 
-Example:
-
-```py
-from fastapi import FastAPI, APIRouter
-
-app = FastAPI()
-
-api_router = APIRouter(prefix="/api/v1")
-
-@api_router.get("/health")
-async def health_check():
-    return {"status": "ok"}
-
-app.include_router(api_router)
-```
-
-Final URL:
+Router file:
 
 ```txt
-GET http://localhost:8000/api/v1/health
-```
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-19"></a>
-
-## 13. APIRouter
-
-APIRouter দিয়ে endpoints আলাদা file-এ রাখা যায়।
-
-File:
-
-```txt
-app/routers/users.py
+app/api/v1/routes/users.py
 ```
 
 ```py
@@ -1154,15 +333,18 @@ async def get_users():
     ]
 ```
 
-Main file:
+Main app:
 
 ```py
-from fastapi import FastAPI
-from app.routers import users
+from fastapi import FastAPI, APIRouter
+from app.api.v1.routes import users
 
-app = FastAPI()
+app = FastAPI(title="AI Dream API")
 
-app.include_router(users.router, prefix="/api/v1")
+api_router = APIRouter(prefix="/api/v1")
+api_router.include_router(users.router)
+
+app.include_router(api_router)
 ```
 
 Final URL:
@@ -1174,7 +356,7 @@ GET http://localhost:8000/api/v1/users/
 Rule:
 
 ```txt
-এক feature = এক router file
+এক feature/domain = এক router file
 auth.py, users.py, courses.py, admin.py
 ```
 
@@ -1183,96 +365,53 @@ auth.py, users.py, courses.py, admin.py
 
 ---
 
-<a id="section-20"></a>
+<a id="section-7"></a>
 
-## 14. Path Parameters
+## 07. Path, Query এবং Request Body
 
-Path parameter URL-এর অংশ।
+API input সাধারণত তিন জায়গা থেকে আসে।
 
-Example URL:
-
-```txt
-/api/v1/users/123
-```
-
-এখানে `123` হলো `user_id`.
-
-FastAPI:
-
-```py
-from fastapi import APIRouter
-
-router = APIRouter(prefix="/users", tags=["users"])
-
-@router.get("/{user_id}")
-async def get_user(user_id: int):
-    return {
-        "id": user_id,
-        "name": "Demo User",
-    }
-```
-
-Request:
+Path parameter:
 
 ```txt
 GET /api/v1/users/123
 ```
 
-Response:
-
-```json
-{
-  "id": 123,
-  "name": "Demo User"
-}
+```py
+@router.get("/{user_id}")
+async def get_user(user_id: int):
+    return {"id": user_id}
 ```
 
-Use path param when:
+Use when:
 
 ```txt
-Specific resource দরকার
-User details, product details, course details
+Specific resource identify করতে
+User details, course details, product details
 ```
 
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-21"></a>
-
-## 15. Query Parameters
-
-Query parameter URL-এর `?` এর পর থাকে।
-
-Example:
+Query parameter:
 
 ```txt
-/api/v1/products?search=phone&page=2&limit=10
+GET /api/v1/users?role=admin&page=2
 ```
-
-FastAPI:
 
 ```py
-from fastapi import APIRouter
-
-router = APIRouter(prefix="/products", tags=["products"])
-
 @router.get("/")
-async def get_products(
-    search: str | None = None,
+async def get_users(
+    role: str | None = None,
     page: int = 1,
     limit: int = 10,
 ):
     return {
-        "search": search,
+        "role": role,
         "page": page,
         "limit": limit,
         "items": [],
     }
 ```
 
-Use query param when:
+Use when:
 
 ```txt
 Search
@@ -1282,26 +421,7 @@ Pagination
 Optional control
 ```
 
-Path vs query:
-
-| Type | Example | Use case |
-|---|---|---|
-| Path param | `/users/123` | specific user |
-| Query param | `/users?role=admin` | filter users |
-| Query param | `/products?page=2` | pagination |
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-22"></a>
-
-## 16. Request Body
-
-POST/PUT/PATCH request-এ data body হিসেবে আসে।
-
-Frontend login request:
+Request body:
 
 ```json
 {
@@ -1310,43 +430,24 @@ Frontend login request:
 }
 ```
 
-FastAPI schema:
-
 ```py
 from pydantic import BaseModel, EmailStr
 
 class LoginPayload(BaseModel):
     email: EmailStr
     password: str
-```
-
-Endpoint:
-
-```py
-from fastapi import APIRouter
-
-router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login")
 async def login(payload: LoginPayload):
-    return {
-        "email": payload.email,
-        "access_token": "jwt-token-here",
-    }
+    return {"email": payload.email}
 ```
 
-Request:
+Rule:
 
 ```txt
-POST /api/v1/auth/login
-```
-
-Important:
-
-```txt
-FastAPI automatically request body validate করে।
-Wrong email হলে validation error দিবে।
-Required field missing হলে 422 error দিবে।
+Resource identity -> path param
+Filter/control    -> query param
+POST/PATCH data   -> request body
 ```
 
 <!-- tutorial-nav:back -->
@@ -1354,19 +455,19 @@ Required field missing হলে 422 error দিবে।
 
 ---
 
-<a id="section-23"></a>
+<a id="section-8"></a>
 
-## 17. Pydantic Schemas
+## 08. Pydantic Schema এবং Response Model
 
-Pydantic schema data shape define করে।
+Pydantic schema data shape define এবং validate করে।
 
 Common schema types:
 
 ```txt
 Create schema   = create request data
 Update schema   = update request data
-Public schema   = response data
-Internal model  = database/internal data
+Public schema   = safe response data
+Login schema    = auth request data
 ```
 
 Example:
@@ -1379,80 +480,48 @@ class UserCreate(BaseModel):
     password: str
     name: str
 
+class UserUpdate(BaseModel):
+    name: str | None = None
+    is_active: bool | None = None
+
 class UserPublic(BaseModel):
     id: int
     email: EmailStr
     name: str
     role: str
+    is_active: bool
 ```
 
 Why separate schema:
 
 ```txt
-Request-এ password লাগতে পারে
-Response-এ password পাঠানো যাবে না
+Create request-এ password লাগে
+Database model-এ hashed_password থাকে
+Response-এ password/hashed_password পাঠানো যাবে না
 ```
 
-Bad response:
-
-```json
-{
-  "id": 1,
-  "email": "user@example.com",
-  "password": "hashed-password"
-}
-```
-
-Good response:
-
-```json
-{
-  "id": 1,
-  "email": "user@example.com",
-  "name": "Demo User",
-  "role": "student"
-}
-```
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-24"></a>
-
-## 18. Response Model
-
-Response model দিয়ে API response shape control করা যায়।
+Response model:
 
 ```py
-from pydantic import BaseModel, EmailStr
-from fastapi import APIRouter
-
-router = APIRouter(prefix="/users", tags=["users"])
-
-class UserPublic(BaseModel):
-    id: int
-    email: EmailStr
-    name: str
-
 @router.get("/{user_id}", response_model=UserPublic)
 async def get_user(user_id: int):
     return {
         "id": user_id,
         "email": "user@example.com",
         "name": "Demo User",
-        "password": "secret",
+        "role": "student",
+        "is_active": True,
+        "hashed_password": "secret-hash",
     }
 ```
 
-Response model থাকলে `password` response থেকে বাদ যাবে।
+`response_model=UserPublic` থাকলে unsafe field response থেকে filter হবে।
 
 Important:
 
 ```txt
 Backend থেকে frontend-এ শুধু safe data পাঠাবো।
-Sensitive data response model দিয়ে hide/filter করবো।
+Sensitive/internal field schema দিয়ে hide করবো।
 ```
 
 <!-- tutorial-nav:back -->
@@ -1460,9 +529,9 @@ Sensitive data response model দিয়ে hide/filter করবো।
 
 ---
 
-<a id="section-25"></a>
+<a id="section-9"></a>
 
-## 19. Synchronous and Asynchronous in FastAPI
+## 09. Sync, Async এবং Await
 
 FastAPI endpoint দুইভাবে লেখা যায়:
 
@@ -1476,19 +545,22 @@ async def async_endpoint():
     ...
 ```
 
-সহজভাবে:
+Simple meaning:
 
 ```txt
 def       = synchronous function
 async def = asynchronous function
+await     = async কাজ শেষ হওয়া পর্যন্ত অপেক্ষা
 ```
 
-Async দরকার যখন:
+Async useful when:
 
-- async database client use করবো
-- external API call async হবে
-- file/network operation await করা যাবে
-- concurrent request efficiently handle করতে চাই
+```txt
+Async database client
+External API call
+Network/file operation
+Many concurrent requests
+```
 
 Example:
 
@@ -1498,7 +570,7 @@ async def health_check():
     return {"status": "ok"}
 ```
 
-`await` use করতে হলে function `async def` হতে হবে:
+`await` use:
 
 ```py
 @router.get("/external")
@@ -1510,24 +582,16 @@ async def call_external_api():
 Important:
 
 ```txt
-async function-এর ভিতরে blocking কাজ avoid করতে হবে।
-Heavy CPU task বা blocking DB call সরাসরি দিলে performance issue হতে পারে।
+async endpoint-এর ভিতরে heavy blocking কাজ দিলে performance issue হতে পারে।
+CPU-heavy কাজ হলে background worker/queue ভাবতে হবে।
 ```
 
-Common rule:
+Practical rule:
 
 ```txt
-Simple API endpoint           → async def okay
-Blocking sync library use করলে → def ব্যবহার করাও acceptable
-Async DB/client use করলে       → async def + await
-```
-
-Frontend connection:
-
-```txt
-Next.js API call async
-FastAPI endpoint async হতে পারে
-Database query async/sync হতে পারে
+Simple endpoint -> async def okay
+Blocking sync library -> def acceptable
+Async DB/client -> async def + await
 ```
 
 <!-- tutorial-nav:back -->
@@ -1535,55 +599,94 @@ Database query async/sync হতে পারে
 
 ---
 
-<a id="section-26"></a>
+<a id="section-10"></a>
 
-## 20. CORS for Next.js Frontend
+## 10. Project Structure: Simple থেকে Production Style
 
-Next.js frontend:
-
-```txt
-http://localhost:3000
-```
-
-FastAPI backend:
+শুরুতে simple:
 
 ```txt
-http://localhost:8000
+backend/
+  app/
+    main.py
+    config.py
+    database.py
+    models.py
+    schemas.py
+    routers/
+      auth.py
+      users.py
+  .env
+  requirements.txt
 ```
 
-এগুলো আলাদা origin। তাই browser CORS check করবে।
+Learning/MVP-এর জন্য enough।
 
-FastAPI CORS setup:
+Medium/production-style:
 
-```py
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+```txt
+backend/
+  app/
+    main.py
 
-app = FastAPI()
+    core/
+      config.py
+      security.py
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    db/
+      session.py
+
+    api/
+      v1/
+        router.py
+        routes/
+          auth.py
+          users.py
+          courses.py
+
+    models/
+      user.py
+      course.py
+
+    schemas/
+      auth.py
+      user.py
+      course.py
+
+    services/
+      auth_service.py
+      user_service.py
+
+    repositories/
+      user_repository.py
+
+    dependencies/
+      auth.py
+      roles.py
+
+  tests/
+  .env
+  requirements.txt
 ```
 
-Development multiple origin:
+Scaffold decision:
 
-```py
-allow_origins=[
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-```
+| Situation | Best structure |
+|---|---|
+| learning/demo | flat/simple |
+| small MVP | router-based |
+| medium app | router + service layer |
+| complex business logic | service + repository layer |
+| many domains/team | modular/feature-based |
+| huge enterprise | clean architecture |
+| many independent deployable services | microservices |
 
 Important:
 
 ```txt
-CORS frontend browser-এর security rule।
-Postman/curl-এ CORS error normally দেখা যায় না।
+শুরুতেই microservice বানাবো না।
+প্রথমে clean monolith বানাবো।
+Project বড় হলে service/repository/module আলাদা করবো।
 ```
 
 <!-- tutorial-nav:back -->
@@ -1591,41 +694,45 @@ Postman/curl-এ CORS error normally দেখা যায় না।
 
 ---
 
-<a id="section-27"></a>
+<a id="section-11"></a>
 
-## 21. Environment Variables
+## 11. Model vs Schema vs Service vs Repository
 
-`.env`:
-
-```env
-APP_NAME=AI Dream API
-ENVIRONMENT=development
-SECRET_KEY=change-this-secret
-ACCESS_TOKEN_EXPIRE_MINUTES=60
-DATABASE_URL=sqlite:///./app.db
-FRONTEND_URL=http://localhost:3000
-```
-
-Config file:
-
-```py
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-APP_NAME = os.getenv("APP_NAME", "FastAPI App")
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app.db")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
-```
-
-Rule:
+FastAPI learning-এ `model` word confusing হতে পারে। এই note-এ:
 
 ```txt
-Secret/config hardcode করবো না।
-.env file use করবো।
-.env git commit করবো না।
+Model  = database table structure
+Schema = API request/response shape
+```
+
+Responsibility:
+
+| Layer | প্রশ্ন | Example |
+|---|---|---|
+| Model | database কীভাবে data রাখবে? | `User` table |
+| Schema | API দিয়ে কোন data ঢুকবে/বের হবে? | `UserCreate`, `UserPublic` |
+| Service | business rule কী? | password hash, login rule |
+| Repository | database query কীভাবে হবে? | get user by email |
+| Router | URL endpoint কী? | `POST /auth/login` |
+
+Example flow:
+
+```txt
+POST /users
+  -> UserCreate schema validates body
+  -> user_service hashes password
+  -> user_repository saves user
+  -> User model writes database table
+  -> UserPublic schema sends safe response
+```
+
+এই separation করলে:
+
+```txt
+Router thin থাকে
+Business logic service-এ থাকে
+Database query repository-তে থাকে
+Schema sensitive field hide করে
 ```
 
 <!-- tutorial-nav:back -->
@@ -1633,28 +740,15 @@ Secret/config hardcode করবো না।
 
 ---
 
-<a id="section-28"></a>
+<a id="section-12"></a>
 
-## 22. Database Basics with SQLModel
+## 12. Database Basics with SQLModel
 
-FastAPI যেকোনো database use করতে পারে। Learning project-এর জন্য SQLite easy।
-
-FastAPI নিজে database ORM force করে না। Common choice:
+FastAPI নিজে database force করে না। Common choices:
 
 ```txt
-SQLAlchemy = সবচেয়ে common/professional ORM
+SQLAlchemy = professional/common ORM
 SQLModel   = SQLAlchemy + Pydantic style, learning-friendly
-```
-
-অনেক tutorial-এ `Base`, `Column`, `Integer`, `String` দেখা যায়। সেটা SQLAlchemy style।  
-এই section-এ SQLModel দেখানো হয়েছে, কারণ learning project-এর জন্য syntax সহজ।
-
-Concept একই:
-
-```txt
-Model class = database table
-Class field = table column
-Session     = database connection/work unit
 ```
 
 Install:
@@ -1683,24 +777,7 @@ def get_session():
         yield session
 ```
 
-`yield` dependency meaning:
-
-```txt
-Request শুরু হলে DB session create হবে
-Endpoint কাজ করবে
-Request শেষ হলে session close হবে
-```
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-29"></a>
-
-## 23. Database Models
-
-Database model table structure define করে।
+Model:
 
 ```py
 from sqlmodel import Field, SQLModel
@@ -1719,16 +796,17 @@ Meaning:
 | Field | কাজ |
 |---|---|
 | `id` | primary key |
-| `email` | user email, unique |
+| `email` | unique user email |
 | `hashed_password` | raw password না, hashed password |
 | `role` | admin/teacher/student |
 | `is_active` | account active কিনা |
 
-Important:
+`yield` dependency:
 
 ```txt
-Raw password database-এ রাখা যাবে না।
-Always hashed password save করতে হবে।
+Request শুরু হলে session create
+Endpoint কাজ করে
+Request শেষ হলে session close
 ```
 
 <!-- tutorial-nav:back -->
@@ -1736,9 +814,18 @@ Always hashed password save করতে হবে।
 
 ---
 
-<a id="section-30"></a>
+<a id="section-13"></a>
 
-## 24. CRUD Example
+## 13. CRUD Flow: Create, Read, Update, Delete
+
+CRUD meaning:
+
+```txt
+Create = POST
+Read   = GET
+Update = PUT/PATCH
+Delete = DELETE
+```
 
 Create user:
 
@@ -1748,7 +835,7 @@ from sqlmodel import Session
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-@router.post("/")
+@router.post("/", response_model=UserPublic)
 async def create_user(
     payload: UserCreate,
     session: Session = Depends(get_session),
@@ -1767,24 +854,24 @@ async def create_user(
     return user
 ```
 
-Read users:
+Read list:
 
 ```py
 from sqlmodel import select
 
-@router.get("/")
+@router.get("/", response_model=list[UserPublic])
 async def get_users(session: Session = Depends(get_session)):
     statement = select(User)
     users = session.exec(statement).all()
     return users
 ```
 
-Read one user:
+Read one:
 
 ```py
 from fastapi import HTTPException
 
-@router.get("/{user_id}")
+@router.get("/{user_id}", response_model=UserPublic)
 async def get_user(
     user_id: int,
     session: Session = Depends(get_session),
@@ -1797,13 +884,10 @@ async def get_user(
     return user
 ```
 
-CRUD meaning:
+Important:
 
 ```txt
-Create = POST
-Read   = GET
-Update = PUT/PATCH
-Delete = DELETE
+Database model return করলেও response_model safe fields filter করবে।
 ```
 
 <!-- tutorial-nav:back -->
@@ -1811,21 +895,24 @@ Delete = DELETE
 
 ---
 
-<a id="section-31"></a>
+<a id="section-14"></a>
 
-## 25. Dependencies
+## 14. Dependencies: Reusable Logic Inject করা
 
-Dependency হলো reusable logic inject করার system।
+Dependency হলো repeated logic endpoint-এ inject করার system।
 
 Common dependencies:
 
-- DB session
-- current user
-- role check
-- pagination params
-- settings/config
+```txt
+DB session
+current user
+role check
+permission check
+pagination params
+settings/config
+```
 
-DB session dependency:
+DB session:
 
 ```py
 def get_session():
@@ -1836,12 +923,14 @@ def get_session():
 Use:
 
 ```py
+from fastapi import Depends
+
 @router.get("/users")
 async def get_users(session: Session = Depends(get_session)):
     ...
 ```
 
-Current user dependency idea:
+Current user idea:
 
 ```py
 def get_current_user():
@@ -1871,26 +960,86 @@ Rule:
 
 ---
 
-<a id="section-32"></a>
+<a id="section-15"></a>
 
-## 26. Authentication
+## 15. Environment Variables এবং CORS
+
+`.env`:
+
+```env
+APP_NAME=AI Dream API
+ENVIRONMENT=development
+SECRET_KEY=change-this-secret
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+DATABASE_URL=sqlite:///./app.db
+FRONTEND_URL=http://localhost:3000
+```
+
+Config:
+
+```py
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+APP_NAME = os.getenv("APP_NAME", "FastAPI App")
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app.db")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+```
+
+CORS কেন:
+
+```txt
+Next.js frontend -> http://localhost:3000
+FastAPI backend  -> http://localhost:8000
+Different origin, তাই browser CORS check করবে।
+```
+
+CORS setup:
+
+```py
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[FRONTEND_URL],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+Rules:
+
+```txt
+Secret/config hardcode করবো না।
+.env git commit করবো না।
+Production-এ "*" origin avoid করবো।
+Cookie auth হলে allow_credentials=True লাগবে।
+```
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+---
+
+<a id="section-16"></a>
+
+## 16. Authentication: Login, Password Hash, JWT
 
 Authentication মানে user কে সেটা verify করা।
 
-Common flow:
+Flow:
 
 ```txt
 User email/password পাঠায়
-  ↓
-FastAPI user খুঁজে
-  ↓
-Password verify করে
-  ↓
-JWT access token তৈরি করে
-  ↓
-Frontend token save করে
-  ↓
-Next request-এ Authorization header পাঠায়
+  -> FastAPI user খুঁজে
+  -> Password verify করে
+  -> JWT access token তৈরি করে
+  -> Frontend token/session save করে
+  -> Next request-এ Authorization header পাঠায়
 ```
 
 Header:
@@ -1899,21 +1048,7 @@ Header:
 Authorization: Bearer <access_token>
 ```
 
-Login response example:
-
-```json
-{
-  "access_token": "jwt-token-here",
-  "token_type": "bearer",
-  "user": {
-    "id": 1,
-    "email": "admin@example.com",
-    "role": "admin"
-  }
-}
-```
-
-Password hashing idea:
+Password hashing:
 
 ```py
 from passlib.context import CryptContext
@@ -1927,7 +1062,7 @@ def verify_password(plain_password: str, hashed_password: str):
     return pwd_context.verify(plain_password, hashed_password)
 ```
 
-JWT create idea:
+JWT create:
 
 ```py
 from datetime import datetime, timedelta, timezone
@@ -1943,11 +1078,25 @@ def create_access_token(data: dict, expires_minutes: int = 60):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 ```
 
+Login response:
+
+```json
+{
+  "access_token": "jwt-token-here",
+  "token_type": "bearer",
+  "user": {
+    "id": 1,
+    "email": "admin@example.com",
+    "role": "admin"
+  }
+}
+```
+
 Important:
 
 ```txt
+Raw password database-এ রাখা যাবে না।
 SECRET_KEY .env থেকে আসবে।
-Raw password কখনও database-এ রাখা যাবে না।
 Token expire time রাখা ভালো।
 ```
 
@@ -1956,13 +1105,13 @@ Token expire time রাখা ভালো।
 
 ---
 
-<a id="section-33"></a>
+<a id="section-17"></a>
 
-## 27. Authorization and Role Protection
+## 17. Authorization: Role এবং Permission Protection
 
 Authorization মানে user কী access করতে পারবে।
 
-Example roles:
+Simple roles:
 
 ```txt
 admin
@@ -1995,39 +1144,22 @@ async def get_admin_users(
     return []
 ```
 
-Role-based route idea:
+Large app-এ permission-based RBAC ভালো:
 
 ```txt
-/api/v1/admin/users       → admin only
-/api/v1/teacher/courses   → teacher only
-/api/v1/student/courses   → student only
-```
-
-Simple role check:
-
-```txt
-if user.role != "admin":
-    block
-```
-
-বড় app-এ শুধু role না, permission-based RBAC ভালো:
-
-```txt
-roles
+roles:
 - admin
 - driver
 - customer
 - support
 
-permissions
+permissions:
 - ride:create
 - ride:view_own
 - ride:view_all
 - ride:assign_driver
 - driver:approve
-- driver:suspend
 - payment:view
-- payment:refund
 - user:manage
 ```
 
@@ -2035,80 +1167,24 @@ Database table idea:
 
 ```txt
 users
-- id
-- name
-- email
-- password_hash
-- role_id
-
 roles
-- id
-- name
-
 permissions
-- id
-- code
-- description
-
 role_permissions
-- role_id
-- permission_id
 ```
 
-Permission dependency idea:
+Permission dependency:
 
 ```py
-from fastapi import Depends, HTTPException, status
-
-def get_current_user():
-    # JWT token verify করে user return করবে
-    pass
-
 def require_permission(permission_code: str):
     def checker(current_user = Depends(get_current_user)):
         user_permissions = current_user.permissions
 
         if permission_code not in user_permissions:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not enough permission",
-            )
+            raise HTTPException(status_code=403, detail="Not enough permission")
 
         return current_user
 
     return checker
-```
-
-Route protection example:
-
-```py
-from fastapi import APIRouter, Depends
-
-router = APIRouter(prefix="/rides", tags=["rides"])
-
-@router.get("/all")
-async def get_all_rides(
-    user = Depends(require_permission("ride:view_all")),
-):
-    return {"message": "All rides"}
-```
-
-Role-based request flow:
-
-```txt
-Login
-  ↓
-JWT token-এর মধ্যে user_id থাকবে
-  ↓
-API request-এ token যাবে
-  ↓
-get_current_user token verify করবে
-  ↓
-Database থেকে user + role + permissions আনবে
-  ↓
-require_permission check করবে
-  ↓
-Allowed হলে service execute করবে
 ```
 
 Frontend vs backend:
@@ -2123,9 +1199,9 @@ FastAPI role check  = real security
 
 ---
 
-<a id="section-34"></a>
+<a id="section-18"></a>
 
-## 28. Error Handling
+## 18. Error Handling এবং Status Code
 
 FastAPI error raise করতে `HTTPException` use করা হয়।
 
@@ -2152,7 +1228,7 @@ Common status codes:
 | `422` | Validation error |
 | `500` | Server error |
 
-Example:
+Create endpoint:
 
 ```py
 @router.post("/", status_code=201)
@@ -2160,11 +1236,14 @@ async def create_course(payload: CourseCreate):
     return {"message": "Course created"}
 ```
 
-Rule:
+Rules:
 
 ```txt
-Error message frontend-friendly হতে হবে।
+Error message frontend-friendly হবে।
 Sensitive internal error expose করবো না।
+Wrong auth হলে 401/403 clear রাখবো।
+Missing resource হলে 404 দিবো।
+Validation error হলে Pydantic 422 দিবে।
 ```
 
 <!-- tutorial-nav:back -->
@@ -2172,19 +1251,15 @@ Sensitive internal error expose করবো না।
 
 ---
 
-<a id="section-35"></a>
+<a id="section-19"></a>
 
-## 29. File Upload
+## 19. File Upload এবং Background Tasks
 
-FastAPI file upload করতে `UploadFile` use করা যায়।
-
-Install support package if needed:
+File upload:
 
 ```bash
 python -m pip install python-multipart
 ```
-
-Example:
 
 ```py
 from fastapi import APIRouter, UploadFile, File
@@ -2201,33 +1276,17 @@ async def upload_file(file: UploadFile = File(...)):
 
 Use cases:
 
-- profile image
-- PDF upload
-- audio upload
-- document processing
-
-Important:
-
 ```txt
-Large file হলে size limit, storage path, security check দরকার।
-Frontend FormData দিয়ে file পাঠাবে।
+profile image
+PDF upload
+audio upload
+document processing
 ```
 
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-36"></a>
-
-## 30. Background Tasks
-
-Response পাঠানোর পরে কোনো কাজ করতে চাইলে background task use করা যায়।
-
-Example:
+Background task:
 
 ```py
-from fastapi import BackgroundTasks, APIRouter
+from fastapi import APIRouter, BackgroundTasks
 
 router = APIRouter(prefix="/emails", tags=["emails"])
 
@@ -2243,17 +1302,12 @@ async def send_email_later(
     return {"message": "Email sending started"}
 ```
 
-Use cases:
-
-- email sending
-- log writing
-- small post-processing
-
-Important:
+Decision:
 
 ```txt
-Heavy production job হলে Celery/RQ/queue better।
-Small task হলে FastAPI BackgroundTasks enough।
+Small post-response task -> BackgroundTasks
+Heavy production job     -> Celery/RQ/queue
+Large file upload        -> size limit/storage/security ভাববো
 ```
 
 <!-- tutorial-nav:back -->
@@ -2261,9 +1315,77 @@ Small task হলে FastAPI BackgroundTasks enough।
 
 ---
 
-<a id="section-37"></a>
+<a id="section-20"></a>
 
-## 31. Next.js Frontend Connection
+## 20. MVP, Redis, Queue এবং Scaling Decision
+
+MVP = Minimum Viable Product.
+
+মানে:
+
+```txt
+সব feature না, কিন্তু main কাজটা চলবে।
+```
+
+MVP-তে focus:
+
+```txt
+Auth
+Core CRUD
+Basic role protection
+Admin/dashboard API
+Critical validation
+Basic tests
+```
+
+Advanced feature পরে:
+
+```txt
+Redis cache
+OTP storage
+Rate limiting
+Queue/background worker
+Live status
+Analytics
+Auto scaling
+Microservices
+```
+
+Redis কী:
+
+```txt
+Database = permanent storage
+Redis    = very fast temporary storage/cache
+```
+
+Redis use cases:
+
+```txt
+cache
+OTP temporary storage
+rate limit
+token blacklist
+queue broker
+online/offline status
+ride request timeout
+```
+
+Decision:
+
+```txt
+Small MVP শুরুতে Redis বাধ্যতামূলক না।
+PostgreSQL/SQLite + FastAPI দিয়েই শুরু করা যায়।
+OTP/cache/rate limit/queue দরকার হলে Redis add করবো।
+```
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+---
+
+<a id="section-21"></a>
+
+## 21. Next.js Frontend Connection
 
 FastAPI backend:
 
@@ -2281,7 +1403,7 @@ API_BASE_URL=http://localhost:8000/api/v1
 Frontend service:
 
 ```ts
-import { api } from "@/lib/axios";
+import { api } from "@/lib/api";
 
 export async function loginUser(payload: {
   email: string;
@@ -2298,81 +1420,60 @@ Final URL:
 POST http://localhost:8000/api/v1/auth/login
 ```
 
-CORS must allow:
-
-```txt
-http://localhost:3000
-```
-
-Data format:
+Data naming:
 
 ```txt
 FastAPI response snake_case হতে পারে: access_token
 Frontend চাইলে camelCase map করতে পারে: accessToken
 ```
 
+Connection checklist:
+
+```txt
+FastAPI running on 8000
+Next.js running on 3000
+CORS allows frontend origin
+API prefix matches frontend baseURL
+Request body schema matches frontend payload
+Response model matches frontend TypeScript type
+```
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
 ---
 
-<a id="section-38"></a>
+<a id="section-22"></a>
 
-## 32. API Docs and OpenAPI
+## 22. API Docs, OpenAPI এবং Testing
 
-FastAPI automatic docs তৈরি করে।
-
-Swagger:
+FastAPI automatic docs দেয়।
 
 ```txt
-http://localhost:8000/docs
-```
-
-ReDoc:
-
-```txt
-http://localhost:8000/redoc
+Swagger: http://localhost:8000/docs
+ReDoc:   http://localhost:8000/redoc
 ```
 
 Why useful:
 
-- endpoint test করা যায়
-- request/response schema দেখা যায়
-- frontend developer API বুঝতে পারে
-- backend validation/debug easy হয়
+```txt
+Endpoint test করা যায়
+Request/response schema দেখা যায়
+Frontend developer API বুঝতে পারে
+Validation/debug easy হয়
+```
 
-Good API docs-এর জন্য:
+Docs clear করতে:
 
 ```py
 router = APIRouter(prefix="/users", tags=["users"])
+
+@router.get("/{user_id}", response_model=UserPublic)
+async def get_user(user_id: int):
+    ...
 ```
 
-Response model use করলে docs আরও clear হয়।
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-39"></a>
-
-## 33. Testing
-
-FastAPI test করতে `TestClient` use করা যায়।
-
-Install:
-
-```bash
-python -m pip install pytest
-```
-
-Test file:
-
-```txt
-tests/test_health.py
-```
-
-Example:
+Testing:
 
 ```py
 from fastapi.testclient import TestClient
@@ -2393,149 +1494,157 @@ Run:
 pytest
 ```
 
-Test use cases:
+Test first:
 
-- health endpoint
-- login success/fail
-- protected route
-- CRUD endpoint
-- validation error
+```txt
+health endpoint
+login success/fail
+protected route
+validation error
+core CRUD endpoint
+```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
 ---
 
-<a id="section-40"></a>
+<a id="section-23"></a>
 
-## 34. Development Rules
+## 23. Practical Domain Example: Fleet/Uber-Type Backend
+
+Transport, fleet, Uber-type, LMS, SaaS - এসব app-এ role, permission, payment, booking, profile, report অনেক domain থাকে।
+
+Example roles:
+
+```txt
+customer
+driver
+admin
+support
+accounts
+fleet_manager
+```
+
+Domain folders:
+
+```txt
+models/
+  user.py
+  role.py
+  permission.py
+  driver.py
+  vehicle.py
+  ride.py
+  payment.py
+
+schemas/
+  user.py
+  driver.py
+  vehicle.py
+  ride.py
+
+services/
+  auth_service.py
+  driver_service.py
+  vehicle_service.py
+  ride_service.py
+  payment_service.py
+
+repositories/
+  user_repository.py
+  ride_repository.py
+  vehicle_repository.py
+```
+
+Fleet manager responsibility:
+
+```txt
+Vehicle add/edit
+Driver assign
+Trip approve/assign
+Fuel log view
+Maintenance record manage
+Report view
+```
+
+Vehicle create flow:
+
+```txt
+Next.js form
+  -> POST /api/v1/vehicles
+  -> VehicleCreate schema validates
+  -> vehicle_service checks business rule
+  -> vehicle_repository saves DB
+  -> Vehicle model writes table
+  -> VehicleResponse sends safe JSON
+  -> Next.js shows success
+```
+
+Main lesson:
+
+```txt
+Domain বড় হলে feature/domain আলাদা করবো।
+কিন্তু শুরুতে clean monolith রাখাই practical।
+```
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+---
+
+<a id="section-24"></a>
+
+## 24. Development Rules, Checklist এবং Summary
+
+Rules:
 
 1. API version prefix use করবো: `/api/v1`.
 2. Router আলাদা file-এ রাখবো।
-3. Request/response schema আলাদা রাখবো।
-4. Raw password database-এ save করবো না।
-5. Response-এ sensitive data পাঠাবো না।
-6. FastAPI Pydantic validation অবশ্যই রাখবো।
-7. Frontend validation থাকলেও backend validation বাদ দেবো না।
-8. CORS only trusted frontend origin allow করবো।
-9. `.env` file git commit করবো না।
-10. Auth route আর protected route আলাদা ভাববো।
-11. Role permission backend-এ enforce করবো।
-12. DB session dependency দিয়ে manage করবো।
-13. Business logic বড় হলে service layer-এ রাখবো।
-14. API error status code meaningful রাখবো।
-15. Docs `/docs` দিয়ে endpoint manually test করবো।
-16. Async/sync function বুঝে use করবো।
-17. Independent slow কাজ হলে background task বা queue ভাববো।
-18. Tests অন্তত critical endpoint-এর জন্য রাখবো।
-19. Learning/demo project হলে flat scaffold enough।
-20. MVP/medium project হলে router-based + service layer ভালো।
-21. Complex project হলে repository layer add করবো।
-22. Very large project ছাড়া microservice শুরু করবো না।
-23. `models/` database table structure রাখবে।
-24. `schemas/` API request/response shape রাখবে।
-25. Role-based app হলে `roles`, `permissions`, `role_permissions` design করবো।
-26. FastAPI permission check backend security হিসেবে রাখবো।
-27. Redis শুরুতেই না, দরকার হলে cache/OTP/rate limit/queue-এর জন্য add করবো।
-28. Fleet/Uber-type app হলে driver, vehicle, ride, payment, role, permission আলাদা domain হিসেবে ভাববো।
+3. Request schema আর response schema আলাদা রাখবো।
+4. Database model আর API schema confuse করবো না।
+5. Raw password database-এ save করবো না।
+6. Response-এ sensitive data পাঠাবো না।
+7. Pydantic backend validation always রাখবো।
+8. Frontend validation থাকলেও backend validation বাদ দেবো না।
+9. CORS only trusted frontend origin allow করবো।
+10. `.env` file git commit করবো না।
+11. DB session dependency দিয়ে manage করবো।
+12. Business logic বড় হলে service layer-এ রাখবো।
+13. Database query বড় হলে repository layer add করবো।
+14. Auth route এবং protected route আলাদা ভাববো।
+15. Permission backend-এ enforce করবো।
+16. Meaningful status code use করবো।
+17. `/docs` দিয়ে endpoint manually test করবো।
+18. Critical endpoint-এর test রাখবো।
+19. MVP-তে clean monolith যথেষ্ট।
+20. Redis/queue/microservice পরে দরকার হলে add করবো।
 
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-41"></a>
-
-## 35. Simple Auth Flow
+Final memory:
 
 ```txt
-Next.js LoginForm
-  ↓
-POST /api/v1/auth/login
-  ↓
-FastAPI receives email/password
-  ↓
-Pydantic validates request body
-  ↓
-Database থেকে user খোঁজা
-  ↓
-Password verify
-  ↓
-JWT token create
-  ↓
-Response: access_token + user
-  ↓
-Frontend token save করে
-  ↓
-Next request-এ Authorization header পাঠায়
+main.py        -> FastAPI app create + router include
+api/routes     -> URL endpoints
+schemas/       -> request/response shape
+models/        -> database table
+db/session     -> database session
+dependencies/  -> DB/current user/role guard
+services/      -> business logic
+repositories/  -> database query
+core/config    -> env/settings
+core/security  -> password hash/JWT
 ```
 
-Protected route flow:
+Full-stack responsibility:
 
 ```txt
-GET /api/v1/admin/users
-  ↓
-Authorization: Bearer token
-  ↓
-FastAPI token decode করে
-  ↓
-Current user খুঁজে
-  ↓
-Role admin কিনা check করে
-  ↓
-Allowed হলে response
-  ↓
-Not allowed হলে 403
+Next.js -> UI, route, form, frontend state, UX guard
+FastAPI -> API, validation, auth, permission, database
+Database -> permanent storage
+Redis/Queue -> optional scale/performance helper
 ```
 
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-42"></a>
-
-## 36. Common Commands
-
-| Command | কাজ |
-|---|---|
-| `py -m venv .venv` | Virtual environment create। |
-| `.venv\Scripts\activate` | Windows venv activate। |
-| `python -m pip install -r requirements.txt` | Packages install। |
-| `uvicorn app.main:app --reload` | Development server run। |
-| `fastapi dev app/main.py` | FastAPI dev server run। |
-| `pytest` | Tests run। |
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-43"></a>
-
-## 37. Use Cases
-
-এই backend scaffold ব্যবহার করা যাবে:
-
-- Authentication API
-- Role-based dashboard backend
-- Admin panel API
-- LMS backend
-- SaaS backend
-- AI app backend
-- File upload API
-- Next.js frontend-connected API
-- Transport/Fleet management backend
-- Uber-type ride backend MVP
-
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-44"></a>
-
-## 38. Official Docs References
+Official references:
 
 - FastAPI Tutorial: https://fastapi.tiangolo.com/tutorial/
 - Bigger Applications: https://fastapi.tiangolo.com/tutorial/bigger-applications/
@@ -2547,56 +1656,8 @@ Not allowed হলে 403
 - OAuth2/JWT: https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
 - SQL Databases: https://fastapi.tiangolo.com/tutorial/sql-databases/
 - Handling Errors: https://fastapi.tiangolo.com/tutorial/handling-errors/
-- ChatGPT share note 1: https://chatgpt.com/share/6a2a949f-d05c-83ec-af21-ffdfa8223f86
-- ChatGPT share note 2: https://chatgpt.com/share/6a2a94bf-45f8-83ec-817c-4691035c9b8b
 
-<!-- tutorial-nav:back -->
-[Back to Index](#index)
-
----
-
-<a id="section-45"></a>
-
-## 39. Final Summary
-
-FastAPI backend structure মনে রাখার সহজ way:
-
-```txt
-main.py       → app create + router include
-routers/      → API endpoints
-schemas/      → request/response validation
-models/       → database tables
-database.py   → DB engine/session
-dependencies/ → current user, DB session, role guard
-services/     → business logic
-core/config   → env/settings/security
-repositories/ → database query layer
-permissions/  → RBAC permission rules
-utils/         → small helpers like OTP, fare, location
-```
-
-Full-stack responsibility:
-
-```txt
-Next.js → UI, frontend state, route guard UX
-FastAPI → API, validation, auth, role permission, database
-Database → permanent data
-```
-
-সবচেয়ে important:
-
-```txt
-Validation backend-এ must
-Permission backend-এ must
-Sensitive data response-এ দিবো না
-Raw password save করবো না
-Frontend CORS allow করতে হবে
-API docs দিয়ে সব endpoint test করবো
-MVP-তে clean monolith যথেষ্ট
-Redis/queue/microservice পরে দরকার হলে add করবো
-```
-
-এভাবে backend সাজালে Next.js frontend-এর সাথে clean, scalable, secure API তৈরি করা সহজ হবে।
+এই sequence follow করলে backend tutorial একটা বইয়ের মতো পড়া যায়: আগে backend-এর role, তারপর request flow, তারপর code component, তারপর database/auth/security, শেষে frontend integration এবং scaling decision।
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
