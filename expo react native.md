@@ -52,9 +52,10 @@ Learning mindset:
 - [21. Emulator না থাকলে কীভাবে Run/Test করবো](#section-21)
 - [22. Web Preview vs WebView: কোনটা কোন জিনিস](#section-22)
 - [23. Expo Account, EAS CLI এবং Project Configure](#section-23)
-- [24. APK File কীভাবে পাবো](#section-24)
-- [25. Build, Preview, EAS এবং App Store Thinking](#section-25)
-- [26. Development Rules, Checklist এবং Summary](#section-26)
+- [24. Build-এর আগে Project Validate: Expo Doctor](#section-24)
+- [25. APK File কীভাবে পাবো](#section-25)
+- [26. Build, Preview, EAS এবং App Store Thinking](#section-26)
+- [27. Development Rules, Checklist এবং Summary](#section-27)
 <!-- tutorial-index:end -->
 
 ---
@@ -1452,7 +1453,69 @@ EAS build = installable APK/AAB/IPA binary
 
 <a id="section-24"></a>
 
-## 24. APK File কীভাবে পাবো
+## 24. Build-এর আগে Project Validate: Expo Doctor
+
+Build করার আগে project health check করা ভালো। Expo-এর official tool হলো **Expo Doctor**।
+
+Run from project root:
+
+```bash
+npx expo-doctor
+```
+
+এটা কী check করে:
+
+```txt
+package dependency compatibility
+Expo SDK version compatibility
+app config issue
+package.json issue
+native config sync issue
+common project health problem
+```
+
+যদি issue পায়:
+
+```txt
+Problem description দেখাবে
+Fix suggestion দেখাবে
+কোন package/config সমস্যা করছে সেটা বুঝতে help করবে
+```
+
+কখন চালাবো:
+
+```txt
+new package install করার পরে
+Expo SDK upgrade করার পরে
+EAS build করার আগে
+APK/AAB build fail করলে
+weird native/runtime issue হলে
+```
+
+Suggested pre-build checklist:
+
+```bash
+npx expo-doctor
+npx expo start --web
+eas build:configure
+eas build -p android --profile preview
+```
+
+Important:
+
+```txt
+Expo Doctor pass করা মানেই app perfect না।
+কিন্তু build-এর আগে obvious config/dependency issue ধরার জন্য এটা খুব useful।
+```
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+---
+
+<a id="section-25"></a>
+
+## 25. APK File কীভাবে পাবো
 
 Android app দুইভাবে ভাবতে হবে:
 
@@ -1525,9 +1588,9 @@ Direct share/test/demo-এর জন্য APK build করা হয়।
 
 ---
 
-<a id="section-25"></a>
+<a id="section-26"></a>
 
-## 25. Build, Preview, EAS এবং App Store Thinking
+## 26. Build, Preview, EAS এবং App Store Thinking
 
 Development:
 
@@ -1574,9 +1637,9 @@ AAB Play Store-এর জন্য।
 
 ---
 
-<a id="section-26"></a>
+<a id="section-27"></a>
 
-## 26. Development Rules, Checklist এবং Summary
+## 27. Development Rules, Checklist এবং Summary
 
 Rules:
 
@@ -1604,6 +1667,7 @@ Rules:
 22. APK direct install/test/demo-এর জন্য, AAB Play Store-এর জন্য।
 23. EAS Build করতে Expo account, EAS CLI login, `eas build:configure` দরকার।
 24. APK build করতে `eas.json`-এ preview profile দিয়ে `android.buildType = "apk"` set করবো।
+25. Build করার আগে `npx expo-doctor` run করবো।
 
 Final memory:
 
@@ -1619,6 +1683,7 @@ Expo Go     -> phone preview without APK
 Expo Web    -> browser preview
 WebView     -> app-এর ভিতরে webpage
 EAS Build   -> APK/AAB/IPA binary build
+Expo Doctor -> build-এর আগে project health check
 FastAPI     -> real backend validation/security/database
 ```
 
@@ -1631,6 +1696,7 @@ Official references:
 - Expo Web: https://docs.expo.dev/workflow/web/
 - Expo EAS build setup: https://docs.expo.dev/build/setup/
 - Expo Android APK build: https://docs.expo.dev/build-reference/apk/
+- Expo development tools / Expo Doctor: https://docs.expo.dev/develop/tools/
 - Expo WebView: https://docs.expo.dev/versions/latest/sdk/webview/
 - React Native core components: https://reactnative.dev/docs/components-and-apis
 - React Native networking: https://reactnative.dev/docs/network
