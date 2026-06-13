@@ -1,5 +1,55 @@
 # Next.js Frontend Notes with FastAPI Backend
 
+<a id="index"></a>
+
+## Index
+
+<!-- tutorial-index:start -->
+- [1. Big Picture](#section-1)
+- [2. Tools and Packages](#section-2)
+- [3. Installation](#section-3)
+- [4. Recommended Folder Structure](#section-4)
+- [5. App Router Basics](#section-5)
+- [6. App Router vs Pages Router](#section-6)
+- [7. Role-Based App Router Scaffold](#section-7)
+- [8. Route Guard and Route Protection](#section-8)
+- [9. Params and Query Params](#section-9)
+- [10. Synchronous and Asynchronous JavaScript](#section-10)
+  - [10.1 Synchronous Example](#section-11)
+  - [10.2 Asynchronous Example](#section-12)
+  - [10.3 Promise কী](#section-13)
+  - [10.4 async/await কী](#section-14)
+  - [10.5 FastAPI API Call Async কেন](#section-15)
+  - [10.6 try/catch/finally](#section-16)
+  - [10.7 Sequential vs Parallel Async](#section-17)
+  - [10.8 Server Component-এ Async](#section-18)
+  - [10.9 Client Component-এ Async](#section-19)
+  - [10.10 React Query Async](#section-20)
+  - [10.11 Common Mistakes](#section-21)
+- [11. Server Component vs Client Component](#section-22)
+- [12. Rendering and Server Cost](#section-23)
+- [13. Environment Variables](#section-24)
+- [14. FastAPI Backend Connection](#section-25)
+- [15. Axios Setup](#section-26)
+- [16. Service Layer](#section-27)
+- [17. Custom Hook](#section-28)
+- [18. Component](#section-29)
+- [19. Page](#section-30)
+- [20. React Query](#section-31)
+- [21. Zustand](#section-32)
+- [22. Zod](#section-33)
+- [23. Route Constants](#section-34)
+- [24. Development Rules](#section-35)
+- [25. Simple Login Flow](#section-36)
+- [26. Common Scripts](#section-37)
+- [27. Use Cases](#section-38)
+- [28. Official Docs References](#section-39)
+- [29. Final Summary](#section-40)
+<!-- tutorial-index:end -->
+
+---
+
+
 এই note-টা আমার Next.js frontend শেখার জন্য।  
 আমার backend focus হলো **FastAPI**।
 
@@ -12,6 +62,8 @@ Code যেন বড় হলে messy না হয়
 ```
 
 ---
+
+<a id="section-1"></a>
 
 ## 1. Big Picture
 
@@ -53,7 +105,12 @@ Logic hook-এ রাখবো।
 UI component clean রাখবো।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-2"></a>
 
 ## 2. Tools and Packages
 
@@ -82,7 +139,12 @@ React Query = API data cache/loading/refetch
 Zustand     = global frontend state
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-3"></a>
 
 ## 3. Installation
 
@@ -129,7 +191,12 @@ Browser:
 http://localhost:3000
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-4"></a>
 
 ## 4. Recommended Folder Structure
 
@@ -211,7 +278,12 @@ Logic             → hooks/
 Global state      → store/
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-5"></a>
 
 ## 5. App Router Basics
 
@@ -242,7 +314,12 @@ FastAPI backend থাকলে real backend logic FastAPI-তেই রাখ�
 Next.js route.ts শুধু proxy, health check, বা small frontend-side server utility-এর জন্য use করা যেতে পারে।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-6"></a>
 
 ## 6. App Router vs Pages Router
 
@@ -305,7 +382,12 @@ Old project Pages Router হলে slowly migrate করা যায়।
 Role-based dashboard/admin panel-এর জন্য App Router বেশি clean।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-7"></a>
 
 ## 7. Role-Based App Router Scaffold
 
@@ -410,7 +492,12 @@ Simple vs role-based scaffold:
 | Route group `(protected)` | protected routes একসাথে organize করতে |
 | Feature folder `features/admin` | role-specific component/hook/service রাখতে |
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-8"></a>
 
 ## 8. Route Guard and Route Protection
 
@@ -547,7 +634,12 @@ Next.js guard → redirect / user experience
 FastAPI guard → real permission/security
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-9"></a>
 
 ## 9. Params and Query Params
 
@@ -698,7 +790,12 @@ Final request URL:
 GET http://localhost:8000/api/v1/products?search=phone&page=2&sort=price
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-10"></a>
 
 ## 10. Synchronous and Asynchronous JavaScript
 
@@ -723,7 +820,12 @@ Asynchronous:
 
 JavaScript single-threaded হলেও async কাজ handle করতে পারে। API request, timer, file upload, database request এগুলো সাধারণত async।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-11"></a>
 
 ### 10.1 Synchronous Example
 
@@ -756,7 +858,12 @@ console.log(result);
 
 এখানে `add()` function immediately result return করে। তাই এটা synchronous।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-12"></a>
 
 ### 10.2 Asynchronous Example
 
@@ -780,7 +887,12 @@ Step 2
 
 কারণ `setTimeout` async। JavaScript wait না করে পরের line execute করে।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-13"></a>
 
 ### 10.3 Promise কী
 
@@ -800,7 +912,12 @@ const promise = fetch("http://localhost:8000/api/v1/products");
 
 `fetch()` সাথে সাথে data return করে না। এটা একটা Promise return করে। পরে response আসবে।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-14"></a>
 
 ### 10.4 async/await কী
 
@@ -828,7 +945,12 @@ Important:
 await শুধু async function-এর ভিতরে use করা যায়।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-15"></a>
 
 ### 10.5 FastAPI API Call Async কেন
 
@@ -861,7 +983,12 @@ Usage:
 const users = await getUsers();
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-16"></a>
 
 ### 10.6 try/catch/finally
 
@@ -904,7 +1031,12 @@ async function login(email: string, password: string) {
 }
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-17"></a>
 
 ### 10.7 Sequential vs Parallel Async
 
@@ -937,7 +1069,12 @@ Rule:
 স্বাধীন request হলে → Promise.all
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-18"></a>
 
 ### 10.8 Server Component-এ Async
 
@@ -963,7 +1100,12 @@ export default async function ProductsPage() {
 
 এটা server-side data fetch করার জন্য useful।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-19"></a>
 
 ### 10.9 Client Component-এ Async
 
@@ -992,7 +1134,12 @@ async function handleSubmit(e: React.FormEvent) {
 }
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-20"></a>
 
 ### 10.10 React Query Async
 
@@ -1012,7 +1159,12 @@ React Query নিজে loading/error/cache manage করে।
 
 তাই সবসময় manual `useState` দিয়ে loading manage করতে হয় না।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-21"></a>
 
 ### 10.11 Common Mistakes
 
@@ -1091,7 +1243,12 @@ Client button/form event → async handler
 React Query queryFn      → async function
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-22"></a>
 
 ## 11. Server Component vs Client Component
 
@@ -1147,7 +1304,12 @@ Simple rule:
 যেখানে interaction আছে → Client Component
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-23"></a>
 
 ## 12. Rendering and Server Cost
 
@@ -1223,7 +1385,12 @@ Cost কমানোর rules:
 4. Private data হলে auth + `no-store` ঠিক আছে।
 5. React Query use করলে `staleTime` set করবো।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-24"></a>
 
 ## 13. Environment Variables
 
@@ -1248,7 +1415,12 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 API_BASE_URL=http://localhost:8000
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-25"></a>
 
 ## 14. FastAPI Backend Connection
 
@@ -1318,7 +1490,12 @@ FastAPI Pydantic validation = real backend validation
 
 Frontend validation bypass করা যায়। Backend validation bypass করা যায় না।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-26"></a>
 
 ## 15. Axios Setup
 
@@ -1371,7 +1548,12 @@ export const api = axios.create({
 
 তখন FastAPI CORS-এ `allow_credentials=True` লাগবে।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-27"></a>
 
 ## 16. Service Layer
 
@@ -1415,7 +1597,12 @@ service path=/auth/login
 final URL=http://localhost:8000/api/v1/auth/login
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-28"></a>
 
 ## 17. Custom Hook
 
@@ -1460,7 +1647,12 @@ Hook-এ রাখা যায়:
 - service function call
 - localStorage update
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-29"></a>
 
 ## 18. Component
 
@@ -1515,7 +1707,12 @@ export default function LoginForm() {
 
 এখানে component শুধু UI + event handle করছে। API call সরাসরি component-এ নেই।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-30"></a>
 
 ## 19. Page
 
@@ -1540,7 +1737,12 @@ export default function LoginPage() {
 }
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-31"></a>
 
 ## 20. React Query
 
@@ -1590,7 +1792,12 @@ React Query hook use করলে component client হতে হবে।
 staleTime দিলে FastAPI call কম হয়।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-32"></a>
 
 ## 21. Zustand
 
@@ -1630,7 +1837,12 @@ export const useAuthStore = create<AuthState>((set) => ({
 }));
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-33"></a>
 
 ## 22. Zod
 
@@ -1665,7 +1877,12 @@ Pydantic backend security/data correctness রাখে।
 দুই জায়গাতেই validation দরকার।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-34"></a>
 
 ## 23. Route Constants
 
@@ -1701,7 +1918,12 @@ export default function Navbar() {
 }
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-35"></a>
 
 ## 24. Development Rules
 
@@ -1730,7 +1952,12 @@ export default function Navbar() {
 23. Independent multiple API call হলে `Promise.all` use করা যায়।
 24. Async API call-এ `try/catch/finally` দিয়ে error/loading handle করবো।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-36"></a>
 
 ## 25. Simple Login Flow
 
@@ -1761,7 +1988,12 @@ Axios     = baseURL/token setup
 FastAPI   = auth/database/validation
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-37"></a>
 
 ## 26. Common Scripts
 
@@ -1772,7 +2004,12 @@ FastAPI   = auth/database/validation
 | `npm run start` | Production build locally run করে। |
 | `npm run lint` | Linting issue check করে। |
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-38"></a>
 
 ## 27. Use Cases
 
@@ -1786,7 +2023,12 @@ FastAPI   = auth/database/validation
 - FastAPI backend connected frontend
 - Production-ready frontend starter
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-39"></a>
 
 ## 28. Official Docs References
 
@@ -1798,7 +2040,12 @@ FastAPI   = auth/database/validation
 - Authentication and Authorization: https://nextjs.org/docs/app/guides/authentication
 - Proxy for route guard/redirect: https://nextjs.org/docs/app/api-reference/file-conventions/proxy
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-40"></a>
 
 ## 29. Final Summary
 
@@ -1831,3 +2078,6 @@ Error/loading handle করতে হবে
 ```
 
 এভাবে লিখলে project বড় হলেও code clean, understandable এবং maintainable থাকে।
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)

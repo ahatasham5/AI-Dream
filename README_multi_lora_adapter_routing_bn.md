@@ -1,5 +1,56 @@
 # Multi-LoRA Adapter Routing Architecture
 
+<a id="index"></a>
+
+## Index
+
+<!-- tutorial-index:start -->
+- [সংক্ষিপ্ত পরিচিতি](#section-1)
+- [Core Concept](#section-2)
+  - [Base Model কী?](#section-3)
+  - [LoRA Adapter কী?](#section-4)
+- [কেন Multi-LoRA Adapter Routing ব্যবহার করা হয়?](#section-5)
+- [Architecture](#section-6)
+- [গুরুত্বপূর্ণ ব্যাখ্যা](#section-7)
+- [কখন Adapter আলাদা রাখা ভালো?](#section-8)
+- [কখন LoRA Merge করা ভালো?](#section-9)
+- [কখন Distillation ব্যবহার করা হয়?](#section-10)
+- [Project Structure](#section-11)
+- [Installation](#section-12)
+  - [1. Virtual environment তৈরি করুন](#section-13)
+  - [2. Dependencies install করুন](#section-14)
+- [requirements.txt](#section-15)
+- [.env.example](#section-16)
+- [Adapter Registry](#section-17)
+- [Simple Router / Classifier](#section-18)
+- [Model Server](#section-19)
+- [FastAPI App](#section-20)
+- [Locally Run করা](#section-21)
+- [API Test](#section-22)
+  - [Bangla request](#section-23)
+  - [Quran request](#section-24)
+  - [Medical request](#section-25)
+- [Dockerfile](#section-26)
+- [Docker Image Build করা](#section-27)
+- [Docker Container Run করা](#section-28)
+- [Adapter Folder Example](#section-29)
+- [কীভাবে আলাদা LoRA Adapter train করা উচিত?](#section-30)
+- [Production Notes](#section-31)
+  - [1. Adapter Versioning](#section-32)
+  - [2. Adapter Status](#section-33)
+  - [3. Router Improvement](#section-34)
+  - [4. Safety](#section-35)
+  - [5. Monitoring](#section-36)
+  - [6. Fallback Adapter](#section-37)
+  - [7. কখন Adapter Merge করবেন?](#section-38)
+  - [8. কখন Distillation করবেন?](#section-39)
+- [Summary](#section-40)
+<!-- tutorial-index:end -->
+
+---
+
+<a id="section-1"></a>
+
 ## সংক্ষিপ্ত পরিচিতি
 
 এই repository একটি **PEFT-based Multi-LoRA Adapter Routing** architecture-এর sample implementation।
@@ -31,9 +82,19 @@ User question যদি general বাংলা হয়, তাহলে Bangla L
 User question যদি Quran/Arabic learning নিয়ে হয়, তাহলে Quran LoRA ব্যবহার হবে।  
 User question যদি medical topic নিয়ে হয়, তাহলে Medical LoRA ব্যবহার হবে।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
 
+<a id="section-2"></a>
+
 ## Core Concept
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+<a id="section-3"></a>
 
 ### Base Model কী?
 
@@ -49,7 +110,12 @@ Phi
 
 Base model-এর ভিতরে আগে থেকেই language understanding, text generation ability, reasoning pattern, grammar, knowledge representation ইত্যাদি থাকে।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-4"></a>
 
 ### LoRA Adapter কী?
 
@@ -86,7 +152,12 @@ Effective model = Base Model + Medical LoRA
 
 LoRA adapter নিজে full model না। এটা base model-এর উপর ছোট domain-specific tuning।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-5"></a>
 
 ## কেন Multi-LoRA Adapter Routing ব্যবহার করা হয়?
 
@@ -113,7 +184,12 @@ Adapters = অনেকগুলো ছোট file
 Router = কোন adapter use হবে তা ঠিক করে
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-6"></a>
 
 ## Architecture
 
@@ -131,7 +207,12 @@ Base Model + Selected LoRA Adapter
 Response
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-7"></a>
 
 ## গুরুত্বপূর্ণ ব্যাখ্যা
 
@@ -161,7 +242,12 @@ Medical LoRA file
 
 Runtime-এ selected adapter active হয়।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-8"></a>
 
 ## কখন Adapter আলাদা রাখা ভালো?
 
@@ -176,7 +262,12 @@ Adapters আলাদা রাখা ভালো যখন:
 - rollback দরকার হতে পারে
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-9"></a>
 
 ## কখন LoRA Merge করা ভালো?
 
@@ -197,7 +288,12 @@ Base Model + LoRA Adapter → New Full Fine-tuned Model
 
 তখন adapter আলাদা করে load করার দরকার নেই। কিন্তু অনেক domain থাকলে merged model অনেকগুলো হয়ে storage বাড়তে পারে।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-10"></a>
 
 ## কখন Distillation ব্যবহার করা হয়?
 
@@ -215,7 +311,12 @@ Small 1.5B / 3B model
 
 Training phase-এ storage বেশি লাগতে পারে, কারণ teacher, student, data, checkpoints সব থাকে। কিন্তু final deployment-এ যদি শুধু student model রাখা হয়, তাহলে storage ও inference cost কমতে পারে।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-11"></a>
 
 # Project Structure
 
@@ -239,9 +340,19 @@ multi-lora-router/
 └── README.md
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
 
+<a id="section-12"></a>
+
 # Installation
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+<a id="section-13"></a>
 
 ## 1. Virtual environment তৈরি করুন
 
@@ -261,7 +372,12 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-14"></a>
 
 ## 2. Dependencies install করুন
 
@@ -269,7 +385,12 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-15"></a>
 
 # requirements.txt
 
@@ -284,7 +405,12 @@ python-dotenv
 pydantic
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-16"></a>
 
 # .env.example
 
@@ -294,7 +420,12 @@ DEFAULT_ADAPTER=bangla
 DEVICE=auto
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-17"></a>
 
 # Adapter Registry
 
@@ -350,7 +481,12 @@ def get_adapter(adapter_name: str) -> AdapterInfo:
     return adapter
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-18"></a>
 
 # Simple Router / Classifier
 
@@ -398,7 +534,12 @@ def detect_adapter(user_input: str) -> str:
     return "bangla"
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-19"></a>
 
 # Model Server
 
@@ -540,7 +681,12 @@ class MultiLoRAModelServer:
 model_server = MultiLoRAModelServer()
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-20"></a>
 
 # FastAPI App
 
@@ -613,7 +759,12 @@ def generate(request: GenerateRequest):
         )
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-21"></a>
 
 # Locally Run করা
 
@@ -627,9 +778,19 @@ Open:
 http://localhost:8000/docs
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
 
+<a id="section-22"></a>
+
 # API Test
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+<a id="section-23"></a>
 
 ## Bangla request
 
@@ -648,7 +809,12 @@ Expected adapter:
 bangla
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-24"></a>
 
 ## Quran request
 
@@ -667,7 +833,12 @@ Expected adapter:
 quran
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-25"></a>
 
 ## Medical request
 
@@ -686,7 +857,12 @@ Expected adapter:
 medical
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-26"></a>
 
 # Dockerfile
 
@@ -706,7 +882,12 @@ EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-27"></a>
 
 # Docker Image Build করা
 
@@ -714,7 +895,12 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 docker build -t multi-lora-router .
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-28"></a>
 
 # Docker Container Run করা
 
@@ -728,7 +914,12 @@ Open:
 http://localhost:8000/docs
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-29"></a>
 
 # Adapter Folder Example
 
@@ -749,7 +940,12 @@ adapters/
 
 প্রতিটা adapter folder-এ trained LoRA adapter files থাকতে হবে।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-30"></a>
 
 # কীভাবে আলাদা LoRA Adapter train করা উচিত?
 
@@ -769,9 +965,19 @@ Base → Bangla LoRA → Quran LoRA → Medical LoRA
 
 কারণ এতে adapter dependency তৈরি হয়, debugging কঠিন হয়, deployment messy হয়।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
 
+<a id="section-31"></a>
+
 # Production Notes
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+<a id="section-32"></a>
 
 ## 1. Adapter Versioning
 
@@ -798,7 +1004,12 @@ path
 owner
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-33"></a>
 
 ## 2. Adapter Status
 
@@ -814,7 +1025,12 @@ deprecated
 
 শুধু `production` বা approved `staging` adapters serve করা উচিত।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-34"></a>
 
 ## 3. Router Improvement
 
@@ -838,7 +1054,12 @@ Mode: Quran Learning
 Mode: Medical Info
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-35"></a>
 
 ## 4. Safety
 
@@ -852,7 +1073,12 @@ Medical example:
 Emergency symptom থাকলে দ্রুত doctor-এর সাথে যোগাযোগ করতে হবে।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-36"></a>
 
 ## 5. Monitoring
 
@@ -881,7 +1107,12 @@ data drift
 quality score
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-37"></a>
 
 ## 6. Fallback Adapter
 
@@ -900,7 +1131,12 @@ default_adapter = bangla
 3. Medical Info
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-38"></a>
 
 ## 7. কখন Adapter Merge করবেন?
 
@@ -915,7 +1151,12 @@ Merge করা যায় যদি:
 
 সব adapter অন্ধভাবে merge করা উচিত না।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-39"></a>
 
 ## 8. কখন Distillation করবেন?
 
@@ -930,7 +1171,12 @@ Distillation ব্যবহার করা যায় যদি:
 
 Final deployment-এ শুধু distilled student model রাখা যেতে পারে।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-40"></a>
 
 # Summary
 
@@ -953,3 +1199,6 @@ Base model + selected adapter দিয়ে answer generate হয়।
 ```
 
 এই approach storage-efficient, scalable, domain-specific MLOps deployment-এর জন্য useful।
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)

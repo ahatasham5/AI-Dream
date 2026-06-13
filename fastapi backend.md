@@ -1,5 +1,60 @@
 # FastAPI Backend Notes for Next.js Frontend
 
+<a id="index"></a>
+
+## Index
+
+<!-- tutorial-index:start -->
+- [1. Big Picture](#section-1)
+- [2. Backend Architecture Flow](#section-2)
+- [3. Installation](#section-3)
+- [4. Simple Project Structure](#section-4)
+- [5. Bigger Project Structure](#section-5)
+- [6. FastAPI Scaffold Types](#section-6)
+  - [6.1 Simple / Flat Scaffold](#section-7)
+  - [6.2 Router-Based Scaffold](#section-8)
+  - [6.3 Feature-Based / Modular Scaffold](#section-9)
+  - [6.4 Layered Architecture Scaffold](#section-10)
+  - [6.5 Clean Architecture Scaffold](#section-11)
+  - [6.6 Microservice-Style Scaffold](#section-12)
+- [7. Scaffold Decision Guide](#section-13)
+- [8. Model vs Schema Vocabulary](#section-14)
+- [9. Transport/Fleet/Uber-Type Scaffold Example](#section-15)
+- [10. MVP, Advanced Features, and Redis](#section-16)
+- [11. First FastAPI App](#section-17)
+- [12. API Prefix and Versioning](#section-18)
+- [13. APIRouter](#section-19)
+- [14. Path Parameters](#section-20)
+- [15. Query Parameters](#section-21)
+- [16. Request Body](#section-22)
+- [17. Pydantic Schemas](#section-23)
+- [18. Response Model](#section-24)
+- [19. Synchronous and Asynchronous in FastAPI](#section-25)
+- [20. CORS for Next.js Frontend](#section-26)
+- [21. Environment Variables](#section-27)
+- [22. Database Basics with SQLModel](#section-28)
+- [23. Database Models](#section-29)
+- [24. CRUD Example](#section-30)
+- [25. Dependencies](#section-31)
+- [26. Authentication](#section-32)
+- [27. Authorization and Role Protection](#section-33)
+- [28. Error Handling](#section-34)
+- [29. File Upload](#section-35)
+- [30. Background Tasks](#section-36)
+- [31. Next.js Frontend Connection](#section-37)
+- [32. API Docs and OpenAPI](#section-38)
+- [33. Testing](#section-39)
+- [34. Development Rules](#section-40)
+- [35. Simple Auth Flow](#section-41)
+- [36. Common Commands](#section-42)
+- [37. Use Cases](#section-43)
+- [38. Official Docs References](#section-44)
+- [39. Final Summary](#section-45)
+<!-- tutorial-index:end -->
+
+---
+
+
 এই note-টা FastAPI backend শেখার জন্য।  
 Frontend side হিসেবে আমি Next.js App Router use করবো।
 
@@ -13,6 +68,8 @@ Project বড় হলেও code যেন maintainable থাকে
 ```
 
 ---
+
+<a id="section-1"></a>
 
 ## 1. Big Picture
 
@@ -57,7 +114,12 @@ Frontend validation = user experience
 Backend validation  = real security/data correctness
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-2"></a>
 
 ## 2. Backend Architecture Flow
 
@@ -93,7 +155,12 @@ Config      = env/settings
 
 ছোট project হলে সব layer আলাদা না করলেও চলে। কিন্তু বড় project হলে আলাদা রাখা ভালো।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-3"></a>
 
 ## 3. Installation
 
@@ -152,7 +219,12 @@ Swagger docs: http://localhost:8000/docs
 ReDoc docs:   http://localhost:8000/redoc
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-4"></a>
 
 ## 4. Simple Project Structure
 
@@ -189,7 +261,12 @@ Folder/file meaning:
 | `.env` | Secret/config value। |
 | `requirements.txt` | Python packages list। |
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-5"></a>
 
 ## 5. Bigger Project Structure
 
@@ -250,7 +327,12 @@ Simple vs bigger scaffold:
 | `dependencies/` | reusable auth/DB/role logic |
 | `services/` | business logic clean রাখতে |
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-6"></a>
 
 ## 6. FastAPI Scaffold Types
 
@@ -263,6 +345,11 @@ Code organization pattern
 ```
 
 Project ছোট না বড়, feature কত complex, team কয়জন, future scaling লাগবে কিনা — এগুলোর উপর scaffold depend করে।
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+<a id="section-7"></a>
 
 ### 6.1 Simple / Flat Scaffold
 
@@ -293,7 +380,12 @@ Problem:
 Project বড় হলে models.py, schemas.py, crud.py অনেক বড় হয়ে যায়।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-8"></a>
 
 ### 6.2 Router-Based Scaffold
 
@@ -334,7 +426,12 @@ API route বেশি হচ্ছে
 Team-based development শুরু হচ্ছে
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-9"></a>
 
 ### 6.3 Feature-Based / Modular Scaffold
 
@@ -386,7 +483,12 @@ Long-term maintain করতে হবে
 
 LMS, marketplace, SaaS, Uber-type app-এর জন্য এই pattern useful।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-10"></a>
 
 ### 6.4 Layered Architecture Scaffold
 
@@ -433,7 +535,12 @@ model       = database table structure
 
 Professional backend-এর জন্য এটা খুব useful, কারণ code test করা সহজ হয়।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-11"></a>
 
 ### 6.5 Clean Architecture Scaffold
 
@@ -472,7 +579,12 @@ Long-term scaling দরকার
 
 Learning/MVP-এর জন্য সাধারণত এটা overkill।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-12"></a>
 
 ### 6.6 Microservice-Style Scaffold
 
@@ -505,7 +617,12 @@ High scaling দরকার
 
 শুরুতে এটা দরকার নেই। MVP-তে monolith backend রাখাই ভালো।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-13"></a>
 
 ## 7. Scaffold Decision Guide
 
@@ -544,7 +661,12 @@ Important:
 Project বড় হলে module/service/repository আলাদা করবো।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-14"></a>
 
 ## 8. Model vs Schema Vocabulary
 
@@ -667,7 +789,12 @@ services/ → business logic
 repositories/ → database query
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-15"></a>
 
 ## 9. Transport/Fleet/Uber-Type Scaffold Example
 
@@ -826,7 +953,12 @@ models/vehicle.py  → Vehicle table
 schemas/vehicle.py → VehicleResponse
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-16"></a>
 
 ## 10. MVP, Advanced Features, and Redis
 
@@ -897,7 +1029,12 @@ PostgreSQL + FastAPI দিয়েই শুরু করা যায়।
 OTP, queue, rate limit, live status দরকার হলে Redis add করা ভালো।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-17"></a>
 
 ## 11. First FastAPI App
 
@@ -940,7 +1077,12 @@ Response:
 }
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-18"></a>
 
 ## 12. API Prefix and Versioning
 
@@ -982,7 +1124,12 @@ Final URL:
 GET http://localhost:8000/api/v1/health
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-19"></a>
 
 ## 13. APIRouter
 
@@ -1031,7 +1178,12 @@ Rule:
 auth.py, users.py, courses.py, admin.py
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-20"></a>
 
 ## 14. Path Parameters
 
@@ -1082,7 +1234,12 @@ Specific resource দরকার
 User details, product details, course details
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-21"></a>
 
 ## 15. Query Parameters
 
@@ -1133,7 +1290,12 @@ Path vs query:
 | Query param | `/users?role=admin` | filter users |
 | Query param | `/products?page=2` | pagination |
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-22"></a>
 
 ## 16. Request Body
 
@@ -1187,7 +1349,12 @@ Wrong email হলে validation error দিবে।
 Required field missing হলে 422 error দিবে।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-23"></a>
 
 ## 17. Pydantic Schemas
 
@@ -1247,7 +1414,12 @@ Good response:
 }
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-24"></a>
 
 ## 18. Response Model
 
@@ -1283,7 +1455,12 @@ Backend থেকে frontend-এ শুধু safe data পাঠাবো।
 Sensitive data response model দিয়ে hide/filter করবো।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-25"></a>
 
 ## 19. Synchronous and Asynchronous in FastAPI
 
@@ -1353,7 +1530,12 @@ FastAPI endpoint async হতে পারে
 Database query async/sync হতে পারে
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-26"></a>
 
 ## 20. CORS for Next.js Frontend
 
@@ -1404,7 +1586,12 @@ CORS frontend browser-এর security rule।
 Postman/curl-এ CORS error normally দেখা যায় না।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-27"></a>
 
 ## 21. Environment Variables
 
@@ -1441,7 +1628,12 @@ Secret/config hardcode করবো না।
 .env git commit করবো না।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-28"></a>
 
 ## 22. Database Basics with SQLModel
 
@@ -1499,7 +1691,12 @@ Endpoint কাজ করবে
 Request শেষ হলে session close হবে
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-29"></a>
 
 ## 23. Database Models
 
@@ -1534,7 +1731,12 @@ Raw password database-এ রাখা যাবে না।
 Always hashed password save করতে হবে।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-30"></a>
 
 ## 24. CRUD Example
 
@@ -1604,7 +1806,12 @@ Update = PUT/PATCH
 Delete = DELETE
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-31"></a>
 
 ## 25. Dependencies
 
@@ -1659,7 +1866,12 @@ Rule:
 যে logic অনেক endpoint-এ লাগে, সেটা dependency বানাবো।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-32"></a>
 
 ## 26. Authentication
 
@@ -1739,7 +1951,12 @@ Raw password কখনও database-এ রাখা যাবে না।
 Token expire time রাখা ভালো।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-33"></a>
 
 ## 27. Authorization and Role Protection
 
@@ -1901,7 +2118,12 @@ Next.js route guard = UX / redirect
 FastAPI role check  = real security
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-34"></a>
 
 ## 28. Error Handling
 
@@ -1945,7 +2167,12 @@ Error message frontend-friendly হতে হবে।
 Sensitive internal error expose করবো না।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-35"></a>
 
 ## 29. File Upload
 
@@ -1986,7 +2213,12 @@ Large file হলে size limit, storage path, security check দরকার।
 Frontend FormData দিয়ে file পাঠাবে।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-36"></a>
 
 ## 30. Background Tasks
 
@@ -2024,7 +2256,12 @@ Heavy production job হলে Celery/RQ/queue better।
 Small task হলে FastAPI BackgroundTasks enough।
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-37"></a>
 
 ## 31. Next.js Frontend Connection
 
@@ -2074,7 +2311,12 @@ FastAPI response snake_case হতে পারে: access_token
 Frontend চাইলে camelCase map করতে পারে: accessToken
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-38"></a>
 
 ## 32. API Docs and OpenAPI
 
@@ -2107,7 +2349,12 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 Response model use করলে docs আরও clear হয়।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-39"></a>
 
 ## 33. Testing
 
@@ -2154,7 +2401,12 @@ Test use cases:
 - CRUD endpoint
 - validation error
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-40"></a>
 
 ## 34. Development Rules
 
@@ -2187,7 +2439,12 @@ Test use cases:
 27. Redis শুরুতেই না, দরকার হলে cache/OTP/rate limit/queue-এর জন্য add করবো।
 28. Fleet/Uber-type app হলে driver, vehicle, ride, payment, role, permission আলাদা domain হিসেবে ভাববো।
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-41"></a>
 
 ## 35. Simple Auth Flow
 
@@ -2231,7 +2488,12 @@ Allowed হলে response
 Not allowed হলে 403
 ```
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-42"></a>
 
 ## 36. Common Commands
 
@@ -2244,7 +2506,12 @@ Not allowed হলে 403
 | `fastapi dev app/main.py` | FastAPI dev server run। |
 | `pytest` | Tests run। |
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-43"></a>
 
 ## 37. Use Cases
 
@@ -2261,7 +2528,12 @@ Not allowed হলে 403
 - Transport/Fleet management backend
 - Uber-type ride backend MVP
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-44"></a>
 
 ## 38. Official Docs References
 
@@ -2278,7 +2550,12 @@ Not allowed হলে 403
 - ChatGPT share note 1: https://chatgpt.com/share/6a2a949f-d05c-83ec-af21-ffdfa8223f86
 - ChatGPT share note 2: https://chatgpt.com/share/6a2a94bf-45f8-83ec-817c-4691035c9b8b
 
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
 ---
+
+<a id="section-45"></a>
 
 ## 39. Final Summary
 
@@ -2320,3 +2597,6 @@ Redis/queue/microservice পরে দরকার হলে add করবো
 ```
 
 এভাবে backend সাজালে Next.js frontend-এর সাথে clean, scalable, secure API তৈরি করা সহজ হবে।
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
