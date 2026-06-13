@@ -49,8 +49,12 @@ Learning mindset:
 - [18. Loading, Error, Empty State এবং Offline Thinking](#section-18)
 - [19. Platform Difference: Android, iOS, Web](#section-19)
 - [20. Expo Native APIs: Camera, Location, Notifications](#section-20)
-- [21. Build, Preview, EAS এবং App Store Thinking](#section-21)
-- [22. Development Rules, Checklist এবং Summary](#section-22)
+- [21. Emulator না থাকলে কীভাবে Run/Test করবো](#section-21)
+- [22. Web Preview vs WebView: কোনটা কোন জিনিস](#section-22)
+- [23. Expo Account, EAS CLI এবং Project Configure](#section-23)
+- [24. APK File কীভাবে পাবো](#section-24)
+- [25. Build, Preview, EAS এবং App Store Thinking](#section-25)
+- [26. Development Rules, Checklist এবং Summary](#section-26)
 <!-- tutorial-index:end -->
 
 ---
@@ -258,20 +262,20 @@ Recommended structure:
 
 ```txt
 my-app/
-  app/
-    _layout.tsx
-    index.tsx
-    (auth)/
-      login.tsx
-      register.tsx
-    (protected)/
-      _layout.tsx
-      home.tsx
-      profile.tsx
-      admin/
-        dashboard.tsx
-
   src/
+    app/
+      _layout.tsx
+      index.tsx
+      (auth)/
+        login.tsx
+        register.tsx
+      (protected)/
+        _layout.tsx
+        home.tsx
+        profile.tsx
+        admin/
+          dashboard.tsx
+
     components/
       ui/
       layout/
@@ -316,7 +320,7 @@ my-app/
 Meaning:
 
 ```txt
-app/        -> screens/routes
+src/app/    -> screens/routes
 src/components -> reusable UI
 src/features   -> feature-wise code
 src/lib        -> API client/common setup
@@ -328,7 +332,7 @@ assets/        -> image/icon/font
 Rule:
 
 ```txt
-Screen route app/ folder-এ
+Screen route src/app/ folder-এ
 Feature logic src/features/ folder-এ
 Reusable UI src/components/ folder-এ
 ```
@@ -342,15 +346,15 @@ Reusable UI src/components/ folder-এ
 
 ## 06. Expo Router: File-Based Mobile Routing
 
-Expo Router file-based routing use করে। `app/` folder-এর file route/screen হয়ে যায়।
+Expo Router file-based routing use করে। Modern Expo Router project-এ screen/page files সাধারণত `src/app/` folder-এর ভিতরে থাকে।
 
 Example:
 
 ```txt
-app/index.tsx              -> /
-app/(auth)/login.tsx       -> /login
-app/(protected)/home.tsx   -> /home
-app/users/[id].tsx         -> /users/123
+src/app/index.tsx              -> /
+src/app/(auth)/login.tsx       -> /login
+src/app/(protected)/home.tsx   -> /home
+src/app/users/[id].tsx         -> /users/123
 ```
 
 `_layout.tsx`:
@@ -369,6 +373,8 @@ Route group:
 (auth) এবং (protected) URL path-এ আসে না।
 এগুলো শুধু screen organize করতে use হয়।
 ```
+
+Old/manual React Navigation projects-এ অনেক সময় `src/screens/` folder দেখা যায়। Expo Router use করলে আলাদা `screens/` folder mandatory না; route screen হলো `src/app`-এর file।
 
 Navigate:
 
@@ -550,7 +556,7 @@ Store     = global auth/user/UI state
 Example flow:
 
 ```txt
-app/(auth)/login.tsx
+src/app/(auth)/login.tsx
   -> LoginForm.tsx
   -> useLogin.ts
   -> authService.ts
@@ -1228,13 +1234,306 @@ Complex/native config দরকার হলে development build use করত�
 
 <a id="section-21"></a>
 
-## 21. Build, Preview, EAS এবং App Store Thinking
+## 21. Emulator না থাকলে কীভাবে Run/Test করবো
+
+Emulator না থাকলেও Expo app run/test করা যায়। তিনটা practical option আছে।
+
+Option 1: Physical phone + Expo Go
+
+```bash
+npx expo start
+```
+
+তারপর:
+
+```txt
+Phone-এ Expo Go install
+Computer আর phone same Wi-Fi network-এ রাখবো
+Terminal/browser-এর QR code scan করবো
+App phone-এ open হবে
+```
+
+যদি same Wi-Fi সমস্যা করে:
+
+```bash
+npx expo start --tunnel
+```
+
+Tunnel internet দিয়ে connection করে, তাই local network issue কম হয়। তবে speed একটু slow হতে পারে।
+
+Option 2: Web browser preview
+
+```bash
+npx expo start --web
+```
+
+যদি web dependency missing থাকে:
+
+```bash
+npx expo install react-dom react-native-web @expo/metro-runtime
+```
+
+Web preview কখন use করবো:
+
+```txt
+Emulator নেই
+UI/layout quick check করতে চাই
+Form/API flow browser-এ দেখতে চাই
+Fast refresh দিয়ে দ্রুত develop করতে চাই
+```
+
+কিন্তু মনে রাখতে হবে:
+
+```txt
+Web preview native Android/iOS behavior fully prove করে না।
+Camera, push notification, biometric, native permission - এগুলো real phone/development build-এ test করা ভালো।
+```
+
+Option 3: APK install on Android phone
+
+```txt
+EAS দিয়ে APK build করবো
+APK phone-এ install করবো
+Expo Go লাগবে না
+```
+
+এই option final user/demo/tester-এর জন্য ভালো।
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+---
+
+<a id="section-22"></a>
+
+## 22. Web Preview vs WebView: কোনটা কোন জিনিস
+
+দুইটা term আলাদা।
+
+```txt
+Expo Web Preview = তোমার React Native app browser-এ চালানো
+WebView          = mobile app-এর ভিতরে website/webpage embed করা
+```
+
+Expo Web Preview:
+
+```bash
+npx expo start --web
+```
+
+Missing dependency থাকলে:
+
+```bash
+npx expo install react-dom react-native-web @expo/metro-runtime
+```
+
+Use case:
+
+```txt
+Emulator নেই
+Browser-এ UI test করতে চাই
+React Native Web support check করতে চাই
+```
+
+WebView install:
+
+```bash
+npx expo install react-native-webview
+```
+
+WebView example:
+
+```tsx
+import { StyleSheet } from "react-native";
+import { WebView } from "react-native-webview";
+
+export default function WebsiteScreen() {
+  return (
+    <WebView
+      style={styles.webview}
+      source={{ uri: "https://expo.dev" }}
+    />
+  );
+}
+
+const styles = StyleSheet.create({
+  webview: {
+    flex: 1,
+  },
+});
+```
+
+When to use WebView:
+
+```txt
+Existing website app-এর ভিতরে দেখাতে
+Payment/third-party web page খুলতে
+Terms/privacy/help page embed করতে
+Admin panel-এর small web page দেখাতে
+```
+
+When not to use WebView:
+
+```txt
+পুরো mobile app WebView দিয়ে বানিয়ে ফেললে native UX খারাপ হতে পারে।
+যদি app মূলত native হওয়া দরকার, React Native screen/component বানাবো।
+```
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+---
+
+<a id="section-23"></a>
+
+## 23. Expo Account, EAS CLI এবং Project Configure
+
+APK/AAB/iOS build পেতে হলে **Expo account** দরকার, কারণ EAS Build Expo account-এর সাথে কাজ করে।
+
+Account:
+
+```txt
+https://expo.dev/signup
+```
+
+EAS CLI install:
+
+```bash
+npm install --global eas-cli
+```
+
+Login:
+
+```bash
+eas login
+```
+
+Check:
+
+```bash
+eas whoami
+```
+
+Project configure:
+
+```bash
+eas build:configure
+```
+
+এই command সাধারণত `eas.json` create/update করে।
+
+Development build দরকার হলে:
+
+```bash
+npx expo install expo-dev-client
+```
+
+কখন development build দরকার:
+
+```txt
+Expo Go-তে package supported না
+Custom native module লাগছে
+Native config/plugin দরকার
+Real app-like dev environment দরকার
+```
+
+Important:
+
+```txt
+Expo Go = quick development preview
+Development build = নিজের app-এর custom dev version
+EAS build = installable APK/AAB/IPA binary
+```
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+---
+
+<a id="section-24"></a>
+
+## 24. APK File কীভাবে পাবো
+
+Android app দুইভাবে ভাবতে হবে:
+
+```txt
+APK = directly phone/emulator-এ install করা যায়
+AAB = Google Play Store upload-এর জন্য preferred
+```
+
+Direct install/test/demo-এর জন্য APK দরকার।
+
+`eas.json` preview profile:
+
+```json
+{
+  "build": {
+    "preview": {
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {}
+  }
+}
+```
+
+APK build command:
+
+```bash
+eas build -p android --profile preview
+```
+
+Build complete হলে:
+
+```txt
+Terminal একটা build link দেখাবে
+Expo dashboard-এ build দেখা যাবে
+সেখান থেকে APK download/install করা যাবে
+```
+
+Build list:
+
+```bash
+eas build:list
+```
+
+Emulator থাকলে install:
+
+```bash
+eas build:run -p android
+```
+
+Physical phone-এ install:
+
+```txt
+APK download
+Phone-এ send/copy
+Install from unknown sources allow করতে হতে পারে
+APK open করে install
+```
+
+Important:
+
+```txt
+Play Store upload-এর জন্য সাধারণত AAB build করা হয়।
+Direct share/test/demo-এর জন্য APK build করা হয়।
+```
+
+<!-- tutorial-nav:back -->
+[Back to Index](#index)
+
+---
+
+<a id="section-25"></a>
+
+## 25. Build, Preview, EAS এবং App Store Thinking
 
 Development:
 
 ```txt
 npx expo start
-Expo Go / development build
+Expo Go / web preview / development build
 ```
 
 Production thinking:
@@ -1254,6 +1553,7 @@ Privacy policy
 EAS:
 
 ```txt
+EAS CLI    -> terminal থেকে Expo services control
 EAS Build  -> Android/iOS app binary build
 EAS Submit -> App Store / Play Store submit
 EAS Update -> OTA JavaScript update
@@ -1265,6 +1565,8 @@ Build mindset:
 Development app আর production app আলাদা config রাখবে।
 Production API URL আলাদা হবে।
 Secret কখনও app bundle-এ রাখবো না।
+APK tester/demo-এর জন্য।
+AAB Play Store-এর জন্য।
 ```
 
 <!-- tutorial-nav:back -->
@@ -1272,15 +1574,15 @@ Secret কখনও app bundle-এ রাখবো না।
 
 ---
 
-<a id="section-22"></a>
+<a id="section-26"></a>
 
-## 22. Development Rules, Checklist এবং Summary
+## 26. Development Rules, Checklist এবং Summary
 
 Rules:
 
 1. React Native-এ HTML tag use করবো না; `View`, `Text`, `Image`, `Pressable` use করবো।
 2. Long list হলে `FlatList` use করবো।
-3. Screen route `app/` folder-এ রাখবো।
+3. Screen route `src/app/` folder-এ রাখবো।
 4. Feature code `src/features/<feature>/` folder-এ রাখবো।
 5. API call `services/` folder-এ রাখবো।
 6. Loading/error logic hook-এ রাখবো।
@@ -1296,6 +1598,12 @@ Rules:
 16. API data cache করতে React Query use করবো।
 17. Global frontend state রাখতে Zustand use করবো।
 18. Production build-এর আগে app icon/splash/env/permission config check করবো।
+19. Emulator না থাকলে Expo Go physical phone বা `npx expo start --web` use করবো।
+20. Web preview-এর জন্য দরকার হলে `react-dom react-native-web @expo/metro-runtime` install করবো।
+21. App-এর ভিতরে website দেখাতে হলে `react-native-webview` install করবো।
+22. APK direct install/test/demo-এর জন্য, AAB Play Store-এর জন্য।
+23. EAS Build করতে Expo account, EAS CLI login, `eas build:configure` দরকার।
+24. APK build করতে `eas.json`-এ preview profile দিয়ে `android.buildType = "apk"` set করবো।
 
 Final memory:
 
@@ -1307,6 +1615,10 @@ View/Text   -> mobile UI building blocks
 Service     -> FastAPI API call
 Hook        -> loading/error/submit logic
 SecureStore -> token storage
+Expo Go     -> phone preview without APK
+Expo Web    -> browser preview
+WebView     -> app-এর ভিতরে webpage
+EAS Build   -> APK/AAB/IPA binary build
 FastAPI     -> real backend validation/security/database
 ```
 
@@ -1316,6 +1628,10 @@ Official references:
 - Expo Router: https://docs.expo.dev/router/introduction/
 - Expo environment variables: https://docs.expo.dev/guides/environment-variables/
 - Expo SecureStore: https://docs.expo.dev/versions/latest/sdk/securestore/
+- Expo Web: https://docs.expo.dev/workflow/web/
+- Expo EAS build setup: https://docs.expo.dev/build/setup/
+- Expo Android APK build: https://docs.expo.dev/build-reference/apk/
+- Expo WebView: https://docs.expo.dev/versions/latest/sdk/webview/
 - React Native core components: https://reactnative.dev/docs/components-and-apis
 - React Native networking: https://reactnative.dev/docs/network
 
