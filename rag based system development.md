@@ -1,6 +1,14 @@
 # RAG Based System Development Tutorial with FastAPI Backend
 
-এই note-টা RAG based system development শেখার জন্য। Backend হিসেবে ধরা হয়েছে **FastAPI**, database হিসেবে ধরা হয়েছে **PostgreSQL + pgvector**, আর example domain হিসেবে ধরা হয়েছে **Fatwa GPT / document-based question answering system**।
+এই note-টা RAG based system development শেখার জন্য। Backend হিসেবে ধরা হয়েছে **FastAPI**, RAG vector store example হিসেবে ধরা হয়েছে **ChromaDB**, আর example domain হিসেবে ধরা হয়েছে **Fatwa GPT / document-based question answering system**।
+
+Important:
+
+```txt
+Database choice project basis-এ change হবে।
+এই tutorial-এ ChromaDB দিয়ে RAG/vector search দেখানো হবে।
+কিন্তু project অনুযায়ী relational data লাগলে PostgreSQL/SQLite/MySQL আলাদা app database হিসেবে add করা যাবে।
+```
 
 Main goal:
 
@@ -37,7 +45,7 @@ Concept -> Data flow -> Metadata -> Vector DB -> Ingestion -> Retrieval -> Answe
 - [11. Recommended Stack: Learning থেকে Production](#section-11)
 - [12. FastAPI Project Setup with uv](#section-12)
 - [13. Folder Structure: RAG Backend সাজানো](#section-13)
-- [14. Database Schema: Documents এবং Chunks](#section-14)
+- [14. ChromaDB Collection Design: Documents এবং Chunks](#section-14)
 - [15. Ingestion Pipeline: PDF থেকে Vector Store](#section-15)
 - [16. Retrieval Pipeline: User Question থেকে Context](#section-16)
 - [17. Prompt with Context এবং Citation](#section-17)
@@ -153,14 +161,14 @@ Frontend
 FastAPI Backend
   -> auth, API, upload, validation, admin approval, business rules
 
-PostgreSQL
-  -> users, documents, metadata, chat history, feedback
-
-pgvector / Qdrant / Chroma / FAISS
-  -> embedding similarity search
+ChromaDB
+  -> chunks, embeddings, metadata, semantic search
 
 RAG Service
   -> chunking, embedding, retrieval, context building
+
+Optional App Database
+  -> users, chat history, admin audit, billing, permissions
 
 LLM
   -> final answer generation
@@ -174,8 +182,8 @@ Layer responsibility:
 | Layer | কাজ |
 |---|---|
 | FastAPI | API, auth, validation, upload, admin workflow |
-| PostgreSQL | relational data, document metadata, users, permissions |
-| Vector DB | semantic search |
+| ChromaDB | text chunks, embeddings, metadata, vector search |
+| Optional App DB | users, permissions, chat history, admin audit |
 | RAG service | chunk, embed, retrieve, prompt build |
 | LLM | context থেকে answer লেখা |
 | Agent | complex decision বা verification |
@@ -187,7 +195,7 @@ Backend/database deterministic কাজ করবে।
 LLM/agent meaning বা reasoning-এর কাজ করবে।
 ```
 
-যেমন `verified_status` database-এ থাকবে। LLM নিজে source verified কিনা decide করবে না। LLM বা retriever শুধু সেই metadata use করবে।
+যেমন `verified_status` ChromaDB metadata বা app database-এ থাকবে। LLM নিজে source verified কিনা decide করবে না। LLM বা retriever শুধু সেই metadata use করবে।
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -586,52 +594,89 @@ Vector DB choose করার আগে প্রশ্নগুলো:
 ```txt
 1. data size কত?
 2. metadata filter কত দরকার?
-3. relational database দরকার আছে কি না?
+3. local/simple setup দরকার নাকি separate production service দরকার?
 4. production scale লাগবে কি না?
 5. self-host করবেন নাকি managed service?
-6. team PostgreSQL জানে নাকি separate infra maintain করতে পারবে?
+6. team simple Python-based vector store দিয়ে শুরু করবে নাকি database infra manage করবে?
 ```
 
 Common choices:
 
 | Option | Best for | Strength | Weakness |
 |---|---|---|---|
+| ChromaDB | learning + first RAG backend | setup সহজ, Python app-এর সাথে quick, metadata filter আছে | large multi-tenant production-এ later migration লাগতে পারে |
 | pgvector | MVP + normal production | PostgreSQL-এর ভিতর vector + relational data | massive scale-এ dedicated DB দরকার হতে পারে |
 | Qdrant | serious production RAG | strong vector search + metadata/payload filter | আলাদা service maintain করতে হবে |
-| ChromaDB | learning/prototype | setup সহজ, local RAG quick | production architecture-এ limitation আসতে পারে |
 | FAISS | research/custom high performance | fast similarity search, GPU support | full database না, metadata/API নিজে করতে হবে |
 
-Fatwa GPT-এর জন্য practical suggestion:
+প্রথমে দুইটা decision আলাদা করুন:
 
 ```txt
-Learning/demo:
+Vector/RAG database:
+chunks, embeddings, metadata, similarity search
+
+Relational app database:
+users, roles, permissions, payments, admin audit, chat sessions, reports
+```
+
+এক project-এ দুইটাই থাকতে পারে:
+
+```txt
+ChromaDB = RAG chunks/search
+PostgreSQL/SQLite/MySQL = app relational data
+```
+
+এই tutorial-এর জন্য practical suggestion:
+
+```txt
+Main database/vector store:
 ChromaDB
 
-MVP / first production:
-PostgreSQL + pgvector
+App বড় হলে optional relational DB:
+PostgreSQL / SQLite
 
 Scale বড় হলে:
 Qdrant
 
-Research/high-performance custom search:
+Relational vector setup চাইলে:
+PostgreSQL + pgvector
+
+Research/high-performance custom index চাইলে:
 FAISS
 ```
 
-কেন pgvector শুরুতে ভালো:
+কেন ChromaDB দিয়ে শুরু করছি:
 
 ```txt
-users
-documents
 chunks
 embeddings
 metadata
-chat_history
-feedback
-admin_review
-source_verification
+collections
+persistent local storage
+semantic search
+metadata filtering
 ```
 
-সব PostgreSQL-এর ভিতর রাখা যায়। Backend architecture simple থাকে।
+ChromaDB দিয়ে আপনি খুব দ্রুত এই flow বানাতে পারবেন:
+
+```txt
+PDF text
+  -> chunks
+  -> embeddings
+  -> ChromaDB collection
+  -> query embedding
+  -> similarity search
+  -> answer with citation
+```
+
+Important limitation:
+
+```txt
+ChromaDB vector/RAG store হিসেবে ভালো।
+কিন্তু user auth, payment, admin audit, complex relational report এগুলোর জন্য আলাদা app database দরকার হতে পারে।
+```
+
+এই tutorial-এ "database" বলতে main RAG database হিসেবে **ChromaDB** ধরা হবে। Production app বড় হলে ChromaDB-এর পাশে PostgreSQL/SQLite add করা যায়।
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -646,10 +691,10 @@ Learning path:
 
 ```txt
 Phase 1:
-LangChain বা LlamaIndex + ChromaDB দিয়ে RAG flow দেখা
+FastAPI + ChromaDB দিয়ে manual RAG flow দেখা
 
 Phase 2:
-FastAPI + pgvector দিয়ে manual/custom RAG বানানো
+PDF upload + ChromaDB persistent collection দিয়ে custom RAG বানানো
 
 Phase 3:
 metadata filter + citation + admin verified source add করা
@@ -658,7 +703,7 @@ Phase 4:
 reranker, hybrid search, answer verifier add করা
 
 Phase 5:
-complex need হলে Qdrant বা agent layer add করা
+complex need হলে app database, Qdrant, বা agent layer add করা
 ```
 
 Fatwa GPT MVP stack:
@@ -670,11 +715,14 @@ Next.js অথবা Expo React Native
 Backend:
 FastAPI
 
-Database:
-PostgreSQL + pgvector
+RAG database/vector store:
+ChromaDB
+
+Optional relational app database:
+PostgreSQL / SQLite / MySQL
 
 File storage:
-local/S3/Supabase storage
+local folder / S3 / Supabase storage
 
 Embedding:
 OpenAI/Gemini/local embedding model
@@ -683,19 +731,20 @@ LLM:
 OpenAI/Gemini/local model
 
 RAG framework:
-custom code first, LlamaIndex optional
+custom code first, LangChain/LlamaIndex optional
 ```
 
 Starting architecture:
 
 ```txt
 FastAPI
-  -> PostgreSQL + pgvector
+  -> ChromaDB persistent collection
+  -> optional relational app database
   -> custom embedding/search service
   -> custom prompt/citation system
 ```
 
-এই path framework dependency কম রাখে, debug সহজ করে, আর production behavior predictable রাখে।
+এই path learning এবং first implementation সহজ রাখে। পরে user/auth/admin audit/reporting complex হলে ChromaDB-এর পাশে relational app database add করা যাবে।
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -726,7 +775,7 @@ Dependencies:
 
 ```bash
 uv add "fastapi[standard]" uvicorn python-dotenv pydantic
-uv add sqlalchemy psycopg[binary] pgvector alembic
+uv add chromadb
 uv add pypdf python-multipart
 uv add openai
 uv add pytest httpx
@@ -737,7 +786,13 @@ Optional dependencies:
 ```bash
 uv add llama-index
 uv add langchain
-uv add chromadb
+```
+
+Optional relational app database dependencies:
+
+```bash
+uv add sqlalchemy alembic
+uv add psycopg[binary]    # PostgreSQL হলে
 ```
 
 Run server:
@@ -851,78 +906,128 @@ RAG helper chunk/prompt কাজ করে
 
 <a id="section-14"></a>
 
-## 14. Database Schema: Documents এবং Chunks
+## 14. ChromaDB Collection Design: Documents এবং Chunks
 
-RAG database-এর minimum tables:
+ChromaDB table-based relational database না। এখানে main concept হলো **collection**।
 
-```txt
-documents
-document_chunks
-chat_sessions
-chat_messages
-feedback
-admin_reviews
-```
-
-`documents` table:
-
-```sql
-CREATE TABLE documents (
-    id UUID PRIMARY KEY,
-    title TEXT NOT NULL,
-    source_name TEXT,
-    author TEXT,
-    language TEXT NOT NULL,
-    source_type TEXT NOT NULL,
-    verified_status TEXT NOT NULL DEFAULT 'pending',
-    uploaded_by UUID,
-    verified_by UUID,
-    verified_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-```
-
-`document_chunks` table:
-
-```sql
-CREATE EXTENSION IF NOT EXISTS vector;
-
-CREATE TABLE document_chunks (
-    id UUID PRIMARY KEY,
-    document_id UUID NOT NULL REFERENCES documents(id),
-    chunk_text TEXT NOT NULL,
-    embedding vector(1536),
-    page_number INTEGER,
-    chapter TEXT,
-    topic TEXT,
-    madhhab TEXT,
-    language TEXT NOT NULL,
-    chunk_index INTEGER NOT NULL,
-    metadata JSONB NOT NULL DEFAULT '{}',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-```
-
-Index example:
-
-```sql
-CREATE INDEX document_chunks_embedding_idx
-ON document_chunks
-USING ivfflat (embedding vector_cosine_ops);
-
-CREATE INDEX document_chunks_metadata_idx
-ON document_chunks
-USING gin (metadata);
-
-CREATE INDEX document_chunks_filter_idx
-ON document_chunks (language, topic, madhhab);
-```
-
-Production note:
+একটা collection-এর ভিতরে প্রতিটি chunk save হবে এই parts নিয়ে:
 
 ```txt
-embedding dimension model অনুযায়ী set করতে হবে।
-Different embedding model use করলে dimension mismatch হতে পারে।
+id         = unique chunk id
+document  = chunk text
+embedding = chunk text-এর vector
+metadata  = source/filter/citation info
+```
+
+Collection name:
+
+```txt
+fatwa_chunks
+```
+
+ChromaDB persistent client:
+
+```python
+import chromadb
+
+chroma_client = chromadb.PersistentClient(path="./chroma_store")
+
+collection = chroma_client.get_or_create_collection(
+    name="fatwa_chunks",
+    metadata={"description": "Verified and pending Fatwa GPT document chunks"},
+)
+```
+
+Chunk record design:
+
+```json
+{
+  "id": "fatwa_book_001_chunk_0005",
+  "document": "আসরের নামাজ চার রাকাত ফরজ।",
+  "embedding": [0.12, -0.44, 0.87],
+  "metadata": {
+    "document_id": "fatwa_book_001",
+    "title": "ফিকহুস সালাত",
+    "source_name": "ফিকহুস সালাত",
+    "author": "শাইখ ...",
+    "page_number": 23,
+    "chapter": "সালাত",
+    "topic": "salah",
+    "madhhab": "hanafi",
+    "language": "bn",
+    "verified_status": "verified",
+    "chunk_index": 5
+  }
+}
+```
+
+Add records:
+
+```python
+collection.add(
+    ids=["fatwa_book_001_chunk_0005"],
+    documents=["আসরের নামাজ চার রাকাত ফরজ।"],
+    embeddings=[[0.12, -0.44, 0.87]],
+    metadatas=[
+        {
+            "document_id": "fatwa_book_001",
+            "title": "ফিকহুস সালাত",
+            "source_name": "ফিকহুস সালাত",
+            "author": "শাইখ ...",
+            "page_number": 23,
+            "chapter": "সালাত",
+            "topic": "salah",
+            "madhhab": "hanafi",
+            "language": "bn",
+            "verified_status": "verified",
+            "chunk_index": 5,
+        }
+    ],
+)
+```
+
+Query with metadata filter:
+
+```python
+results = collection.query(
+    query_embeddings=[query_embedding],
+    n_results=8,
+    where={
+        "$and": [
+            {"verified_status": "verified"},
+            {"language": "bn"},
+            {"topic": "salah"},
+        ]
+    },
+)
+```
+
+ChromaDB-তে রাখতে পারেন:
+
+```txt
+chunk text
+embedding
+source metadata
+verified_status
+page/chapter/topic
+citation information
+```
+
+ChromaDB-তে না রাখাই ভালো:
+
+```txt
+password
+payment data
+complex user permission graph
+admin audit log-এর only copy
+large raw PDF binary
+```
+
+Important rule:
+
+```txt
+ChromaDB RAG chunks/search-এর source of truth হতে পারে।
+কিন্তু full SaaS/app data-এর জন্য future-এ relational app database দরকার হতে পারে।
 ```
 
 <!-- tutorial-nav:back -->
@@ -955,36 +1060,54 @@ Pseudo service:
 
 ```python
 async def ingest_document(file, metadata, current_user):
-    document = await document_repository.create(
-        title=metadata.title,
-        author=metadata.author,
-        language=metadata.language,
-        verified_status="pending",
-        uploaded_by=current_user.id,
-    )
-
+    document_id = create_document_id()
     text_pages = extract_text_from_pdf(file)
     chunks = chunk_text_pages(text_pages, metadata)
 
-    for chunk in chunks:
+    ids = []
+    documents = []
+    embeddings = []
+    metadatas = []
+
+    for index, chunk in enumerate(chunks):
+        chunk_id = f"{document_id}_chunk_{index:04d}"
         embedding = await embedding_service.create_embedding(chunk.text)
-        await chunk_repository.create(
-            document_id=document.id,
-            chunk_text=chunk.text,
-            embedding=embedding,
-            page_number=chunk.page_number,
-            topic=chunk.topic,
-            metadata=chunk.metadata,
+
+        ids.append(chunk_id)
+        documents.append(chunk.text)
+        embeddings.append(embedding)
+        metadatas.append(
+            {
+                "document_id": document_id,
+                "title": metadata.title,
+                "author": metadata.author,
+                "source_name": metadata.source_name,
+                "page_number": chunk.page_number,
+                "chapter": chunk.chapter,
+                "topic": metadata.topic,
+                "madhhab": metadata.madhhab,
+                "language": metadata.language,
+                "verified_status": "pending",
+                "chunk_index": index,
+                "uploaded_by": str(current_user.id),
+            }
         )
 
-    return document
+    collection.add(
+        ids=ids,
+        documents=documents,
+        embeddings=embeddings,
+        metadatas=metadatas,
+    )
+
+    return {"document_id": document_id, "chunks": len(chunks)}
 ```
 
 Admin verification:
 
 ```txt
 Upload হওয়ার সাথে সাথে source verified ধরে নিবেন না।
-Admin/source team review করে verified_status update করবে।
+Admin/source team review করে ChromaDB metadata-তে `verified_status` update করবে।
 ```
 
 Statuses:
@@ -1033,18 +1156,37 @@ Pseudo service:
 async def retrieve_context(question: str, filters: dict):
     query_embedding = await embedding_service.create_embedding(question)
 
-    chunks = await chunk_repository.vector_search(
-        embedding=query_embedding,
-        filters={
-            "verified_status": "verified",
-            "language": filters.get("language", "bn"),
-            "topic": filters.get("topic"),
-            "madhhab": filters.get("madhhab"),
-        },
-        top_k=8,
+    where_filter = {
+        "$and": [
+            {"verified_status": "verified"},
+            {"language": filters.get("language", "bn")},
+        ]
+    }
+
+    if filters.get("topic"):
+        where_filter["$and"].append({"topic": filters["topic"]})
+
+    if filters.get("madhhab"):
+        where_filter["$and"].append({"madhhab": filters["madhhab"]})
+
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=8,
+        where=where_filter,
+        include=["documents", "metadatas", "distances"],
     )
 
+    chunks = normalize_chroma_results(results)
     return build_context(chunks)
+```
+
+ChromaDB result থেকে সাধারণত এগুলো normalize করতে হবে:
+
+```txt
+documents[0] -> matched chunk texts
+metadatas[0] -> source/citation metadata
+distances[0] -> similarity distance
+ids[0] -> chunk ids
 ```
 
 Context object:
@@ -1057,7 +1199,8 @@ Context object:
       "text": "আসরের নামাজ চার রাকাত ফরজ।",
       "source_name": "ফিকহুস সালাত",
       "page_number": 23,
-      "topic": "salah"
+      "topic": "salah",
+      "chunk_id": "fatwa_book_001_chunk_0005"
     }
   ]
 }
@@ -1191,7 +1334,7 @@ tool calling বা chain composition দরকার
 
 ```txt
 Simple production RAG flow
-FastAPI + pgvector custom code লিখতে চান
+FastAPI + ChromaDB/custom vector store code লিখতে চান
 dependency কম রাখতে চান
 debug সহজ রাখতে চান
 custom citation/metadata logic বেশি important
@@ -1204,7 +1347,7 @@ Learning:
 LangChain + ChromaDB দিয়ে flow বুঝুন
 
 MVP:
-FastAPI + pgvector + custom retrieval code
+FastAPI + ChromaDB + custom retrieval code
 
 Advanced:
 reranker + metadata filter + verifier + citation system
@@ -1293,7 +1436,7 @@ Custom code use করবেন যখন:
 
 ```txt
 retrieval logic খুব custom
-FastAPI + pgvector full control চান
+FastAPI + ChromaDB/custom vector store full control চান
 dependency কম রাখতে চান
 production debug predictable রাখতে চান
 ```
@@ -1702,14 +1845,15 @@ Build order:
 ```txt
 1. Simple PDF QA demo
 2. Metadata design
-3. PostgreSQL + pgvector schema
+3. ChromaDB collection design
 4. Ingestion pipeline
 5. Retrieval pipeline
 6. Prompt + citation
 7. Admin source verification
 8. Frontend source display
-9. Feedback + audit
-10. Rerank/verifier/agent layer
+9. Relational app database add করা, যদি project-এ user/admin/audit/report দরকার হয়
+10. Feedback + audit
+11. Rerank/verifier/agent layer
 ```
 
 Do first:
@@ -1740,7 +1884,9 @@ Decision rules:
 ```txt
 LangChain লাগবে = framework/helper দিয়ে দ্রুত pipeline বানাতে চাইলে
 LlamaIndex লাগবে = document-heavy RAG/index/query engine চাইলে
-pgvector লাগবে = PostgreSQL-based MVP/production চাইলে
+ChromaDB লাগবে = simple local/prototype/first RAG vector store চাইলে
+Relational DB লাগবে = users, roles, permissions, reports, admin audit দরকার হলে
+pgvector লাগবে = PostgreSQL-এর ভিতর relational + vector একসাথে রাখতে চাইলে
 Qdrant লাগবে = dedicated scalable vector DB দরকার হলে
 Multi-agent লাগবে = complex reasoning/conflict/verification দরকার হলে
 Custom code লাগবে = control, debug, citation, metadata logic important হলে
@@ -1750,7 +1896,8 @@ Fatwa GPT recommended MVP:
 
 ```txt
 FastAPI
-PostgreSQL + pgvector
+ChromaDB
+optional relational app database
 custom ingestion/retrieval service
 metadata filter
 verified source only
