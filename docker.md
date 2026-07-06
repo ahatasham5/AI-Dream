@@ -1,6 +1,6 @@
 # Docker Tutorial for Next.js, FastAPI, and PostgreSQL
 
-এই note-টা Docker শেখার জন্য। Example full-stack project হিসেবে ধরা হয়েছে **Next.js frontend**, **FastAPI backend**, এবং **PostgreSQL database**।
+এই note-টা Docker শেখার জন্য। Example full-stack project হিসেবে ধরা হয়েছে **Next.js frontend**, **FastAPI backend**, এবং **PostgreSQL database**।
 
 Main goal:
 
@@ -8,9 +8,9 @@ Main goal:
 Docker কেন দরকার বুঝা
 Image, container, Dockerfile, volume, network-এর relation বুঝা
 একটা app containerize করা
-Docker Compose দিয়ে frontend, backend, database একসাথে run করা
+Docker Compose দিয়ে frontend, backend, database একসাথে run করা
 Development এবং production setup-এর difference বুঝা
-Project বড় হলেও Docker configuration clean, secure, maintainable রাখা
+Project বড় হলেও Docker configuration clean, secure, maintainable রাখা
 ```
 
 Learning order:
@@ -65,7 +65,19 @@ Docker app এবং তার runtime/dependency-কে repeatable package হ�
 
 ## 01. Big Picture: Docker আসলে কী problem solve করে
 
-একটা full-stack app run করতে সাধারণত অনেক dependency লাগে:
+> 🎯 **এই section-এ বুঝব:** Docker কোন সমস্যা সমাধান করে, আর কেন সবাই এটা ব্যবহার করে। (এখনো একটাও command মুখস্থ করা লাগবে না — শুধু "কেন" বুঝব।)
+
+### 🍰 আগে একটা গল্প
+
+ভাবো তুমি দারুণ একটা কেক বানালে তোমার রান্নাঘরে। বন্ধুকে বললে, "তুমিও বানাও!" সে বানাতে গিয়ে দেখল তার ওভেন আলাদা, ময়দার ব্র্যান্ড আলাদা, চিনির মাপ আলাদা। ফল: তার কেক তোমার মতো হলো না। 😅
+
+Developer-দের জীবনে এই ঘটনাই বারবার ঘটে। তুমি তোমার ল্যাপটপে app বানালে, চলল দিব্যি; বন্ধুর মেশিনে দিলে চলে না। বিখ্যাত সেই বাক্য তখন বের হয়: **"কিন্তু আমার মেশিনে তো চলছিল!"**
+
+Docker এই সমস্যারই সমাধান। Docker বলে: *"শুধু কেক পাঠিও না — পুরো রান্নাঘরটাই একটা বাক্সে ভরে পাঠাও।"* ওভেন, ময়দা, মাপ সব একসাথে। তাহলে যেকোনো জায়গায় হুবহু একই কেক হবে।
+
+### কেন এই সমস্যা হয়?
+
+একটা full-stack app চালাতে অনেক আলাদা জিনিস (dependency) লাগে:
 
 ```txt
 Next.js-এর জন্য Node.js
@@ -76,13 +88,13 @@ Optional Redis, worker, vector DB
 ঠিক runtime version
 ```
 
-Docker ছাড়া common সমস্যা:
+এত জিনিস প্রতিটা মেশিনে হাতে হাতে মেলানো কঠিন। তাই Docker ছাড়া বারবার এই যন্ত্রণাগুলো হয় — খেয়াল করো, প্রতিটার মূল কারণ একটাই: **সবার environment আলাদা**:
 
 ```txt
 আমার machine-এ চলে, অন্য developer-এর machine-এ চলে না
 Node/Python/PostgreSQL version mismatch
 এক project-এর dependency আরেক project-এর সাথে conflict করে
-নতুন developer-এর local setup করতে অনেক সময় লাগে
+নতুন developer-এর local setup করতে অনেক সময় লাগে
 local, CI, এবং production environment আলাদা behave করে
 ```
 
@@ -94,7 +106,7 @@ Backend runtime + dependency  -> backend image
 PostgreSQL runtime            -> official database image
 
 প্রতিটা image থেকে isolated container run
-Compose দিয়ে সব container একসাথে manage
+Compose দিয়ে সব container একসাথে manage
 ```
 
 Full-stack mental model:
@@ -114,12 +126,12 @@ Docker-এর main benefit:
 
 | Benefit | Meaning |
 |---|---|
-| Consistency | একই image local, CI, server-এ run করা যায় |
-| Isolation | প্রতিটা service নিজের dependency নিয়ে চলে |
-| Repeatability | config file থেকে environment আবার create করা যায় |
-| Portability | compatible container runtime থাকলে image run করা যায় |
-| Fast onboarding | পুরো stack এক command-এ start করা যায় |
-| Clean host | host machine-এ সব database/runtime install করতে হয় না |
+| Consistency | একই image local, CI, server-এ run করা যায় |
+| Isolation | প্রতিটা service নিজের dependency নিয়ে চলে |
+| Repeatability | config file থেকে environment আবার create করা যায় |
+| Portability | compatible container runtime থাকলে image run করা যায় |
+| Fast onboarding | পুরো stack এক command-এ start করা যায় |
+| Clean host | host machine-এ সব database/runtime install করতে হয় না |
 
 Docker কী করে না:
 
@@ -128,8 +140,14 @@ Docker কী করে না:
 database backup automatically design করে না
 secret management automatically secure করে না
 production orchestration/monitoring-এর সব problem solve করে না
-container image বানালেই app scalable হয়ে যায় না
+container image বানালেই app scalable হয়ে যায় না
 ```
+
+> 🧠 **মনে রাখার ট্রিক:** Docker = "রান্নাঘরসহ কেক পাঠানো"। এটা তোমার recipe (code) ভালো বানায় না — কিন্তু নিশ্চিত করে যে recipe **সব জায়গায় একই ভাবে** রান্না হবে।
+
+> ✅ **নিজেকে যাচাই করো:** তোমার বন্ধুর কম্পিউটারে তোমার app চলছে না, কারণ তার Python version আলাদা। Docker এটা কীভাবে ঠেকাবে?
+> <details><summary>উত্তর দেখো</summary>
+> Docker image-এর ভিতরেই সঠিক Python version প্যাক করা থাকে। বন্ধু সেই image চালালে তার মেশিনের Python লাগেই না — বাক্সের ভিতরের version-টাই চলে। তাই version mismatch হওয়ার সুযোগ নেই।</details>
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -140,7 +158,17 @@ container image বানালেই app scalable হয়ে যায় না
 
 ## 02. Container vs Virtual Machine
 
-Virtual Machine এবং container দুটোই isolation দেয়, কিন্তু level আলাদা।
+> 🎯 **এই section-এ বুঝব:** Container আর Virtual Machine (VM) — দুটোই "আলাদা করে রাখা" (isolation) দেয়, কিন্তু কীভাবে আলাদা, আর কেন container হালকা।
+
+### 🏠 আগে একটা গল্প
+
+ভাবো একটা বড় বিল্ডিং। **VM** হলো — প্রতিটা ভাড়াটের জন্য আলাদা আলাদা **পুরো বাড়ি** বানানো: আলাদা ছাদ, আলাদা পানির লাইন, আলাদা বিদ্যুৎ (= প্রত্যেকের নিজের আলাদা OS)। খুবই নিরাপদ, কিন্তু জায়গা আর খরচ প্রচুর, বানাতে সময় লাগে।
+
+**Container** হলো — একই বিল্ডিংয়ের ভেতর আলাদা আলাদা **ফ্ল্যাট**: ছাদ, পানি, বিদ্যুৎ (= OS kernel) সবাই শেয়ার করে, কিন্তু প্রতিটা ফ্ল্যাটের দরজা আলাদা, ভেতরে কে থাকে অন্যরা দেখে না। তাই ফ্ল্যাট বানানো সস্তা, দ্রুত, আর অনেকগুলো একসাথে রাখা যায়।
+
+এখন technical কথায় আসি:
+
+Virtual Machine এবং container দুটোই isolation দেয়, কিন্তু level আলাদা।
 
 Virtual Machine:
 
@@ -163,12 +191,12 @@ Physical/Cloud Host
 
 Difference:
 
-| বিষয় | Container | Virtual Machine |
+| বিষয় | Container | Virtual Machine |
 |---|---|---|
 | কী package করে | app, runtime, libraries | full guest operating system |
 | Kernel | host kernel share করে | নিজের guest kernel থাকে |
 | Startup | সাধারণত দ্রুত | তুলনামূলক slow |
-| Size | সাধারণত ছোট | সাধারণত বড় |
+| Size | সাধারণত ছোট | সাধারণত বড় |
 | Isolation | process/container level | machine/OS level |
 | Common use | app/service packaging | full OS/environment isolation |
 
@@ -179,9 +207,9 @@ VM = একটা complete machine-এর abstraction
 Container = isolated process এবং filesystem-এর abstraction
 ```
 
-Linux container Linux kernel-এর feature use করে। Windows/macOS-এ Docker Desktop সাধারণত managed Linux VM-এর ভিতরে Linux containers run করায়।
+Linux container Linux kernel-এর feature use করে। Windows/macOS-এ Docker Desktop সাধারণত managed Linux VM-এর ভিতরে Linux containers run করায়।
 
-VM এবং Docker একসাথেও use হয়:
+VM এবং Docker একসাথেও use হয়:
 
 ```txt
 Cloud VM
@@ -200,6 +228,12 @@ Unnecessary privileged mode use করবো না।
 Host Docker socket container-এ mount করবো না, unless strong reason আছে।
 ```
 
+> 🧠 **মনে রাখার ট্রিক:** VM = আলাদা **বাড়ি** (নিজের OS)। Container = একই বাড়ির আলাদা **ফ্ল্যাট** (kernel শেয়ার)। ফ্ল্যাট সস্তা ও চটপট — তাই container হালকা আর দ্রুত চালু হয়।
+
+> ✅ **নিজেকে যাচাই করো:** ১০টা container চালালে কি ১০টা OS চালু হয়?
+> <details><summary>উত্তর দেখো</summary>
+> না। ১০টা container একই host OS kernel শেয়ার করে (একই বাড়ির ১০টা ফ্ল্যাট)। কিন্তু ১০টা VM মানে ১০টা আলাদা guest OS — অনেক বেশি RAM/জায়গা লাগে। এই কারণেই একটা মেশিনে অনেক container চালানো যায়, কিন্তু অত VM নয়।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -209,7 +243,22 @@ Host Docker socket container-এ mount করবো না, unless strong reason
 
 ## 03. Docker Architecture: Client, Engine, Registry
 
-Docker use করার সময় কয়েকটা component একসাথে কাজ করে:
+> 🎯 **এই section-এ বুঝব:** "Docker" আসলে একটা জিনিস নয় — কয়েকটা অংশ মিলে কাজ করে। কে হুকুম দেয়, কে আসল কাজ করে, আর ছবিগুলো (image) কোথায় জমা থাকে।
+
+### 🍽️ আগে একটা গল্প — রেস্টুরেন্ট
+
+ভাবো তুমি রেস্টুরেন্টে বসে আছ:
+
+- তুমি **ওয়েটারকে** অর্ডার দাও — এই যে হুকুম দেওয়া, এটাই **Docker CLI** (`docker ...` command)।
+- ওয়েটার তোমার অর্ডার **রান্নাঘরে** পৌঁছে দেয় — এটাই **Docker API**।
+- **রান্নাঘর/শেফ** আসল রান্নাটা করে — খাবার বানায়, প্লেট সাজায়। এটাই **Docker daemon (Engine)** — সব আসল কাজ এখানেই হয়।
+- দরকারি **উপকরণ যে গুদামে** থাকে, দরকার হলে আনানো হয় — এটাই **Registry** (image-এর গুদাম, যেমন Docker Hub)।
+
+মজার ব্যাপার: তুমি (CLI) কখনো নিজে রান্না করো না। তুমি শুধু বলো "এটা চাই", আর daemon (শেফ) সেটা করে দেয়। এটাই মনে রাখলে অনেক confusion কেটে যাবে।
+
+এখন মিলিয়ে নাও:
+
+Docker use করার সময় কয়েকটা component একসাথে কাজ করে:
 
 ```txt
 Docker CLI
@@ -225,9 +274,9 @@ Responsibility:
 
 | Component | কাজ |
 |---|---|
-| Docker CLI | `docker ...` command নেয় |
+| Docker CLI | `docker ...` command নেয় |
 | Docker daemon | build/run/stop/network/volume-এর real কাজ করে |
-| Docker Desktop | desktop app, Engine, CLI, Compose integration দেয় |
+| Docker Desktop | desktop app, Engine, CLI, Compose integration দেয় |
 | Docker Compose | multiple service declaratively manage করে |
 | Registry | image push/pull করার remote storage |
 | Docker Hub | default public registry |
@@ -241,12 +290,12 @@ docker run nginx:alpine
 Behind the scenes:
 
 ```txt
-1. CLI daemon-কে request পাঠায়
-2. image local-এ না থাকলে registry থেকে pull হয়
-3. image থেকে container create হয়
-4. writable container layer add হয়
-5. network attach হয়
-6. image-এর default process start হয়
+1. CLI daemon-কে request পাঠায়
+2. image local-এ না থাকলে registry থেকে pull হয়
+3. image থেকে container create হয়
+4. writable container layer add হয়
+5. network attach হয়
+6. image-এর default process start হয়
 ```
 
 Useful version checks:
@@ -270,13 +319,19 @@ Modern command:
 docker compose up
 ```
 
-Old tutorials-এ পাওয়া যেতে পারে:
+Old tutorials-এ পাওয়া যেতে পারে:
 
 ```bash
 docker-compose up
 ```
 
 এই tutorial-এ Compose V2-এর `docker compose` syntax use করা হবে।
+
+> 🧠 **মনে রাখার ট্রিক:** তুমি (CLI) = অর্ডার দাও। Engine/daemon = শেফ, আসল কাজ করে। Registry = উপকরণের গুদাম। তুমি কখনো নিজে রান্না করো না — শুধু হুকুম দাও।
+
+> ✅ **নিজেকে যাচাই করো:** তুমি `docker run nginx` লিখলে, কিন্তু nginx image তোমার মেশিনে নেই। কী হবে?
+> <details><summary>উত্তর দেখো</summary>
+> CLI তোমার হুকুম daemon-কে দেবে। daemon দেখবে image local-এ নেই, তাই **Registry** (Docker Hub) থেকে সেটা pull (আনানো) করবে, তারপর container বানিয়ে চালাবে। মানে গুদামে গিয়ে উপকরণ এনে তবেই রান্না।</details>
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -287,7 +342,18 @@ docker-compose up
 
 ## 04. Image, Container, Dockerfile, Registry Relation
 
-এই চারটা word clear হলে Docker-এর half confusion চলে যায়।
+> 🎯 **এই section-এ বুঝব:** Docker শেখার সবচেয়ে বিভ্রান্তিকর ৪টা শব্দ — Dockerfile, Image, Container, Registry — একে অপরের সাথে কীভাবে জড়িত। এই একটা section বুঝলে অর্ধেক Docker বোঝা হয়ে যায়।
+
+### 🍰 কেকের গল্পটা মনে আছে?
+
+Section ১-এর কেকের গল্পে ফিরি — এই ৪টা শব্দ ঠিক কেক বানানোর ধাপগুলোর মতো:
+
+- **Dockerfile** = কেকের **রেসিপি** (লেখা নির্দেশনা: কী কী লাগবে, কীভাবে বানাবে)।
+- **Image** = রেসিপি অনুযায়ী বানানো **প্যাকেটজাত, রিইউজেবল ছাঁচ** — একবার বানালে বারবার একই কেক বের করা যায়।
+- **Container** = সেই ছাঁচ থেকে বের হওয়া **আসল, গরম, পরিবেশন-করা কেক** (চলমান app)।
+- **Registry** = প্যাকেটজাত ছাঁচ রাখার **গুদাম**, যেখান থেকে অন্যরাও নিতে পারে।
+
+এই চারটা word clear হলে Docker-এর half confusion চলে যায়।
 
 ```txt
 Dockerfile
@@ -337,10 +403,10 @@ Image immutable:
 ```txt
 existing image edit করি না
 Dockerfile/code change করে new image build করি
-new tag/digest দিয়ে identify করি
+new tag/digest দিয়ে identify করি
 ```
 
-Container-এর writable layer temporary। Container remove হলে volume/bind mount-এ না থাকা change হারিয়ে যায়।
+Container-এর writable layer temporary। Container remove হলে volume/bind mount-এ না থাকা change হারিয়ে যায়।
 
 Image naming:
 
@@ -349,7 +415,7 @@ repository/name:tag
 
 ai-dream/backend:1.0.0
 ai-dream/backend:git-a1b2c3d
-postgres:17-alpine
+postgres:18-alpine
 ```
 
 Important:
@@ -358,6 +424,12 @@ Important:
 latest কোনো guarantee না যে image tested, newest, বা production-ready।
 Production deploy-এ explicit version tag, এবং stronger reproducibility লাগলে digest pin করা ভালো।
 ```
+
+> 🧠 **মনে রাখার ট্রিক:** **রে-ছাঁ-ক-গু** → **রে**সিপি (Dockerfile) → **ছাঁ**চ (Image) → **ক**েক (Container) → **গু**দাম (Registry)। `build` = রেসিপি থেকে ছাঁচ, `run` = ছাঁচ থেকে কেক।
+
+> ✅ **নিজেকে যাচাই করো:** এক Image থেকে কি ৩টা Container বানানো যায়? আর Container বন্ধ করে দিলে তার ভেতরের ডেটা কি Image-এ ফিরে যায়?
+> <details><summary>উত্তর দেখো</summary>
+> হ্যাঁ — এক ছাঁচ (Image) থেকে অনেকগুলো কেক (Container) বানানো যায়, সবাই একই রকম হয়। কিন্তু Image **immutable** (অপরিবর্তনীয়) — Container-এর ভেতরে যা লেখা হয় তা Image-এ ফেরে না; Container মুছে দিলে (volume ছাড়া) সেই ডেটা হারিয়ে যায়। ডেটা ধরে রাখতে volume লাগে (পরে section ১২-তে)।</details>
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -368,12 +440,22 @@ Production deploy-এ explicit version tag, এবং stronger reproducibility �
 
 ## 05. Installation এবং First Check
 
+> 🎯 **এই section-এ বুঝব:** Docker নিজের মেশিনে কীভাবে বসাই, আর বসানোর পর সত্যিই কাজ করছে কিনা কীভাবে যাচাই করি।
+
+### 🧰 আগে একটা গল্প — নতুন রান্নাঘর বসানো
+
+Docker install করা মানে বাসায় একটা আস্ত নতুন রান্নাঘর (kitchen) বসানো। রান্নাঘর বসানোর পর কোনো experienced রাঁধুনি সাথে সাথে কঠিন রান্না চাপায় না — আগে চুলাটা একবার জ্বালিয়ে দেখে ঠিকমতো আগুন আসে কিনা। Docker-এর সেই "চুলা জ্বালিয়ে দেখা" হলো `docker run --rm hello-world` — একদম ছোট্ট একটা container যেটা শুধু "আমি চলছি!" বলে বন্ধ হয়ে যায়।
+
+### কেন verify করা জরুরি
+
+Windows আর macOS-এ Docker আসলে ভেতরে ভেতরে একটা ছোট Linux মেশিন চালায় (মনে আছে? container-দের একটা Linux kernel দরকার — section ২)। তাই install হলেই যে Engine (শেফ) জেগে আছে তা নয়। `docker version` আর `hello-world` চালিয়ে নিশ্চিত হই যে CLI (ওয়েটার) আর daemon (শেফ) দুজনেই কথা বলছে — তারপরই আসল কাজে নামি।
+
 Windows/macOS beginner setup:
 
 ```txt
 Docker Desktop install
 Docker Desktop start
-WSL2-based engine use করা, যদি Windows হয়
+WSL2-based engine use করা, যদি Windows হয়
 Terminal restart
 ```
 
@@ -384,7 +466,7 @@ Docker Desktop
 Docker Engine + Compose plugin
 ```
 
-Installation command সময়ের সাথে এবং operating system অনুযায়ী change হতে পারে। তাই official installation page follow করতে হবে:
+Installation command সময়ের সাথে এবং operating system অনুযায়ী change হতে পারে। তাই official installation page follow করতে হবে:
 
 ```txt
 https://docs.docker.com/get-docker/
@@ -436,6 +518,12 @@ Windows/WSL project performance:
 ```txt
 WSL-based development হলে project WSL filesystem-এর ভিতরে রাখা সাধারণত better।
 Windows filesystem bind mount করলে কিছু project-এ file watching/I/O slow হতে পারে।
+
+> 🧠 **মনে রাখার ট্রিক:** Install করলেই হয় না — **চুলা জ্বালিয়ে দেখো**। `hello-world` চললে বুঝবে পুরো chain (CLI → API → Engine → Registry) ঠিক আছে।
+
+> ✅ **নিজেকে যাচাই করো:** `docker run --rm hello-world` চালানোর পর container-টা `docker ps`-এ দেখা যায় না কেন?
+> <details><summary>উত্তর দেখো</summary>
+> কারণ `hello-world` তার message print করেই কাজ শেষ করে বন্ধ (exit) হয়ে যায়, আর `--rm` flag বন্ধ হওয়া container-টাকে সাথে সাথে মুছে দেয়। `docker ps` শুধু চলমান container দেখায়, তাই ওটা সেখানে নেই। (`docker ps -a` দিলেও নেই, কারণ `--rm` মুছে ফেলেছে।)</details>
 ```
 
 <!-- tutorial-nav:back -->
@@ -446,6 +534,16 @@ Windows filesystem bind mount করলে কিছু project-এ file watchin
 <a id="section-6"></a>
 
 ## 06. First Container এবং Essential Commands
+
+> 🎯 **এই section-এ বুঝব:** প্রথম নিজের হাতে একটা container চালানো, আর রোজকার দরকারি command গুলো — চালু, বন্ধ, দেখা, ভেতরে ঢোকা।
+
+### 🚗 আগে একটা গল্প — গাড়ি চালানো শেখা
+
+Container চালানো অনেকটা গাড়ি চালানোর মতো। প্রথমে স্টার্ট দাও (`run`/`start`), দরকার হলে থামাও (`stop`), আবার চালু করো (`restart`), আর পুরনো গাড়ি ফেলে দাও (`rm`)। ভেতরে কী হচ্ছে জানতে dashboard দেখো (`logs`), আর ইঞ্জিনের ভেতরে হাত দিতে হলে বনেট খুলে ঢোকো (`exec -it ... sh`)। এই কয়েকটা "পেডাল" শিখে গেলে যেকোনো container সামলাতে পারবে।
+
+### কেন এই command গুলো বারবার লাগবে
+
+একটা image (ছাঁচ) থেকে container (কেক) বানানোর পর তোমাকে সেটার সাথে কথা বলতে হবে — সে চলছে কিনা দেখা, কী বলছে শোনা, ভেতরে গিয়ে খোঁজ নেওয়া। `-d` মানে background-এ চালাও (গাড়ি চলুক, তুমি অন্য কাজ করো), আর `--name` দিলে container-টাকে নাম ধরে ডাকা যায়, random id মনে রাখতে হয় না।
 
 Nginx container run:
 
@@ -510,7 +608,7 @@ Container-এর ভিতরে shell:
 docker exec -it demo-web sh
 ```
 
-সব image-এ `bash` থাকে না। Alpine/minimal image-এ অনেক সময় `sh` use করতে হয়।
+সব image-এ `bash` থাকে না। Alpine/minimal image-এ অনেক সময় `sh` use করতে হয়।
 
 Image commands:
 
@@ -524,8 +622,8 @@ docker image rm nginx:alpine
 Run one-off command:
 
 ```bash
-docker run --rm python:3.12-slim python --version
-docker run --rm node:22-alpine node --version
+docker run --rm python:3.13-slim python --version
+docker run --rm node:24-alpine node --version
 ```
 
 Useful naming rule:
@@ -540,6 +638,12 @@ docker container ls
 
 Short aliases like `docker ps` common, কিন্তু full object-based commands docs/script-এ clearer হতে পারে।
 
+> 🧠 **মনে রাখার ট্রিক:** `run` = নতুন গাড়ি স্টার্ট, `start/stop/restart` = পুরনোটা চালু/বন্ধ, `logs` = dashboard, `exec -it sh` = বনেট খুলে ভেতরে ঢোকা, `rm` = গাড়ি ফেলে দেওয়া।
+
+> ✅ **নিজেকে যাচাই করো:** `docker exec -it demo-web bash` দিলে error এলো, কিন্তু `sh` দিলে কাজ করল — কেন?
+> <details><summary>উত্তর দেখো</summary>
+> Alpine-এর মতো ছোট (minimal) image-এ জায়গা বাঁচাতে `bash` রাখা হয় না, শুধু হালকা `sh` থাকে। তাই ওই container-এ `bash` খুঁজে পায় না। ছোট image-এ ভেতরে ঢুকতে হলে `sh` ব্যবহার করতে হবে।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -549,12 +653,22 @@ Short aliases like `docker ps` common, কিন্তু full object-based comm
 
 ## 07. Dockerfile Building Blocks: কোন instruction কেন
 
+> 🎯 **এই section-এ বুঝব:** Dockerfile (রেসিপি)-র প্রতিটা লাইন কী করে, আর কোন লাইন build-এর সময় চলে বনাম কোনটা container চালু হওয়ার সময়।
+
+### 📝 আগে একটা গল্প — রেসিপি কার্ড
+
+মনে আছে section ৪-এর কথা? Dockerfile হলো কেকের **রেসিপি কার্ড**। এখন সেই কার্ডটা খুলে প্রতিটা লাইন পড়ছি। ভাবো একটা রেসিপি: "এই বেস ময়দা নাও (`FROM`) → এই টেবিলে কাজ করো (`WORKDIR`) → উপকরণ এনে রাখো (`COPY`) → এখন মেশাও/সেঁকো (`RUN`) → পরিবেশনের সময় এভাবে সাজাও (`CMD`)।" প্রতিটা instruction রেসিপির একটা ধাপ।
+
+### কেন RUN আর CMD গুলিয়ে ফেলা বিপজ্জনক
+
+সবচেয়ে বড় confusion এখানেই: `RUN` চলে **ছাঁচ বানানোর সময়** (build) — যেমন আগে থেকে ময়দা মেখে রাখা। আর `CMD` চলে **কেক পরিবেশনের সময়** (container start) — যেমন প্লেটে সাজিয়ে টেবিলে দেওয়া। রেসিপিতে যা আগে করে রাখা যায় তা `RUN`-এ, আর যা প্রতিবার পরিবেশনের সময় করতে হয় তা `CMD`-তে। এটা মাথায় থাকলে অর্ধেক Dockerfile ভুল আপনিই এড়িয়ে যাবে।
+
 Basic Dockerfile:
 
 ```dockerfile
 # syntax=docker/dockerfile:1
 
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 WORKDIR /app
 
@@ -579,7 +693,7 @@ Core instructions:
 | `COPY` | build context থেকে file image-এ copy করে |
 | `RUN` | build time command execute করে |
 | `ENV` | image/container environment variable set করে |
-| `ARG` | build-time input নেয় |
+| `ARG` | build-time input নেয় |
 | `EXPOSE` | intended container port document করে |
 | `USER` | process কোন user হিসেবে run করবে |
 | `CMD` | default runtime command |
@@ -608,8 +722,8 @@ Dockerfile শুধু context-এর ভিতরের file COPY করতে
 `RUN` vs `CMD`:
 
 ```txt
-RUN = image build হওয়ার সময় চলে
-CMD = container start হওয়ার সময় চলে
+RUN = image build হওয়ার সময় চলে
+CMD = container start হওয়ার সময় চলে
 ```
 
 Example:
@@ -640,6 +754,12 @@ CMD uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 Exec form সাধারণত signal forwarding এবং argument handling clearer রাখে।
 
+> 🧠 **মনে রাখার ট্রিক:** `RUN` = রান্নার **প্রস্তুতি** (build-এ একবার), `CMD` = **পরিবেশন** (প্রতিবার container চালু হলে)। আর `EXPOSE` শুধু "এই দরজাটা আছে" লিখে রাখা — দরজা খোলে `-p`।
+
+> ✅ **নিজেকে যাচাই করো:** Dockerfile-এ শুধু `EXPOSE 8000` লিখেছ কিন্তু browser থেকে `localhost:8000`-এ কিছু আসছে না — কেন?
+> <details><summary>উত্তর দেখো</summary>
+> `EXPOSE` কোনো port আসলে খোলে না — এটা শুধু documentation, মানে "এই container 8000-এ কথা বলার কথা"। বাইরে থেকে ঢুকতে হলে run-এর সময় `-p 8000:8000` দিয়ে host-এর দরজা container-এর দরজার সাথে জুড়তে হবে (বিস্তারিত section ১১-তে)।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -648,6 +768,16 @@ Exec form সাধারণত signal forwarding এবং argument handling cl
 <a id="section-8"></a>
 
 ## 08. FastAPI Backend Dockerfile with uv
+
+> 🎯 **এই section-এ বুঝব:** আমাদের আসল FastAPI backend-এর জন্য একটা রেসিপি (Dockerfile) কীভাবে লিখি, আর কেন dependency আগে copy করলে build দ্রুত হয়।
+
+### 🛒 আগে একটা গল্প — বাজার আগে, রান্না পরে
+
+ভাবো তুমি রোজ রান্না করো। বাজার (dependency install) করতে সময় লাগে অনেক, কিন্তু বাজারের লিস্ট প্রায় একই থাকে। রান্নার পদ (তোমার code) কিন্তু রোজ বদলায়। বুদ্ধিমান রাঁধুনি তাই আগে বাজারটা সেরে গুছিয়ে রাখে, তারপর পদ রান্না করে। পরদিন পদ বদলালেও বাজার আবার করতে হয় না। Dockerfile-এ ঠিক এই কারণেই `pyproject.toml`/`uv.lock` (বাজারের লিস্ট) আগে copy করে install করি, তারপর বাকি code copy করি।
+
+### কেন এই ক্রম layer cache বাঁচায়
+
+Docker প্রতিটা ধাপকে একটা "layer" হিসেবে মনে রাখে (cache করে)। কোনো ধাপ আর তার আগের সব ধাপ না বদলালে Docker সেই তৈরি layer আবার ব্যবহার করে — নতুন করে করে না। তাই lockfile আগে থাকলে, তুমি শুধু code বদলালে ভারী install layer-টা cache থেকেই আসে, build সেকেন্ডে শেষ। (বিস্তারিত section ১০-এ।)
 
 Backend structure:
 
@@ -666,9 +796,9 @@ backend/
 ```dockerfile
 # syntax=docker/dockerfile:1
 
-FROM python:3.12-slim
+FROM python:3.13-slim
 
-COPY --from=ghcr.io/astral-sh/uv:0.8.0 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.9.0 /uv /uvx /bin/
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -693,9 +823,9 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 Why dependency files আগে copy:
 
 ```txt
-Source code প্রায়ই change হয়
-Dependency lockfile তুলনামূলক কম change হয়
-আগে dependency layer build করলে source change-এর পরও install layer cache reuse হয়
+Source code প্রায়ই change হয়
+Dependency lockfile তুলনামূলক কম change হয়
+আগে dependency layer build করলে source change-এর পরও install layer cache reuse হয়
 ```
 
 Build:
@@ -730,16 +860,16 @@ async def health_check():
 Important:
 
 ```txt
-Uvicorn container-এর ভিতরে 127.0.0.1-এ bind করলে host/container network থেকে পাওয়া যাবে না।
+Uvicorn container-এর ভিতরে 127.0.0.1-এ bind করলে host/container network থেকে পাওয়া যাবে না।
 --host 0.0.0.0 use করতে হবে।
 ```
 
 Version note:
 
 ```txt
-Python এবং uv tag example হিসেবে দেওয়া।
+Python এবং uv tag example হিসেবে দেওয়া।
 নিজের project-এর tested version pin করবো।
-Production reproducibility আরও strong করতে image digest pin করা যায়।
+Production reproducibility আরও strong করতে image digest pin করা যায়।
 ```
 
 Development-এ reload:
@@ -750,6 +880,12 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 Production-এ `--reload` use করবো না।
 
+> 🧠 **মনে রাখার ট্রিক:** **বাজার আগে, রান্না পরে** — lockfile copy + install আগে, তারপর code copy। আর container-এ সবসময় `--host 0.0.0.0`, নাহলে বাইরে থেকে কেউ পাবে না।
+
+> ✅ **নিজেকে যাচাই করো:** তুমি backend চালালে, কিন্তু host থেকে `localhost:8000`-এ কিছু আসছে না, অথচ container চলছে। uvicorn-এ কী ভুল হতে পারে?
+> <details><summary>উত্তর দেখো</summary>
+> সম্ভবত uvicorn `127.0.0.1`-এ bind করেছে, যা মানে "শুধু নিজের ভেতরের কথা শুনব"। container-এর বাইরে (host বা অন্য container) থেকে পাওয়ার জন্য `--host 0.0.0.0` দিতে হবে — মানে "সব দরজা দিয়ে আসা কথা শুনব"।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -758,6 +894,16 @@ Production-এ `--reload` use করবো না।
 <a id="section-9"></a>
 
 ## 09. Next.js Frontend Dockerfile
+
+> 🎯 **এই section-এ বুঝব:** Next.js frontend-এর জন্য development Dockerfile লেখা, আর কেন browser আর server আলাদা URL দিয়ে backend-কে ডাকে।
+
+### 🍽️ আগে একটা গল্প — একই রেসিপি, অন্য রান্নাঘর
+
+Backend-এ যে "বাজার আগে, রান্না পরে" নিয়ম শিখলে, frontend-এও ঠিক তাই — শুধু উপকরণ বদলায় (Node.js, npm)। `package.json` + `package-lock.json` আগে copy করে `npm ci`, তারপর বাকি code। রেসিপির কাঠামো এক, শুধু রান্নাঘরটা আলাদা।
+
+### কেন npm install নয়, npm ci
+
+`npm install` মাঝে মাঝে version একটু এদিক-ওদিক করে ফেলতে পারে — মানে দুই মেশিনে দুই রকম বাজার। কিন্তু `npm ci` হুবহু `package-lock.json` মেনে চলে — যেটা লেখা আছে ঠিক সেটাই আনে। Docker-এর মূল লক্ষ্যই তো "সব জায়গায় একই" (section ১), তাই lockfile মেনে চলা `ci` এখানে ভালো। আর একটা মজার ব্যাপার: Next.js-এর server আর user-এর browser দুই জায়গা থেকে backend-কে দুই নামে ডাকে — কেন, সেটা network section-এ (১৩) পরিষ্কার হবে।
 
 Frontend structure:
 
@@ -777,7 +923,7 @@ Simple development Dockerfile:
 ```dockerfile
 # syntax=docker/dockerfile:1
 
-FROM node:22-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 
@@ -811,7 +957,7 @@ Important:
 
 ```txt
 package-lock.json থাকলে npm ci use করবো।
-npm install-এর বদলে npm ci lockfile অনুযায়ী repeatable clean install করে।
+npm install-এর বদলে npm ci lockfile অনুযায়ী repeatable clean install করে।
 ```
 
 If project uses another package manager:
@@ -840,6 +986,12 @@ User browser             -> http://localhost:8000
 
 এই difference networking section-এ detail-এ দেখানো হবে।
 
+> 🧠 **মনে রাখার ট্রিক:** lockfile থাকলে **`npm ci`** (হুবহু একই বাজার), আর `NEXT_PUBLIC_` মানে "সবাই দেখতে পাবে" — তাই সেখানে কোনো password/secret নয়।
+
+> ✅ **নিজেকে যাচাই করো:** ভুল করে `NEXT_PUBLIC_DB_PASSWORD=...` দিলে কী বিপদ হতে পারে?
+> <details><summary>উত্তর দেখো</summary>
+> `NEXT_PUBLIC_` দিয়ে শুরু হওয়া variable browser-এ পাঠানো JavaScript bundle-এর ভেতর চলে যায়, মানে যেকোনো user সেটা দেখে ফেলতে পারে। database password এভাবে পুরো দুনিয়ার কাছে ফাঁস হয়ে যাবে। secret কখনো `NEXT_PUBLIC_`-এ রাখা যাবে না — ওগুলো শুধু server-side environment-এ থাকবে।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -848,6 +1000,16 @@ User browser             -> http://localhost:8000
 <a id="section-10"></a>
 
 ## 10. Build Context, Layer Cache, এবং .dockerignore
+
+> 🎯 **এই section-এ বুঝব:** Docker কীভাবে ধাপে ধাপে (layer) build করে ও পুরনো কাজ cache থেকে reuse করে, আর `.dockerignore` দিয়ে কেন অপ্রয়োজনীয় জিনিস বাদ দিই।
+
+### 🧱 আগে একটা গল্প — লেগো দিয়ে বানানো
+
+একটা image আসলে অনেকগুলো layer একটার উপর একটা বসানো — ঠিক লেগো ব্লকের টাওয়ারের মতো। তুমি যদি উপরের একটা ব্লক বদলাও, নিচের ব্লকগুলো ভাঙতে হয় না, ওগুলো যেমন আছে তেমনই থাকে (cache reuse)। কিন্তু যদি নিচের কোনো ব্লক বদলাও, তার উপরের সব ব্লক আবার নতুন করে বসাতে হয়। এই কারণেই কম-বদলানো জিনিস (dependency) নিচে, আর বেশি-বদলানো জিনিস (source code) উপরে রাখি।
+
+### কেন .dockerignore দরকার — আর build context আসলে কী
+
+Build-এর সময় শেষের `.` মানে "এই folder-টা পুরো Engine-এর কাছে পাঠাও" — এটাই **build context**। এর ভেতরে `node_modules` বা `.venv`-এর মতো বিশাল, অপ্রয়োজনীয় জিনিস থাকলে সেগুলোও পাঠানো হয়, build ধীর হয়, আর ভুল করে secret file (`.env`) image-এ ঢুকে যাওয়ার ঝুঁকি থাকে। `.dockerignore` হলো সেই "পাঠানোর দরকার নেই" লিস্ট — অনেকটা `.gitignore`-এর মতো।
 
 Docker build প্রতিটা instruction থেকে layer তৈরি করতে পারে।
 
@@ -910,14 +1072,14 @@ compose*.yaml
 Why:
 
 ```txt
-build context ছোট হয়
-build faster হয়
-host dependency image-এ accidental copy হয় না
-secret file image layer-এ যাওয়ার risk কমে
-cache invalidation কম হয়
+build context ছোট হয়
+build faster হয়
+host dependency image-এ accidental copy হয় না
+secret file image layer-এ যাওয়ার risk কমে
+cache invalidation কম হয়
 ```
 
-কিন্তু `.dockerignore` alone secret security guarantee না। Secret source tree-তে রাখা, ভুল stage-এ copy করা, বা build argument-এ দেওয়া dangerous হতে পারে।
+কিন্তু `.dockerignore` alone secret security guarantee না। Secret source tree-তে রাখা, ভুল stage-এ copy করা, বা build argument-এ দেওয়া dangerous হতে পারে।
 
 Inspect layers:
 
@@ -944,6 +1106,12 @@ Rule:
 Normal build-এ cache useful।
 Every build-এ --no-cache use করলে build slow হবে।
 Dependency/cache problem debug বা fully fresh rebuild দরকার হলে use করবো।
+
+> 🧠 **মনে রাখার ট্রিক:** Image = লেগো টাওয়ার। **কম বদলায় নিচে, বেশি বদলায় উপরে** — তাহলে নিচের ব্লকগুলো cache থেকে reuse হয়। `.dockerignore` = "পাঠানোর দরকার নেই" লিস্ট।
+
+> ✅ **নিজেকে যাচাই করো:** তুমি শুধু একটা লাইন code বদলালে, তবু `npm ci` আবার পুরোটা চলল। Dockerfile-এ কী ভুল থাকতে পারে?
+> <details><summary>উত্তর দেখো</summary>
+> সম্ভবত `COPY . .` লাইনটা `RUN npm ci`-এর আগে আছে। তাহলে যেকোনো code বদলালে ওই COPY layer বদলে যায়, আর তার উপরের সব layer (install সহ) আবার চলে। ঠিক করতে হবে: আগে `COPY package*.json` + `RUN npm ci`, তারপর `COPY . .` — যাতে code বদলালেও install layer cache থেকে আসে।</details>
 ```
 
 <!-- tutorial-nav:back -->
@@ -954,6 +1122,18 @@ Dependency/cache problem debug বা fully fresh rebuild দরকার হল
 <a id="section-11"></a>
 
 ## 11. Port Mapping, localhost, এবং 0.0.0.0
+
+> 🎯 **এই section-এ বুঝব:** বাইরে থেকে container-এর ভেতরে ঢোকা যায় কীভাবে (port mapping), আর কেন প্রতিটা container-এর `localhost` মানে সে নিজেই।
+
+### 🏢 আগে একটা গল্প — বিল্ডিংয়ের গেট আর ফ্ল্যাট নম্বর
+
+মনে আছে container = বিল্ডিংয়ের ফ্ল্যাট (section ২)? এখন ভাবো তুমি বাইরে থেকে চিঠি পাঠাচ্ছ। তুমি জানো **বিল্ডিংয়ের মেইন গেট নম্বর** (host port, যেমন 8080), কিন্তু ভেতরে চিঠি যাবে কোন **ফ্ল্যাটে** (container port, যেমন 80) সেটা দারোয়ান ঠিক করে দেয়। `-p 8080:80` মানে ঠিক এই ম্যাপিং: "গেট 8080-এ আসা সব চিঠি ফ্ল্যাট 80-এ দাও।"
+
+আর `localhost`? প্রতিটা ফ্ল্যাটের বাসিন্দা "আমার বাসা" বললে নিজের ফ্ল্যাটই বোঝায়। তাই container-এর ভেতর থেকে `localhost` মানে সেই container নিজে — পাশের ফ্ল্যাট (অন্য container) নয়। পাশের ফ্ল্যাটকে ডাকতে তার নাম ধরে ডাকতে হয় (`db`, `backend` — section ১৩)।
+
+### কেন 0.0.0.0 লাগে
+
+`127.0.0.1` মানে "শুধু নিজের ভেতরের কথা শুনব" — দরজা প্রায় বন্ধ। `0.0.0.0` মানে "আমার সব দরজা দিয়ে আসা কথা শুনব"। container-এর app যদি শুধু `127.0.0.1`-এ শোনে, তাহলে দারোয়ান (port mapping) চিঠি ভেতরে দিতে গেলেও app সেটা তোলে না। তাই container-এর ভেতরের app-কে `0.0.0.0`-এ শোনাতে হয়।
 
 Port syntax:
 
@@ -1038,7 +1218,13 @@ services:
       - "5432:5432"
 ```
 
-Production-এ app ছাড়া host/external client-এর database access দরকার না হলে DB port publish না করাই safer।
+Production-এ app ছাড়া host/external client-এর database access দরকার না হলে DB port publish না করাই safer।
+
+> 🧠 **মনে রাখার ট্রিক:** `-p গেট:ফ্ল্যাট` (host:container)। container-এর ভেতর **`localhost` = আমি নিজে**; পাশের container-কে ডাকতে নাম ধরে ডাকো। App-কে শোনাও `0.0.0.0`-তে।
+
+> ✅ **নিজেকে যাচাই করো:** backend container-এর ভেতরে `localhost:5432`-এ database খুঁজছ, কিন্তু connection পাচ্ছ না। কেন, আর ঠিক করবে কীভাবে?
+> <details><summary>উত্তর দেখো</summary>
+> backend-এর ভেতরে `localhost` মানে backend container নিজে — সেখানে তো database নেই! database অন্য একটা container (ফ্ল্যাট)। তাকে তার service name ধরে ডাকতে হবে, যেমন `db:5432`। container-এর ভেতর অন্য service-কে কখনো `localhost` দিয়ে ডাকা যায় না।</details>
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -1048,6 +1234,18 @@ Production-এ app ছাড়া host/external client-এর database access দ�
 <a id="section-12"></a>
 
 ## 12. Container Storage: Volume vs Bind Mount
+
+> 🎯 **এই section-এ বুঝব:** container মুছে গেলে ভেতরের ডেটা কেন হারায়, আর ডেটা বাঁচাতে volume ও bind mount কীভাবে কাজ করে।
+
+### 💾 আগে একটা গল্প — এক্সটার্নাল হার্ড-ডিস্ক
+
+মনে আছে container = ছাঁচ থেকে বের হওয়া কেক (section ৪)? কেক খেয়ে ফেললে বা ফেলে দিলে তার ভেতরের সব শেষ। container-ও তেমন — মুছে দিলে ভেতরে লেখা সব ডেটা হারায়। তাহলে database-এর জরুরি ডেটা রাখব কোথায়?
+
+সমাধান: **এক্সটার্নাল হার্ড-ডিস্ক**। container-এর বাইরে আলাদা একটা storage রাখো, container সেখানে ডেটা লেখে। container ফেলে দিলেও হার্ড-ডিস্কটা থেকে যায়। এই বাইরের locker-ই হলো **named volume** — Docker নিজে সামলায়। আর **bind mount** হলো তোমার নিজের কম্পিউটারের একটা folder সরাসরি container-এর ভেতরে জুড়ে দেওয়া — যেন তোমার ডেস্কের ড্রয়ার container-এর ভেতর থেকেও খোলা যায় (development-এ code live edit করতে দারুণ)।
+
+### কেন দুটো আলাদা জিনিস
+
+**Volume** = Docker-এর নিজের locker, database-এর মতো দীর্ঘস্থায়ী ডেটার জন্য (দ্রুত, নিরাপদ, cross-OS ঝামেলা কম)। **Bind mount** = তোমার host-এর folder, development-এ source code-এর জন্য (তুমি editor-এ save করলে container সাথে সাথে দেখে)। কাজ আলাদা, তাই দুটো আলাদা tool।
 
 Container filesystem-এর writable layer permanent storage হিসেবে depend করা উচিত না।
 
@@ -1074,7 +1272,7 @@ docker run --rm \
   --name demo-db \
   -e POSTGRES_PASSWORD=secret \
   -v postgres_data:/var/lib/postgresql/data \
-  postgres:17-alpine
+  postgres:18-alpine
 ```
 
 List/inspect:
@@ -1115,7 +1313,7 @@ Decision:
 Source code live edit -> bind mount
 PostgreSQL data       -> named volume
 Uploaded permanent file -> object storage বা carefully managed volume
-Cache/temp data       -> tmpfs বা disposable volume, use case অনুযায়ী
+Cache/temp data       -> tmpfs বা disposable volume, use case অনুযায়ী
 ```
 
 Database folder সরাসরি cross-OS bind mount করলে permission/performance সমস্যা হতে পারে। Local Docker database-এর জন্য named volume সাধারণত cleaner।
@@ -1126,6 +1324,12 @@ Important:
 Named volume backup না।
 Volume host disk failure, accidental deletion, corruption থেকে protect করে না।
 Real backup আলাদা রাখতে হবে।
+
+> 🧠 **মনে রাখার ট্রিক:** **Volume = Docker-এর external হার্ড-ডিস্ক** (database data), **bind mount = তোমার নিজের folder container-এ জোড়া** (live code)। আর মনে রেখো: volume ≠ backup!
+
+> ✅ **নিজেকে যাচাই করো:** তোমার PostgreSQL container তুমি `docker rm` দিয়ে মুছে ফেললে, কিন্তু আগে `-v postgres_data:/var/lib/postgresql/data` দিয়ে চালিয়েছিলে। ডেটা কি হারাবে?
+> <details><summary>উত্তর দেখো</summary>
+> না। ডেটা container-এর ভেতরে নয়, বাইরের `postgres_data` volume (external হার্ড-ডিস্ক)-এ লেখা ছিল। container মুছলেও volume থেকে যায়, তাই নতুন container সেই volume আবার mount করলে পুরনো ডেটা ফিরে পাবে। (কিন্তু `docker volume rm postgres_data` বা `down -v` দিলে locker-টাই মুছে যাবে — তখন হারাবে।)</details>
 ```
 
 <!-- tutorial-nav:back -->
@@ -1137,6 +1341,18 @@ Real backup আলাদা রাখতে হবে।
 
 ## 13. Docker Network এবং Service Name DNS
 
+> 🎯 **এই section-এ বুঝব:** container-রা নিজেদের মধ্যে কীভাবে কথা বলে, আর কেন IP নয়, service name (নাম) ধরে ডাকতে হয়।
+
+### 📞 আগে একটা গল্প — ফ্ল্যাটে ফ্ল্যাটে ইন্টারকম
+
+আবার সেই বিল্ডিং (section ২)। প্রতিটা ফ্ল্যাটে (container) একটা ইন্টারকম আছে, আর সব ইন্টারকম একটা কমন লাইনে (Docker network) যুক্ত। মজার ব্যাপার: তুমি নম্বর মুখস্থ না করে শুধু নাম বললেই হয় — "backend-কে দাও", "db-কে দাও"। বিল্ডিংয়ের একটা অটো-ডিরেক্টরি (internal DNS) নামটাকে সঠিক ফ্ল্যাটে পৌঁছে দেয়।
+
+এটাই Compose-এর জাদু: তুমি service-এর নাম (`db`, `backend`) ধরে ডাকো, Docker নিজে সঠিক container খুঁজে দেয়।
+
+### কেন IP hard-code করা যায় না
+
+ফ্ল্যাটের বাসিন্দা বদলালে বা নতুন করে ঢুকলে IP (ঘরের অস্থায়ী নম্বর) বদলে যেতে পারে। কিন্তু নাম (`db`) স্থির থাকে। তাই code-এ IP লিখে রাখলে container recreate হলেই সব ভেঙে পড়ে — কিন্তু service name সবসময় কাজ করে। এই কারণেই `DATABASE_URL`-এ `@db:5432` লিখি, কোনো `192.168.x.x` নয়।
+
 Compose defaultভাবে project-এর জন্য network create করে।
 
 ```yaml
@@ -1145,7 +1361,7 @@ services:
     build: ./backend
 
   db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
 ```
 
 Compose network-এর ভিতরে:
@@ -1153,7 +1369,7 @@ Compose network-এর ভিতরে:
 ```txt
 backend service can call db:5432
 db service name internal DNS name হিসেবে কাজ করে
-manual container IP দরকার হয় না
+manual container IP দরকার হয় না
 ```
 
 Database URL:
@@ -1223,6 +1439,12 @@ Rule:
 Container IP hard-code করবো না।
 Compose service name use করবো।
 Container recreate হলে IP change হতে পারে, service name stable থাকে।
+
+> 🧠 **মনে রাখার ট্রিক:** Container-রা **ইন্টারকমে নাম ধরে** কথা বলে — IP নয়, **service name**। নাম স্থির, IP অস্থির।
+
+> ✅ **নিজেকে যাচাই করো:** তোমার `DATABASE_URL`-এ `@localhost:5432` লেখা, কিন্তু backend container database খুঁজে পাচ্ছে না। কী বদলাবে?
+> <details><summary>উত্তর দেখো</summary>
+> `localhost` backend container নিজেকেই বোঝায় (section ১১)। database তো অন্য ফ্ল্যাট। ইন্টারকমে তার নাম ধরে ডাকতে হবে — `localhost` বদলে `db` লিখতে হবে: `@db:5432`। Compose-এর internal DNS সেই নামকে সঠিক container-এ পাঠিয়ে দেবে।</details>
 ```
 
 <!-- tutorial-nav:back -->
@@ -1233,6 +1455,18 @@ Container recreate হলে IP change হতে পারে, service name stab
 <a id="section-14"></a>
 
 ## 14. Docker Compose: Multi-Container App
+
+> 🎯 **এই section-এ বুঝব:** একাধিক container হাতে হাতে না চালিয়ে একটা file দিয়ে পুরো stack একসাথে চালানো — এটাই Docker Compose।
+
+### 🎛️ আগে একটা গল্প — এক রিমোট দিয়ে পুরো ঘর
+
+এতক্ষণ আমরা প্রতিটা container আলাদা আলাদা `docker run` দিয়ে চালাচ্ছিলাম — frontend, backend, db — তিনটা আলাদা লম্বা command, তিনবার। ভাবো ঘরে তিনটা আলাদা রিমোট: একটা টিভির, একটা AC-র, একটা লাইটের। বিরক্তিকর, তাই না?
+
+**Docker Compose হলো একটা ইউনিভার্সাল রিমোট** — একটা বোতাম টিপলেই (`docker compose up`) পুরো ঘর (সব container) একসাথে চালু। আর কোন যন্ত্র কীভাবে চলবে সেটা একটা কাগজে (`compose.yaml`) লেখা থাকে, তাই বারবার মনে রাখতে হয় না।
+
+### কেন YAML file-এ লিখি
+
+Compose "declarative" — মানে তুমি *কীভাবে* করবে সেটা না লিখে *কী চাই* সেটা লেখো: "আমি চাই একটা backend এই image থেকে, একটা db ওই image থেকে, এই port-এ, এই volume দিয়ে।" Docker নিজে সেই অবস্থা বানিয়ে দেয়। ফলে যেকোনো নতুন developer একই file থেকে হুবহু একই stack এক command-এ পায় — Docker-এর মূল প্রতিশ্রুতি (consistency) এখানে চূড়ান্ত রূপ পায়।
 
 Compose YAML file-এ multiple service declaratively define করে।
 
@@ -1249,7 +1483,7 @@ services:
       - "8000:8000"
 
   db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_USER: app_user
       POSTGRES_PASSWORD: local_password
@@ -1297,7 +1531,7 @@ docker compose down
 Difference:
 
 ```txt
-stop = containers stop করে, objects রেখে দেয়
+stop = containers stop করে, objects রেখে দেয়
 down = project containers এবং default network remove করে
 ```
 
@@ -1340,6 +1574,12 @@ docker compose build backend
 docker compose up -d backend
 ```
 
+> 🧠 **মনে রাখার ট্রিক:** Compose = **পুরো ঘরের এক রিমোট**। `up` = সব চালু, `down` = সব গুটিয়ে ফেলা (network সহ), `stop` = শুধু থামানো (রেখে দেওয়া)। আর সাবধান — `down -v` locker (volume) সহ মুছে দেয়!
+
+> ✅ **নিজেকে যাচাই করো:** `docker compose stop` আর `docker compose down`-এর মধ্যে পার্থক্য কী? আর কোনটায় database ডেটা মুছে যাওয়ার ঝুঁকি?
+> <details><summary>উত্তর দেখো</summary>
+> `stop` শুধু container গুলো থামায় কিন্তু container ও network রেখে দেয় (পরে দ্রুত আবার চালু করা যায়)। `down` container ও default network মুছে ফেলে। তবে সাধারণ `down` volume মোছে না — ডেটা নিরাপদ। ঝুঁকি শুধু `down -v`-তে, কারণ ওটা named volume (database locker)-ও মুছে দেয়।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -1348,6 +1588,16 @@ docker compose up -d backend
 <a id="section-15"></a>
 
 ## 15. Full-Stack Project Structure
+
+> 🎯 **এই section-এ বুঝব:** পুরো project-এর file/folder কীভাবে গুছিয়ে রাখলে dev ও prod দুটোই পরিষ্কার আর maintainable থাকে।
+
+### 🗄️ আগে একটা গল্প — গোছানো রান্নাঘরের তাক
+
+একটা এলোমেলো রান্নাঘরে রান্না করা যায় ঠিকই, কিন্তু জিনিস খুঁজতে খুঁজতেই সময় শেষ। গোছানো রান্নাঘরে প্রতিটা জিনিসের নির্দিষ্ট তাক থাকে — মশলা এক জায়গায়, বাসন আরেক জায়গায়। Project structure ঠিক তেমন: frontend-এর জিনিস `frontend/`-এ, backend-এর `backend/`-এ, আর পুরো ঘর চালানোর রিমোট (`compose.yaml`) root-এ। নতুন কেউ এলে চোখ বুলিয়েই বুঝে যায় কোথায় কী।
+
+### কেন dev আর prod আলাদা রাখি
+
+Development-এর রান্নাঘর আর restaurant-এর production রান্নাঘর এক নয় — একটায় পরীক্ষা-নিরীক্ষা চলে, আরেকটায় দ্রুত-নিরাপদ পরিবেশন। তাই `Dockerfile` (dev) আর `Dockerfile.prod`, বা `compose.yaml` আর `compose.prod.yaml` আলাদা রাখি। আর `.env.example` রাখি যেন নতুন developer বুঝে নেয় কোন কোন secret লাগবে — আসল মান (`.env`) কিন্তু কখনো Git-এ যায় না।
 
 Recommended structure:
 
@@ -1386,7 +1636,7 @@ Responsibility:
 | `frontend/Dockerfile` | frontend development image |
 | `backend/Dockerfile` | backend development image |
 | `compose.yaml` | local development stack |
-| `Dockerfile.prod` | optimized production image, যদি আলাদা file রাখা হয় |
+| `Dockerfile.prod` | optimized production image, যদি আলাদা file রাখা হয় |
 | `compose.prod.yaml` | production-specific override/config |
 | `.env.example` | required variable names + safe example |
 | `.dockerignore` | build context filter |
@@ -1400,7 +1650,7 @@ Alternative:
   builder
   production
 
-Compose build.target দিয়ে stage select
+Compose build.target দিয়ে stage select
 ```
 
 Example:
@@ -1416,9 +1666,9 @@ services:
 Decision:
 
 ```txt
-Team-এর জন্য যেটা সবচেয়ে clear সেটাই use করবো।
-এক file excessively complex হলে dev/prod Dockerfile আলাদা করা যায়।
-Duplicate config বেড়ে গেলে multi-stage named targets better।
+Team-এর জন্য যেটা সবচেয়ে clear সেটাই use করবো।
+এক file excessively complex হলে dev/prod Dockerfile আলাদা করা যায়।
+Duplicate config বেড়ে গেলে multi-stage named targets better।
 ```
 
 Root `.gitignore`:
@@ -1445,6 +1695,12 @@ production .env
 database dump with real user data
 ```
 
+> 🧠 **মনে রাখার ট্রিক:** **প্রতিটা জিনিসের নিজের তাক** — frontend/backend আলাদা folder, রিমোট (compose) root-এ, dev আর prod আলাদা file। আর আসল secret কখনো Git-এ নয়।
+
+> ✅ **নিজেকে যাচাই করো:** `.env` আর `.env.example` — কোনটা Git-এ commit করা ঠিক, আর কেন?
+> <details><summary>উত্তর দেখো</summary>
+> শুধু `.env.example` commit করা ঠিক — এতে শুধু variable-এর *নাম* আর নিরাপদ উদাহরণ থাকে, আসল কোনো password নেই। `.env`-এ থাকে আসল secret (database password ইত্যাদি), তাই সেটা `.gitignore`-এ রেখে কখনো commit করব না — নাহলে গোপন তথ্য পুরো repo-র সবার কাছে ফাঁস হয়ে যাবে।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -1454,6 +1710,16 @@ database dump with real user data
 
 ## 16. Complete Development Compose Setup
 
+> 🎯 **এই section-এ বুঝব:** আগের সব টুকরো (image, volume, network, port, env, healthcheck) এক `compose.yaml`-এ জোড়া দিয়ে পুরো stack চালু করা।
+
+### 🍱 আগে একটা গল্প — পুরো থালি একসাথে
+
+এতক্ষণ আলাদা আলাদা পদ শিখলাম — ভাত (db), তরকারি (backend), মিষ্টি (frontend)। এই section-এ সব একসাথে একটা থালিতে সাজাই। এই `compose.yaml`-ই তোমার আসল project-এর ইউনিভার্সাল রিমোট: এক command-এ database উঠবে, ready হলে backend উঠবে, সেটা ready হলে frontend উঠবে — সব ঠিক ক্রমে, ঠিক connection দিয়ে।
+
+### কেন এত কিছু একসাথে
+
+এখানে প্রতিটা টুকরো তার জায়গায় বসছে: `volumes` (locker) দিয়ে ডেটা টেকে, service name (`db`, `backend`) দিয়ে ইন্টারকমে কথা হয়, `depends_on` + `healthcheck` দিয়ে সঠিক ক্রম নিশ্চিত হয়, আর দুই রকম URL (`API_INTERNAL_URL` vs `NEXT_PUBLIC_API_URL`) দিয়ে server ও browser আলাদা পথে backend পায়। একটা file পড়েই পুরো app-এর নকশা বোঝা যায়।
+
 `compose.yaml`:
 
 ```yaml
@@ -1461,7 +1727,7 @@ name: ai-dream
 
 services:
   db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-app_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
@@ -1575,8 +1841,8 @@ API docs: http://localhost:8000/docs
 Why database `ports` নেই:
 
 ```txt
-Backend internal network দিয়ে db:5432 call করে।
-Host DB tool দরকার হলে development override-এ 5432 publish করা যায়।
+Backend internal network দিয়ে db:5432 call করে।
+Host DB tool দরকার হলে development override-এ 5432 publish করা যায়।
 ```
 
 `compose.db-tools.yaml`:
@@ -1603,6 +1869,12 @@ Browser/client-side fetch           -> NEXT_PUBLIC_API_URL=http://localhost:8000
 
 Production-এ browser সাধারণত public domain বা same-origin reverse proxy URL use করবে।
 
+> 🧠 **মনে রাখার ট্রিক:** এক থালিতে সব পদ — **Server fetch → `backend:8000`** (ভেতরের ইন্টারকম), **Browser fetch → `localhost:8000`** (বাইরের গেট)। দুই জায়গা, দুই পথ।
+
+> ✅ **নিজেকে যাচাই করো:** frontend-এ দুটো আলাদা URL কেন — `API_INTERNAL_URL=http://backend:8000` আর `NEXT_PUBLIC_API_URL=http://localhost:8000`?
+> <details><summary>উত্তর দেখো</summary>
+> Next.js-এর server (container-এর ভেতরে) backend-কে ইন্টারকমে service name দিয়ে ডাকে — `backend:8000`। কিন্তু user-এর browser চলে তার নিজের মেশিনে, সে Docker network-এর `backend` নাম চেনে না; তাকে host-এ publish করা গেট `localhost:8000` ব্যবহার করতে হয়। তাই একই backend, কিন্তু কে ডাকছে তার উপর URL আলাদা।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -1611,6 +1883,18 @@ Production-এ browser সাধারণত public domain বা same-origin re
 <a id="section-17"></a>
 
 ## 17. Environment Variables, Config, এবং Secrets
+
+> 🎯 **এই section-এ বুঝব:** config আর secret-এর পার্থক্য, Compose-এ `.env` কীভাবে কাজ করে, আর গোপন জিনিস কীভাবে নিরাপদে রাখি।
+
+### 🔑 আগে একটা গল্প — মশলার কৌটা বনাম সিন্দুকের চাবি
+
+রান্নাঘরে দু'রকম জিনিস থাকে। কিছু **মশলার কৌটা** — সবার সামনে তাকে রাখা যায় (log level, feature flag, public API URL)। আর কিছু **সিন্দুকের চাবি** — database password, JWT secret — যা লুকিয়ে রাখতেই হয়। দুটোকে একই ভাবে রাখা বিপজ্জনক: চাবি খোলা তাকে রাখলে চুরি হয়ে যাবে।
+
+Environment variable হলো container-কে বাইরে থেকে জিনিস দেওয়ার উপায়। কিন্তু কোনটা কৌটা আর কোনটা চাবি — সেটা বুঝে আলাদা যত্ন নিতে হয়।
+
+### কেন build arg দিয়ে secret দেওয়া বিপজ্জনক
+
+Dockerfile-এ `ARG`/`ENV` দিয়ে secret দিলে সেটা image-এর layer আর history-তে স্থায়ীভাবে লেখা থাকে — যে কেউ image খুলে চাবিটা পড়ে ফেলতে পারে। এটা যেন রেসিপি কার্ডেই সিন্দুকের চাবি লিখে রাখা। তাই build-time secret লাগলে BuildKit-এর `--mount=type=secret` ব্যবহার করি, যা চাবিটা শুধু ওই মুহূর্তে ধার দেয়, image-এ রেখে দেয় না।
 
 Config categories:
 
@@ -1650,7 +1934,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 ```
 
-`.env` value Compose file-এ interpolate হয়ে container environment-এ যায়।
+`.env` value Compose file-এ interpolate হয়ে container environment-এ যায়।
 
 Inspect resolved config:
 
@@ -1733,6 +2017,12 @@ logs-এ secret না লেখা
 
 `.env` convenient, কিন্তু নিজে encrypted secret vault না।
 
+> 🧠 **মনে রাখার ট্রিক:** **কৌটা খোলা তাকে, চাবি সিন্দুকে**। secret কখনো `ARG`/`ENV`/image layer-এ নয়; `.env` সুবিধাজনক কিন্তু vault নয়।
+
+> ✅ **নিজেকে যাচাই করো:** কেউ বলল "private token-টা Dockerfile-এ `ARG` দিয়ে দাও, তাহলে build-এ কাজ করবে"। এতে কী সমস্যা?
+> <details><summary>উত্তর দেখো</summary>
+> `ARG` দিয়ে দেওয়া মান image-এর build history/layer-এ থেকে যেতে পারে, ফলে যে কেউ image inspect করে token-টা বের করে ফেলতে পারে — মানে secret ফাঁস। তার বদলে BuildKit secret mount (`RUN --mount=type=secret,...`) ব্যবহার করতে হবে, যা token-টা build-এর সময় সাময়িকভাবে দেয় কিন্তু চূড়ান্ত image-এ রাখে না।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -1742,12 +2032,22 @@ logs-এ secret না লেখা
 
 ## 18. PostgreSQL Persistence, Migration, এবং Backup
 
+> 🎯 **এই section-এ বুঝব:** database-এর ডেটা কীভাবে টিকিয়ে রাখি, schema বদলালে (migration) কী করি, আর backup কেন volume দিয়ে হয় না।
+
+### 🏦 আগে একটা গল্প — ব্যাংকের ভল্ট আর দলিল
+
+Database-এর ডেটা তোমার app-এর সবচেয়ে মূল্যবান সম্পদ — টাকার মতো। named volume হলো সেই টাকা রাখার **ভল্ট** (external হার্ড-ডিস্ক, section ১২) — container ভেঙে গেলেও ভল্ট থাকে। **Migration** হলো ভল্টের নকশা বদলানো — নতুন খোপ (নতুন table/column) যোগ করা; এটা সাবধানে, ধাপে ধাপে, লিখিত পরিকল্পনায় করতে হয়। আর **backup** হলো ভল্টের দলিলের ফটোকপি আলাদা জায়গায় রাখা।
+
+### কেন volume-ই যথেষ্ট নয় (backup আলাদা লাগে)
+
+একটা ভুল ধারণা: "volume আছে মানে ডেটা নিরাপদ"। কিন্তু ভল্ট নিজেই যদি পুড়ে যায় (disk failure), বা তুমি ভুল করে `down -v` দাও, বা ডেটা corrupt হয় — volume তোমাকে বাঁচাবে না। তাই আসল নিরাপত্তা হলো নিয়মিত **backup** আলাদা জায়গায় রাখা (`pg_dump`), আর সেই backup থেকে restore একবার পরীক্ষা করা। Production-এ managed database service এসব ঝামেলা অনেকটাই সামলে দেয়।
+
 PostgreSQL data:
 
 ```yaml
 services:
   db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -1803,7 +2103,7 @@ App startup-এর প্রতিটা replica থেকে migration run ক�
 ```txt
 multiple containers একই migration একসাথে চালাতে পারে
 long migration app startup block করতে পারে
-failure/rollback harder হয়
+failure/rollback harder হয়
 ```
 
 Small local project-এ startup migration convenient হতে পারে, but production-এ dedicated migration step better।
@@ -1842,6 +2142,12 @@ replication
 patching support
 ```
 
+> 🧠 **মনে রাখার ট্রিক:** **volume = ভল্ট, backup = দলিলের আলাদা ফটোকপি** — দুটো এক নয়। Migration = ভল্টের নকশা বদল, তাই আলাদা explicit ধাপে করো, প্রতিটা app-startup থেকে নয়।
+
+> ✅ **নিজেকে যাচাই করো:** তোমার database volume-এ আছে, তাহলে আলাদা backup নেওয়ার দরকার কী?
+> <details><summary>উত্তর দেখো</summary>
+> volume ডেটাকে container মুছে গেলে বাঁচায়, কিন্তু disk নষ্ট হওয়া, ভুল করে `docker compose down -v` চালানো, বা ডেটা corrupt হওয়া থেকে বাঁচায় না। volume ব্যাকআপ নয়। তাই `pg_dump`-এর মতো আসল backup আলাদা, নিরাপদ জায়গায় রাখতে হয় — এবং restore করে test করে দেখতে হয় যে backup কাজ করে।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -1851,10 +2157,20 @@ patching support
 
 ## 19. Healthcheck, depends_on, এবং Startup Readiness
 
+> 🎯 **এই section-এ বুঝব:** container চালু হওয়া আর app আসলে কাজের জন্য তৈরি হওয়া — এই দুটো এক নয়, আর সঠিক ক্রম কীভাবে নিশ্চিত করি।
+
+### 🍳 আগে একটা গল্প — চুলা জ্বলছে মানেই রান্না তৈরি নয়
+
+চুলা জ্বেলে দিলেই তো খাবার তৈরি হয়ে যায় না — জল ফুটতে, ডাল সিদ্ধ হতে সময় লাগে। ঠিক তেমন, PostgreSQL-এর container "চালু" (running) হওয়া মানেই সে connection নিতে "তৈরি" (ready) নয়; ভেতরে database এখনো গোছাচ্ছে। এখন backend যদি চালু-হওয়া-মাত্র database-কে ডাকে, ডাল সিদ্ধ হওয়ার আগেই পরিবেশনের মতো — ব্যর্থ হবে।
+
+### কেন depends_on যথেষ্ট নয়, healthcheck লাগে
+
+সাধারণ `depends_on` শুধু বলে "db-কে আগে চালু করো" — মানে চুলা আগে জ্বালাও। কিন্তু ডাল সিদ্ধ হলো কিনা তা দেখে না। **Healthcheck** হলো চামচে তুলে চেখে দেখা — `pg_isready` দিয়ে জিজ্ঞেস করা "তুমি কি সত্যিই তৈরি?"। `condition: service_healthy` দিলে backend ততক্ষণ অপেক্ষা করে যতক্ষণ না db সত্যিই ready। তবু app-এ retry রাখা জরুরি, কারণ চালু হওয়ার পরও database কখনো restart/drop হতে পারে।
+
 Container running মানেই app ready না।
 
 ```txt
-PostgreSQL process start হয়েছে
+PostgreSQL process start হয়েছে
 কিন্তু database এখনো connection accept করতে ready না
 ```
 
@@ -1867,14 +2183,14 @@ services:
       - db
 ```
 
-এটা startup order দেয়, readiness guarantee করে না।
+এটা startup order দেয়, readiness guarantee করে না।
 
 Healthcheck-based dependency:
 
 ```yaml
 services:
   db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     healthcheck:
       test:
         [
@@ -1898,7 +2214,7 @@ Double dollar:
 $${POSTGRES_USER}
 ```
 
-Compose interpolation delay করে, যাতে variable container-এর ভিতরে expand হয়।
+Compose interpolation delay করে, যাতে variable container-এর ভিতরে expand হয়।
 
 Backend health endpoint:
 
@@ -1912,7 +2228,7 @@ Better production checks:
 
 ```txt
 /health/live  = process alive?
-/health/ready = traffic নেওয়ার জন্য dependencies ready?
+/health/ready = traffic নেওয়ার জন্য dependencies ready?
 ```
 
 Do not make liveness check unnecessarily heavy:
@@ -1947,6 +2263,12 @@ docker compose exec backend \
   python -c "import urllib.request; print(urllib.request.urlopen('http://localhost:8000/api/v1/health').read())"
 ```
 
+> 🧠 **মনে রাখার ট্রিক:** **চুলা জ্বলা ≠ রান্না তৈরি**। `depends_on` = চুলা আগে জ্বালাও; `healthcheck` = চেখে দেখা সত্যিই ready কিনা। তবু app-এ retry রাখো।
+
+> ✅ **নিজেকে যাচাই করো:** শুধু `depends_on: [db]` দিলে কেন মাঝে মাঝে backend চালু হয়েই database connection error দেয়?
+> <details><summary>উত্তর দেখো</summary>
+> `depends_on` শুধু startup *ক্রম* নিশ্চিত করে (db আগে চালু হবে), কিন্তু db যে connection নেওয়ার জন্য *তৈরি* সেটা নিশ্চিত করে না। db container চালু হয়েছে অথচ ভেতরে PostgreSQL এখনো initialize করছে — এই ফাঁকে backend ডাকলে fail করে। সমাধান: db-তে healthcheck দিয়ে `depends_on: db: condition: service_healthy` ব্যবহার করা, আর app-এ retry রাখা।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -1955,6 +2277,16 @@ docker compose exec backend \
 <a id="section-20"></a>
 
 ## 20. Development Workflow এবং Hot Reload
+
+> 🎯 **এই section-এ বুঝব:** রোজকার development কেমন হয় — code বদলালেই সাথে সাথে app আপডেট (hot reload), আর dependency বদলালে কী করি।
+
+### ✍️ আগে একটা গল্প — লাইভ পড়ে শোনানো
+
+ভাবো তুমি একটা গল্প লিখছ, আর পাশে বসে বন্ধু প্রতিটা লাইন লেখামাত্র পড়ে শোনাচ্ছে। তুমি শব্দ বদলালে সে সাথে সাথে নতুন করে পড়ে। Hot reload ঠিক তেমন: bind mount (section ১২)-এর মাধ্যমে তোমার editor-এ save করা code সাথে সাথে container-এ পৌঁছায়, আর dev server (`--reload` / Next.js dev) তা টের পেয়ে নিজেকে refresh করে। বারবার image rebuild করতে হয় না।
+
+### কেন code আর dependency আলাদাভাবে সামলাই
+
+Code বদলানো = গল্পের লাইন বদলানো, bind mount সাথে সাথে দেখায়, কিছু করতে হয় না। কিন্তু dependency বদলানো (`uv add`, `npm install`) = নতুন বই কিনে আনা — এটা image-এর ভেতরে ঢোকে, তাই `docker compose build` দিয়ে image আবার বানাতে হয়। এই পার্থক্য না বুঝলে "module missing" error-এ আটকে যাবে।
 
 Development goal:
 
@@ -2056,6 +2388,12 @@ Rule:
 ```txt
 Development convenience production config-এ blindly copy করবো না।
 Production container-এ source bind mount বা --reload রাখবো না।
+
+> 🧠 **মনে রাখার ট্রিক:** **Code বদল = এমনিই দেখা যায়** (bind mount + reload)। **Dependency বদল = rebuild লাগে**। আর dev-এর সুবিধা (bind mount, reload) production-এ কখনো নয়।
+
+> ✅ **নিজেকে যাচাই করো:** তুমি `npm install`/`uv add` দিয়ে নতুন package যোগ করলে, কিন্তু container-এ "module not found" আসছে যদিও code save হয়েছে। কেন?
+> <details><summary>উত্তর দেখো</summary>
+> নতুন dependency image-এর ভেতরে install হয়, bind mount-করা source-এ নয়। শুধু code save করলে dependency আসে না। container-কে নতুন package দিতে হলে `docker compose build <service>` দিয়ে image আবার বানিয়ে `up -d <service>` করতে হবে। (কখনো পুরনো `node_modules` volume থাকলে সেটাও মুছতে হতে পারে।)</details>
 ```
 
 <!-- tutorial-nav:back -->
@@ -2066,6 +2404,18 @@ Production container-এ source bind mount বা --reload রাখবো ন�
 <a id="section-21"></a>
 
 ## 21. Production Images: Multi-Stage, Small, Non-Root
+
+> 🎯 **এই section-এ বুঝব:** production-এর জন্য image কেন ছোট, নিরাপদ, non-root হওয়া উচিত, আর multi-stage build কীভাবে তা করে দেয়।
+
+### 🧳 আগে একটা গল্প — ভ্রমণের ব্যাগ গোছানো
+
+বেড়াতে যাওয়ার সময় কি পুরো আলমারি সঙ্গে নাও? না — শুধু দরকারি জামাকাপড় একটা ছোট ব্যাগে ভরো। Development image হলো পুরো আলমারি (compiler, dev tool, source, test — সব)। কিন্তু production-এ শুধু চলার জন্য যা লাগে সেটুকুই নেওয়া উচিত।
+
+**Multi-stage build** ঠিক এই গোছানোর কাজটা করে: এক ঘরে (builder stage) সব বের করে রান্না/বিল্ড করো, তারপর শুধু তৈরি খাবারটুকু (runtime output) আলাদা পরিষ্কার ছোট ব্যাগে (final stage) ভরো — আঁচড়, খোসা, বাসন সব আগের ঘরে ফেলে আসো।
+
+### কেন ছোট আর non-root জরুরি
+
+ছোট image = কম জায়গা, দ্রুত deploy, আর কম "attack surface" (চোরের ঢোকার কম দরজা)। আর `USER` দিয়ে non-root করা মানে container-এর process-কে সীমিত ক্ষমতা দেওয়া — কেউ ঢুকে পড়লেও পুরো বাড়ির মালিক হয়ে যেতে পারবে না। Production-এ নিরাপত্তা এখানে খুব দামি।
 
 Production image goals:
 
@@ -2099,18 +2449,18 @@ export default nextConfig;
 ```dockerfile
 # syntax=docker/dockerfile:1
 
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -2145,9 +2495,9 @@ FastAPI production example:
 ```dockerfile
 # syntax=docker/dockerfile:1
 
-FROM python:3.12-slim AS builder
+FROM python:3.13-slim AS builder
 
-COPY --from=ghcr.io/astral-sh/uv:0.8.0 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.9.0 /uv /uvx /bin/
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy
@@ -2160,7 +2510,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY . .
 RUN uv sync --frozen --no-dev
 
-FROM python:3.12-slim AS runtime
+FROM python:3.13-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -2219,6 +2569,12 @@ image vulnerability scan
 
 Alpine সব app-এর জন্য automatically best না। Native dependency compatibility/debuggability issue হলে slim Debian-based image practical হতে পারে।
 
+> 🧠 **মনে রাখার ট্রিক:** **শুধু দরকারি জিনিস ছোট ব্যাগে** — multi-stage দিয়ে build tool আগের stage-এ ফেলে এসো, final image-এ শুধু runtime। আর process চালাও **non-root** user দিয়ে।
+
+> ✅ **নিজেকে যাচাই করো:** multi-stage build ব্যবহার করে final image ছোট হয় কীভাবে?
+> <details><summary>উত্তর দেখো</summary>
+> builder stage-এ compiler, dev dependency, source ইত্যাদি দিয়ে app বিল্ড করা হয় — এই stage ভারী। কিন্তু final (runner) stage একদম নতুন base থেকে শুরু হয় আর সেখানে `COPY --from=builder` দিয়ে শুধু চলার জন্য দরকারি output টুকু আনা হয়। ভারী build tool গুলো final image-এ যায় না, তাই সেটা ছোট, পরিষ্কার আর নিরাপদ থাকে।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -2227,6 +2583,16 @@ Alpine সব app-এর জন্য automatically best না। Native depend
 <a id="section-22"></a>
 
 ## 22. Logs, Shell, Inspection, এবং Debugging
+
+> 🎯 **এই section-এ বুঝব:** কিছু ভেঙে গেলে আতঙ্কিত না হয়ে ধাপে ধাপে কীভাবে খুঁজে বের করি কী হয়েছে — logs, shell, inspect।
+
+### 🩺 আগে একটা গল্প — ডাক্তারের রোগ নির্ণয়
+
+ভালো ডাক্তার রোগীকে দেখেই ওষুধ দেন না — আগে জিজ্ঞেস করেন, নাড়ি দেখেন, রিপোর্ট পড়েন, তারপর সিদ্ধান্ত নেন। Debugging ঠিক তেমন একটা রোগ নির্ণয়। container অসুস্থ? আতঙ্কিত হয়ে সব মুছে ফেলো না। বরং লক্ষণ পড়ো: `logs` (রোগী কী বলছে), `ps` (কে জীবিত/মৃত), `exec sh` (ভেতরে গিয়ে পরীক্ষা), `inspect` (বিস্তারিত রিপোর্ট)।
+
+### কেন একটা নির্দিষ্ট ক্রমে দেখি
+
+এলোমেলো অনুমান করলে আসল কারণ মিস হয়ে যায়। তাই একটা ক্রম: আগে `compose config` (নকশা ঠিক আছে?) → `ps` (কে চলছে?) → `logs` (কী error?) → health/DNS → তারপর app-specific test। এই ক্রমে গেলে বেশিরভাগ সমস্যা দ্রুত ধরা পড়ে, আর "connection refused", "port already in use"-এর মতো সাধারণ রোগগুলো চেনা সহজ হয়।
 
 First debugging commands:
 
@@ -2305,7 +2671,7 @@ ports:
   - "8001:8000"
 ```
 
-### File change reload হয় না
+### File change reload হয় না
 
 ```txt
 bind mount correct?
@@ -2317,7 +2683,7 @@ host filesystem performance issue?
 ### Module/package missing
 
 ```txt
-lockfile changed কিন্তু image rebuild হয়নি
+lockfile changed কিন্তু image rebuild হয়নি
 dependency volume old
 wrong build context
 .dockerignore required file exclude করেছে
@@ -2327,8 +2693,8 @@ wrong build context
 
 ```txt
 wrong Compose project name?
-new volume create হয়েছে?
-down -v চালানো হয়েছিল?
+new volume create হয়েছে?
+down -v চালানো হয়েছিল?
 database version/path mismatch?
 ```
 
@@ -2352,6 +2718,12 @@ Best debugging order:
 7. image/build cache
 ```
 
+> 🧠 **মনে রাখার ট্রিক:** **আগে রোগ নির্ণয়, পরে ওষুধ**। ক্রম: `config → ps → logs → health → DNS → app test`। মুছে ফেলা সবসময় শেষ উপায়।
+
+> ✅ **নিজেকে যাচাই করো:** frontend থেকে backend ডাকতে গিয়ে "connection refused" পাচ্ছ। প্রথমে কী কী দেখবে?
+> <details><summary>উত্তর দেখো</summary>
+> ধাপে ধাপে: (১) backend service কি সত্যিই চলছে — `docker compose ps`? (২) ঠিক service name ধরে ডাকছ তো (`backend`, `localhost` নয়)? (৩) ঠিক container port? (৪) app কি `0.0.0.0`-এ listen করছে, নাকি `127.0.0.1`-এ আটকে? (৫) backend কি ready (healthcheck)? এই রোগ নির্ণয়ের ক্রমেই কারণটা বেরিয়ে আসবে।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -2360,6 +2732,16 @@ Best debugging order:
 <a id="section-23"></a>
 
 ## 23. Testing, CI, Tagging, এবং Registry
+
+> 🎯 **এই section-এ বুঝব:** container-এ test চালানো, image-কে সঠিক নাম/version (tag) দেওয়া, আর গুদামে (registry) পাঠানো — অটোমেটিক pipeline-এ (CI) কীভাবে সব একসাথে হয়।
+
+### 🏷️ আগে একটা গল্প — বেকারির প্যাকেজিং লাইন
+
+বড় বেকারিতে কেক এমনি এমনি দোকানে যায় না। একটা লাইনে: কেক পরীক্ষা হয় (test), গায়ে ব্যাচ নম্বর/তারিখ লাগে (tag), তারপর গুদামে যায় (registry), সেখান থেকে দোকানে (deploy)। CI হলো সেই স্বয়ংক্রিয় প্যাকেজিং লাইন — প্রতিবার code push করলেই test → build → scan → tag → push নিজে নিজে চলে।
+
+### কেন tag আর "একই image deploy" এত গুরুত্বপূর্ণ
+
+প্রতিটা image-কে নির্দিষ্ট নাম দেওয়া (যেমন commit SHA `git-a1b2c3d`) মানে ঠিক কোন কেকটা কোন recipe থেকে বানানো তা চেনা যায়। আর সবচেয়ে বড় নিয়ম: **যে image টা test হয়েছে হুবহু সেটাই deploy করো** — production-এ আবার নতুন করে বিল্ড কোরো না। নাহলে test করা কেক আর দোকানের কেক আলাদা হয়ে যেতে পারে (artifact drift), আর "আমার মেশিনে চলছিল" সমস্যা নতুন রূপে ফিরে আসে।
 
 Containerized test:
 
@@ -2464,6 +2846,12 @@ log-এ print করবো না
 rotation/revocation plan রাখবো
 ```
 
+> 🧠 **মনে রাখার ট্রিক:** **যা test হয়েছে হুবহু তাই deploy করো** — মাঝপথে rebuild নয়। commit SHA দিয়ে tag করলে ঠিক কোন কেক তা সবসময় চেনা যায়।
+
+> ✅ **নিজেকে যাচাই করো:** CI-তে test pass করার পর, production-এ source থেকে আবার নতুন করে image build করলে সমস্যা কী?
+> <details><summary>উত্তর দেখো</summary>
+> নতুন করে build করলে base image update, dependency resolution, বা build environment একটু বদলে যেতে পারে — ফলে যে image test হয়েছিল আর যেটা production-এ চলছে সে দুটো হুবহু এক নাও হতে পারে (artifact drift)। ঠিক পদ্ধতি: একবার build করা, test-পাস image-কে tag করে registry-তে push করা, আর সেই একই tag deploy করা।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -2472,6 +2860,16 @@ rotation/revocation plan রাখবো
 <a id="section-24"></a>
 
 ## 24. Deployment, Scaling, এবং Docker-এর Boundary
+
+> 🎯 **এই section-এ বুঝব:** app আসল server-এ কীভাবে যায়, কখন একাধিক copy (scale) দরকার, আর কোথায় Docker Compose-এর সীমা শেষ।
+
+### 🍔 আগে একটা গল্প — এক দোকান থেকে চেইন রেস্টুরেন্ট
+
+একটা ছোট খাবারের দোকান এক রাঁধুনি দিয়েই চলে (এক server, Compose)। কিন্তু ভিড় বাড়লে? একই রান্নাঘরে আরও কয়েকজন রাঁধুনি (backend replica) লাগাও — কিন্তু তখন দরজায় একজন ম্যানেজার (reverse proxy / load balancer) দরকার, যে ভিড় সামলে কাকে কোন রাঁধুনির কাছে পাঠাবে ঠিক করে। আর যদি অনেকগুলো শহরে শাখা খুলতে হয় (multi-host, auto-failover), তখন এক দোকানের ব্যবস্থাপনা আর যথেষ্ট নয় — পুরো চেইন সামলানোর সিস্টেম (Kubernetes/orchestrator) লাগে।
+
+### কেন Docker সব সমস্যার সমাধান নয়
+
+Docker চমৎকারভাবে app-কে প্যাকেজ ও চালায়, কিন্তু সে জাদুকর নয় (মনে আছে section ১?)। scale করার আগে app-কে stateless হতে হয়, session/file বাইরে রাখতে হয়, load balancer লাগে। আর "Docker ব্যবহার করছি" মানেই microservice দরকার নয় — একটা পরিষ্কার monolith-ও দিব্যি containerize করা যায়। দরকার হওয়ার আগে জটিলতা যোগ না করাই বুদ্ধিমানের কাজ।
 
 Small deployment:
 
@@ -2534,7 +2932,7 @@ single-host/simple deployment
 reproducible service definition
 ```
 
-Compose alone সবসময় enough না:
+Compose alone সবসময় enough না:
 
 ```txt
 multi-host scheduling
@@ -2558,7 +2956,7 @@ Microservice decision:
 
 ```txt
 Docker use করছি মানেই microservice দরকার না।
-একটা clean monolith backend-ও containerize করা যায়।
+একটা clean monolith backend-ও containerize করা যায়।
 ```
 
 Recommended growth path:
@@ -2572,6 +2970,12 @@ Recommended growth path:
 6. real scaling need এলে orchestration
 ```
 
+> 🧠 **মনে রাখার ট্রিক:** **এক দোকান = Compose; চেইন রেস্টুরেন্ট = orchestrator**। scale করার আগে app **stateless** করো আর একটা load balancer/ম্যানেজার বসাও। দরকারের আগে জটিলতা নয়।
+
+> ✅ **নিজেকে যাচাই করো:** `docker compose up -d --scale backend=3` দিলে ৩টা backend চলবে। এতে কী সমস্যা হতে পারে?
+> <details><summary>উত্তর দেখো</summary>
+> ৩টা replica যদি একই fixed host port (যেমন `8000:8000`) দখল করতে চায়, তারা conflict করবে — একটা গেট, তিন রাঁধুনি। সত্যিকারের scale করতে হলে একটা load balancer / reverse proxy লাগে যে requests গুলো replica-দের মধ্যে ভাগ করে দেয়, আর app-কে stateless হতে হয় (session/file শেয়ারড store-এ)। শুধু সংখ্যা বাড়ালেই scale হয় না।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -2580,6 +2984,16 @@ Recommended growth path:
 <a id="section-25"></a>
 
 ## 25. Cleanup, Disk Usage, এবং Safe Reset
+
+> 🎯 **এই section-এ বুঝব:** Docker কীভাবে disk ভরিয়ে ফেলে, কীভাবে নিরাপদে পরিষ্কার করি, আর কোন command ভুলেও চোখ বন্ধ করে চালানো যাবে না।
+
+### 🧹 আগে একটা গল্প — ঘর পরিষ্কার বনাম ভুলে জরুরি জিনিস ফেলে দেওয়া
+
+সময়ের সাথে Docker অনেক পুরনো image, বন্ধ container, build cache জমিয়ে ফেলে — ঠিক যেমন ঘরে জিনিসপত্র জমে। মাঝে মাঝে পরিষ্কার করা ভালো। কিন্তু বাড়ি পরিষ্কার করতে গিয়ে যদি চোখ বন্ধ করে সব ঝেঁটিয়ে ফেলো, তাহলে জরুরি দলিল (database volume) ভুলে ফেলে দিতে পারো। `prune` আর `down -v` এমনই ঝাড়ু — কাজের, কিন্তু সাবধানে।
+
+### কেন cleanup কে অভ্যাস বানানো বিপজ্জনক
+
+অনেকে bug দেখলেই সব মুছে reset মারে। কিন্তু এতে আসল কারণ (root cause) লুকিয়ে যায়, দরকারি cache মুছে build ধীর হয়, আর সবচেয়ে খারাপ — ডেটা হারায়। তাই মোছার আগে সবসময় জিজ্ঞেস করো: কোন object যাবে? database volume আছে? backup আছে? এটা local না production? ঠিক project তো?
 
 Disk usage:
 
@@ -2681,6 +3095,12 @@ data delete করতে পারে
 root cause না বুঝে environment reset করলে bug repeat হবে
 ```
 
+> 🧠 **মনে রাখার ট্রিক:** **ঝাড়ু মারার আগে দেখে নাও কী ফেলছ**। `prune`/`down -v` volume সহ ডেটা মুছতে পারে। cleanup রোজকার অভ্যাস নয়, শেষ উপায়।
+
+> ✅ **নিজেকে যাচাই করো:** `docker volume prune` বা `docker compose down -v` চালানোর আগে কোন জিনিসটা অবশ্যই যাচাই করবে?
+> <details><summary>উত্তর দেখো</summary>
+> নিশ্চিত হতে হবে যে মুছে-যাওয়া volume-এ কোনো জরুরি ডেটা (বিশেষত `postgres_data`) নেই, আর থাকলে তার backup আছে। `docker volume ls`/`inspect` দিয়ে দেখে, ঠিক project কিনা যাচাই করে, তবেই চালাতে হবে। একবার volume মুছে গেলে database ডেটা ফেরানো যায় না (backup ছাড়া)।</details>
+
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
 
@@ -2689,6 +3109,16 @@ root cause না বুঝে environment reset করলে bug repeat হব�
 <a id="section-26"></a>
 
 ## 26. Development Rules, Checklist, এবং Summary
+
+> 🎯 **এই section-এ বুঝব:** পুরো tutorial-এর শিক্ষাগুলো এক জায়গায় — একটা checklist ও summary যা বারবার ফিরে দেখা যায়।
+
+### 🎓 আগে একটা কথা — এতদূর আসার জন্য অভিনন্দন
+
+তুমি কেকের গল্প (Docker কী) থেকে শুরু করে ফ্ল্যাট (container), রেসিপি-ছাঁচ-কেক-গুদাম (Dockerfile→image→container→registry), ইন্টারকম (network), external হার্ড-ডিস্ক (volume), এক রিমোট (Compose) হয়ে চেইন রেস্টুরেন্ট (scaling) পর্যন্ত পুরো যাত্রা করেছ। এই section-টা সেই পুরো রান্নার বইয়ের শেষ পাতা — যেখানে সব নিয়ম এক নজরে টুকে রাখা।
+
+### কেন এই checklist মূল্যবান
+
+প্রতিটা নিয়মের পেছনে একটা গল্প আছে যা তুমি এখন জানো — তাই এগুলো আর শুকনো নিয়ম মনে হবে না, বরং "আচ্ছা, এই কারণেই" মনে হবে। ভুলে গেলে এখানে ফিরে এসো; প্রতিটা লাইন তোমাকে তার section-এর গল্পটা মনে করিয়ে দেবে।
 
 Rules:
 
@@ -2700,7 +3130,7 @@ Rules:
 6. Dependency files আগে copy করে build cache use করবো।
 7. `.dockerignore` রাখবো।
 8. Secret image বা Git repository-তে রাখবো না।
-9. Build secret `ARG`/`ENV` দিয়ে pass করবো না।
+9. Build secret `ARG`/`ENV` দিয়ে pass করবো না।
 10. Container process `0.0.0.0`-এ listen করাবো।
 11. Container-to-container call-এ service name use করবো।
 12. Container-এর ভিতর `localhost` সেই container নিজে—এটা মনে রাখবো।
@@ -2712,7 +3142,7 @@ Rules:
 18. Development-এ bind mount/hot reload রাখবো।
 19. Production-এ immutable image এবং no reload রাখবো।
 20. Production process non-root user হিসেবে run করবো।
-21. Multi-stage build দিয়ে final image clean রাখবো।
+21. Multi-stage build দিয়ে final image clean রাখবো।
 22. Unnecessary package, port, privilege remove করবো।
 23. Logs stdout/stderr-এ রাখবো।
 24. CI-তে test, build, scan, tag, push করবো।
@@ -2720,7 +3150,7 @@ Rules:
 26. Database migration explicit step হিসেবে plan করবো।
 27. Healthcheck এবং rollback verify করবো।
 28. Docker use মানেই microservice দরকার—এমন ভাববো না।
-29. Scaling need হওয়ার আগে unnecessary orchestration add করবো না।
+29. Scaling need হওয়ার আগে unnecessary orchestration add করবো না।
 30. Cleanup-এর আগে data impact check করবো।
 
 Command memory:
@@ -2800,9 +3230,9 @@ Final memory:
 ```txt
 Docker শেখা মানে শুধু command মুখস্থ করা না।
 
-App কীভাবে build হয়
-কীভাবে run হয়
-কোথায় data থাকে
+App কীভাবে build হয়
+কীভাবে run হয়
+কোথায় data থাকে
 service কীভাবে কথা বলে
 config/secret কোথা থেকে আসে
 failure হলে কীভাবে debug করি
@@ -2810,6 +3240,12 @@ production artifact কীভাবে safely deploy করি
 
 এই full lifecycle বুঝাই real Docker skill।
 ```
+
+> 🧠 **মনে রাখার ট্রিক:** Docker = শুধু command মুখস্থ নয় — **build → run → data → network → config → debug → deploy** এই পুরো lifecycle বোঝা। গল্পগুলো মনে রাখলে command আপনিই মনে থাকবে।
+
+> ✅ **নিজেকে যাচাই করো:** কেউ যদি জিজ্ঞেস করে "Docker শেখা মানে কি সব command মুখস্থ করা?" — তুমি কী বলবে?
+> <details><summary>উত্তর দেখো</summary>
+> না। command গুলো শুধু হাতিয়ার। আসল skill হলো বোঝা — app কীভাবে build হয়, কীভাবে run হয়, ডেটা কোথায় টেকে, service-রা কীভাবে কথা বলে, config/secret কোথা থেকে আসে, ভাঙলে কীভাবে debug করি, আর tested artifact কীভাবে নিরাপদে deploy করি। এই পুরো lifecycle বুঝলে যেকোনো নতুন command বা tool সহজেই ধরে ফেলা যায়।</details>
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
