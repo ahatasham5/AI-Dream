@@ -686,12 +686,12 @@ Important:
 Backend থেকে frontend-এ শুধু safe data পাঠাবো।
 Sensitive/internal field schema দিয়ে hide করবো।
 
+```
 > 🧠 **মনে রাখার ট্রিক:** Create/Update schema = **ঢোকার ফর্ম যাচাই**, Response model = **বেরোনোর রসিদ** (গোপন কিছু নেই)। ঢোকা-বেরোনোর ফর্ম আলাদা।
 
 > ✅ **নিজেকে যাচাই করো:** কেন `UserCreate`-এ `password` থাকে কিন্তু `UserPublic`-এ থাকে না?
 > <details><summary>উত্তর দেখো</summary>
 > কারণ user register করার সময় password লাগে (ঢোকার ফর্ম), কিন্তু response-এ password বা hashed_password পাঠানো ভয়ংকর নিরাপত্তা-ঝুঁকি। তাই আলাদা schema — বেরোনোর রসিদে গোপন জিনিস রাখা হয় না।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -778,7 +778,6 @@ Async DB/client -> async def + await
 > ✅ **নিজেকে যাচাই করো:** একটা `async def` endpoint-এর ভিতরে যদি ভারী blocking কাজ (যেমন বড় CPU হিসাব) দাও, সমস্যা কী?
 > <details><summary>উত্তর দেখো</summary>
 > Async শেফ তখন সেই এক কাজেই আটকে যায়, অন্য অর্ডার সামলাতে পারে না — মানে অন্য request আটকে থেকে performance পড়ে যায়। এমন CPU-heavy কাজ background worker/queue-তে পাঠানো ভালো।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -886,12 +885,12 @@ Important:
 প্রথমে clean monolith বানাবো।
 Project বড় হলে service/repository/module আলাদা করবো।
 
+```
 > 🧠 **মনে রাখার ট্রিক:** ছোট দোকান = **এক তাকে সব** (flat)। বড় রেস্টুরেন্ট = **আলাদা ঘর** (service/repository)। আগে দরকার, তারপর ঘর — উল্টো নয়।
 
 > ✅ **নিজেকে যাচাই করো:** একদম নতুন শেখা/MVP project-এ কি সাথে সাথে microservice বানানো উচিত?
 > <details><summary>উত্তর দেখো</summary>
 > না। শুরুতে clean monolith (এক গোছানো project) যথেষ্ট। ছোট দোকানে ১০টা ঘর বানানোর মতো — শুধু জটিলতা বাড়ে। project সত্যিই বড় হলে ধীরে ধীরে layer/module আলাদা করব।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -951,12 +950,12 @@ Business logic service-এ থাকে
 Database query repository-তে থাকে
 Schema sensitive field hide করে
 
+```
 > 🧠 **মনে রাখার ট্রিক:** Model = **তাকের সাজানো** (DB), Schema = **দরজার ফর্ম** (API), Service = **নিয়ম/রেসিপি**, Repository = **গুদাম আনা-নেওয়া**। প্রত্যেকে এক প্রশ্নের উত্তর।
 
 > ✅ **নিজেকে যাচাই করো:** "user by email খুঁজে বের করা" — এই কাজটা কোন layer-এর?
 > <details><summary>উত্তর দেখো</summary>
 > Repository। এটা সরাসরি database query — গুদাম থেকে জিনিস খুঁজে আনা। Service সেই user নিয়ে নিয়ম (যেমন password মিলছে কিনা) প্রয়োগ করে।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -1033,12 +1032,12 @@ Request শুরু হলে session create
 Endpoint কাজ করে
 Request শেষ হলে session close
 
+```
 > 🧠 **মনে রাখার ট্রিক:** Database = **স্থায়ী ভাঁড়ারঘর**, Model = **তাকের নকশা**, Session = **এক-বারের চাবি** (নিয়ে-কাজ-করে-ফেরত)। চাবি ফেরত না দিলে ভাঁড়ার খোলা থেকে যায়।
 
 > ✅ **নিজেকে যাচাই করো:** `create_all` কি production-এ column যোগ/পরিবর্তন সামলাতে পারে?
 > <details><summary>উত্তর দেখো</summary>
 > না। `create_all` শুধু নতুন table বানায়, existing table-এর গঠন বদলায় না। Production-এ column add/change করতে **Alembic** migration ব্যবহার করতে হয়।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -1133,12 +1132,12 @@ Important:
 ```txt
 Database model return করলেও response_model safe fields filter করবে।
 
+```
 > 🧠 **মনে রাখার ট্রিক:** **CRUD** = ভাঁড়ার খাতার চার কাজ — **C**reate লেখা (POST), **R**ead খোঁজা (GET), **U**pdate ঠিক করা (PUT/PATCH), **D**elete মোছা (DELETE)।
 
 > ✅ **নিজেকে যাচাই করো:** যে user খুঁজছি সে না থাকলে কী করা উচিত, আর কেন?
 > <details><summary>উত্তর দেখো</summary>
 > `HTTPException(status_code=404, detail="User not found")` raise করা উচিত। খাতায় জিনিস নেই মানে "পাওয়া গেল না" — frontend যেন পরিষ্কার বুঝতে পারে, তাই ৪০৪ status দিই, চুপচাপ খালি জবাব দিই না।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -1212,12 +1211,12 @@ Rule:
 ```txt
 যে logic অনেক endpoint-এ লাগে, সেটা dependency বানাবো।
 
+```
 > 🧠 **মনে রাখার ট্রিক:** Dependency = **আগে থেকে কাটা পেঁয়াজ**। একবার রেডি করো, `Depends(...)` দিয়ে সব endpoint-এ হাতে তুলে দাও — বারবার কাটা নয়।
 
 > ✅ **নিজেকে যাচাই করো:** `get_current_user` কেন সব protected endpoint-এ আলাদা করে না লিখে dependency বানানো হয়?
 > <details><summary>উত্তর দেখো</summary>
 > কারণ token decode করে user বের করার কাজটা প্রায় সব protected endpoint-এ একই। একবার dependency বানিয়ে রাখলে যেখানে দরকার শুধু `Depends(get_current_user)` লিখলেই হয় — code repeat হয় না, ভুলের সুযোগও কমে।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -1291,12 +1290,12 @@ Secret/config hardcode করবো না।
 Production-এ "*" origin avoid করবো।
 Cookie auth হলে allow_credentials=True লাগবে।
 
+```
 > 🧠 **মনে রাখার ট্রিক:** `.env` = **গোপন লকার** (secret কখনো code/git-এ নয়)। CORS = **দারোয়ান** (কোন বাইরের origin-কে ঢুকতে দেব ঠিক করে)।
 
 > ✅ **নিজেকে যাচাই করো:** Frontend `localhost:3000` থেকে backend `localhost:8000`-এ call করছে, কিন্তু browser ব্লক করছে — সম্ভাব্য কারণ কী?
 > <details><summary>উত্তর দেখো</summary>
 > CORS ঠিকমতো সেট করা নেই। দুটো আলাদা origin, তাই দারোয়ান (browser) frontend origin-কে চেনে না। `allow_origins`-এ frontend-এর ঠিকানা যোগ করলে সমস্যা মিটবে।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -1385,12 +1384,12 @@ Raw password database-এ রাখা যাবে না।
 SECRET_KEY .env থেকে আসবে।
 Token expire time রাখা ভালো।
 
+```
 > 🧠 **মনে রাখার ট্রিক:** Login = পরিচয় দেখানো, JWT token = **হাতে সিল-মারা টিকিট** (পরে শুধু সিল দেখাও)। Password কখনো raw নয় — সবসময় **hash** করে রাখো।
 
 > ✅ **নিজেকে যাচাই করো:** Database চুরি হয়ে গেলেও user-দের password যাতে ফাঁস না হয়, তার জন্য কী করি?
 > <details><summary>উত্তর দেখো</summary>
 > Raw password কখনো store করি না — শুধু তার hash রাখি। Hash উল্টে আসল password বের করা যায় না, তাই database চুরি হলেও চোর সরাসরি password পায় না।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -1495,12 +1494,12 @@ Frontend vs backend:
 Next.js route guard = UX / redirect
 FastAPI role check  = real security
 
+```
 > 🧠 **মনে রাখার ট্রিক:** Authenticatio**N** = তুমি কে (**N**ame)? Authoriza**T**ion = তুমি কী করতে পারবে (per**T**ission)? Role = পদবি, permission = নির্দিষ্ট চাবি।
 
 > ✅ **নিজেকে যাচাই করো:** Frontend-এ admin ছাড়া কেউ "Delete" বাটন দেখে না — তাহলে backend-এ role check না রাখলেও চলবে কি?
 > <details><summary>উত্তর দেখো</summary>
 > না, চলবে না। বাটন লুকানো শুধু UX — কেউ সরাসরি backend URL-এ request পাঠিয়ে delete করার চেষ্টা করতে পারে। আসল নিরাপত্তা backend-এর role/permission check-ই দেয়।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -1561,12 +1560,12 @@ Wrong auth হলে 401/403 clear রাখবো।
 Missing resource হলে 404 দিবো।
 Validation error হলে Pydantic 422 দিবে।
 
+```
 > 🧠 **মনে রাখার ট্রিক:** Status code = **ওয়েটারের ভদ্র জবাবের সংখ্যা**। **2xx** = ঠিক আছে, **4xx** = তোমার (client) ভুল, **5xx** = আমাদের (server) ভুল।
 
 > ✅ **নিজেকে যাচাই করো:** Login-এ ভুল password দিলে কোন status code উপযুক্ত, আর কেন 404 নয়?
 > <details><summary>উত্তর দেখো</summary>
 > 401 (Not authenticated) — কারণ পরিচয় যাচাই ব্যর্থ হয়েছে। 404 মানে "জিনিসটাই নেই", কিন্তু এখানে user থাকতেও পারে, শুধু password মিলছে না — তাই 401 বেশি সঠিক।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -1637,12 +1636,12 @@ Small post-response task -> BackgroundTasks
 Heavy production job     -> Celery/RQ/queue
 Large file upload        -> size limit/storage/security ভাববো
 
+```
 > 🧠 **মনে রাখার ট্রিক:** File upload = **জমা পার্সেল**। Background task = **পরে-করার চিরকুট** (গ্রাহককে দাঁড় করিয়ে রেখো না)। ছোট কাজ → `BackgroundTasks`, ভারী কাজ → queue।
 
 > ✅ **নিজেকে যাচাই করো:** Signup-এর পর welcome email পাঠানোর কাজটা কেন response-এর আগে না করে background task-এ দিই?
 > <details><summary>উত্তর দেখো</summary>
 > কারণ email পাঠাতে সময় লাগে; সেটা শেষ হওয়ার জন্য user-কে দাঁড় করিয়ে রাখলে response ধীর হবে। background task-এ দিলে user সাথে সাথে জবাব পায়, email-টা পিছনে পাঠানো হয়।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -1719,12 +1718,12 @@ Small MVP শুরুতে Redis বাধ্যতামূলক না।
 PostgreSQL/SQLite + FastAPI দিয়েই শুরু করা যায়।
 OTP/cache/rate limit/queue দরকার হলে Redis add করবো।
 
+```
 > 🧠 **মনে রাখার ট্রিক:** MVP = **আগে সাইকেল, পরে গাড়ি** (মূল কাজ আগে)। Database = **স্থায়ী ভাঁড়ার**, Redis = **হাতের কাছের দ্রুত টুকরি** (অস্থায়ী)। দরকার হলে তবেই Redis।
 
 > ✅ **নিজেকে যাচাই করো:** একদম নতুন MVP-তে কি Redis বসানো বাধ্যতামূলক?
 > <details><summary>উত্তর দেখো</summary>
 > না। PostgreSQL/SQLite + FastAPI দিয়েই শুরু করা যায়। OTP, cache, rate limit বা queue-র মতো নির্দিষ্ট দরকার এলে তখন Redis যোগ করলেই চলে — আগেভাগে নয়।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -1793,12 +1792,12 @@ API prefix matches frontend baseURL
 Request body schema matches frontend payload
 Response model matches frontend TypeScript type
 
+```
 > 🧠 **মনে রাখার ট্রিক:** সংযোগের তিন শর্ত — **সঠিক ঠিকানা** (baseURL + prefix মিলবে), **CORS দারোয়ান খোলা**, আর **একই ভাষা** (payload ↔ schema, response ↔ type)।
 
 > ✅ **নিজেকে যাচাই করো:** সব ঠিক মনে হচ্ছে, তবু browser console-এ CORS error — কোথায় দেখব?
 > <details><summary>উত্তর দেখো</summary>
 > Backend-এর CORS setting-এ frontend-এর origin (`http://localhost:3000`) allow করা আছে কিনা দেখব। দারোয়ান (CORS) frontend-এর ঠিকানা না চিনলে browser request আটকে দেয়।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
@@ -1971,12 +1970,12 @@ Main lesson:
 Domain বড় হলে feature/domain আলাদা করবো।
 কিন্তু শুরুতে clean monolith রাখাই practical।
 
+```
 > 🧠 **মনে রাখার ট্রিক:** বড় app = **অনেক বিভাগের রেস্টুরেন্ট চেইন**, কিন্তু concept সেই একই (role, schema, service, repository)। **আগে গোছানো monolith, পরে ভাগ**।
 
 > ✅ **নিজেকে যাচাই করো:** Uber-টাইপ app শুরু করছ। প্রথম দিনেই কি প্রতিটা domain আলাদা microservice বানাবে?
 > <details><summary>উত্তর দেখো</summary>
 > না। শুরুতে সব একটা clean monolith-এ রাখব, শুধু folder দিয়ে domain আলাদা করব। app সত্যিই বড় ও জটিল হলে, আর দল বড় হলে, তখন microservice-এর কথা ভাবব।</details>
-```
 
 <!-- tutorial-nav:back -->
 [Back to Index](#index)
