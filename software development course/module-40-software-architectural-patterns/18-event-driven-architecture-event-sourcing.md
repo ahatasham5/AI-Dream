@@ -1,0 +1,89 @@
+# ৪০.১৮ Event-Driven Architecture — Deep Dive: Event Sourcing
+
+৪০.৪-এ আমরা Event-Driven Architecture-এর মূল ধারণা দেখেছিলাম — সার্ভিসগুলো সরাসরি একে অপরকে কল না করে event পাবলিশ আর সাবস্ক্রাইব করে যোগাযোগ করে। এই লেসনে আমরা সেই ধারণাকে এক ধাপ এগিয়ে নিয়ে যাবো একটা বিশেষায়িত, শক্তিশালী কৌশলে — **Event Sourcing**।
+
+স্বাভাবিক ডেটাবেজ ডিজাইনে (Module ১৮-১৯) আমরা শুধু **বর্তমান অবস্থা** সংরক্ষণ করি। ধরো একটা task-এর `status` কলাম `pending` থেকে `in_progress`, তারপর `completed`-এ বদলে গেলো — সাধারণ ডেটাবেজে শুধু সর্বশেষ মান `completed` থেকে যায়, মাঝের পরিবর্তনগুলোর ইতিহাস হারিয়ে যায়। Event Sourcing এই দর্শনটাকে উল্টে দেয় — **বর্তমান অবস্থা সংরক্ষণ করার বদলে, প্রতিটা পরিবর্তনকে (event) একটার পর একটা সংরক্ষণ করা হয়**, আর বর্তমান অবস্থা হিসাব করা হয় সেই event গুলো একে একে "replay" করে।
+
+এটাকে ভাবা যায় ব্যাংকের একাউন্ট স্টেটমেন্টের মতো — ব্যাংক তোমার একাউন্টে শুধু "বর্তমান ব্যালেন্স ৫০,০০০ টাকা" রাখে না, বরং প্রতিটা লেনদেন (জমা, উত্তোলন) আলাদা এন্ট্রি হিসেবে রাখে। বর্তমান ব্যালেন্স আসলে সব লেনদেনের যোগফল — আর এই সম্পূর্ণ ইতিহাস থাকার কারণে যেকোনো disput তদন্ত করা, বা ভুল হলে ঠিক কোন লেনদেনে সমস্যা হয়েছিলো তা খুঁজে বের করা সম্ভব হয়।
+
+```mermaid
+flowchart LR
+    subgraph "সাধারণ পদ্ধতি"
+        S1["tasks টেবিল<br/>id: 1, status: completed"]
+    end
+    subgraph "Event Sourcing পদ্ধতি"
+        E1["TaskCreated<br/>{id:1, title:'রিপোর্ট লেখা'}"] --> E2["TaskStarted<br/>{id:1}"]
+        E2 --> E3["TaskCompleted<br/>{id:1}"]
+        E3 --> Derived["বর্তমান অবস্থা derive করা হয়<br/>events replay করে: status = completed"]
+    end
+```
+
+কোড দিয়ে দেখা যাক Event Sourcing কীভাবে কাজ করে। প্রথমে প্রতিটা event সংরক্ষণ করা হয় একটা **event store**-এ, যেটা কখনো update বা delete হয় না — শুধু append হয়:
+
+```javascript
+// Event Store — শুধু append হয়, কখনো পরিবর্তন হয় না
+class EventStore {
+  constructor() {
+    this.events = []; // বাস্তবে এটা একটা ডেটাবেজ টেবিল বা Kafka topic
+  }
+
+  append(event) {
+    this.events.push({ ...event, timestamp: new Date(), sequenceNumber: this.events.length + 1 });
+  }
+
+  getEventsFor(aggregateId) {
+    return this.events.filter(e => e.aggregateId === aggregateId);
+  }
+}
+
+const eventStore = new EventStore();
+
+// ব্যবসায়িক কর্মকাণ্ড event হিসেবে সংরক্ষিত হয়, সরাসরি অবস্থা বদলানো হয় না
+function createTask(taskId, title) {
+  eventStore.append({ type: 'TaskCreated', aggregateId: taskId, data: { title } });
+}
+
+function startTask(taskId) {
+  eventStore.append({ type: 'TaskStarted', aggregateId: taskId, data: {} });
+}
+
+function completeTask(taskId) {
+  eventStore.append({ type: 'TaskCompleted', aggregateId: taskId, data: {} });
+}
+
+// বর্তমান অবস্থা event replay করে "derive" (উদ্ভূত) করা হয়
+function getCurrentTaskState(taskId) {
+  const events = eventStore.getEventsFor(taskId);
+  let state = null;
+
+  for (const event of events) {
+    switch (event.type) {
+      case 'TaskCreated':
+        state = { id: taskId, title: event.data.title, status: 'pending' };
+        break;
+      case 'TaskStarted':
+        state.status = 'in_progress';
+        break;
+      case 'TaskCompleted':
+        state.status = 'completed';
+        break;
+    }
+  }
+  return state;
+}
+
+createTask('t1', 'মাসিক রিপোর্ট লেখা');
+startTask('t1');
+completeTask('t1');
+
+console.log(getCurrentTaskState('t1'));
+// { id: 't1', title: 'মাসিক রিপোর্ট লেখা', status: 'completed' }
+```
+
+এই কৌশলটার সাথে ৪০.৫-এ শেখা CQRS-এর সম্পর্ক গভীর — CQRS-এ আমরা read আর write আলাদা করেছিলাম, আর Event Sourcing প্রায়ই CQRS-এর "write side"-এর বাস্তবায়ন হিসেবে ব্যবহার হয়। প্রতিটা command (যেমন `completeTask`) একটা event তৈরি করে (write model), আর সেই event গুলো থেকে read-optimized "projection" বানানো হয় (read model), যেটা `getCurrentTaskState`-এর মতো প্রতিবার replay না করে দ্রুত query করা যায়।
+
+Event Sourcing-এর সবচেয়ে বড় সুবিধা হলো **সম্পূর্ণ অডিট ট্রেইল** — "এই task কবে, কীভাবে, কার দ্বারা প্রতিটা অবস্থায় গিয়েছিলো" তার নিখুঁত ইতিহাস পাওয়া যায়, যেটা আর্থিক সিস্টেম বা compliance-ভারী ডোমেইনে অমূল্য। এমনকি একটা বাগ ফিক্স করার পর পুরনো event replay করে নতুন করে state হিসাব করা যায় (Module ৩৪-এর production debugging-এর একটা শক্তিশালী টুল)।
+
+তবে জটিলতাও উল্লেখযোগ্য — লক্ষ লক্ষ event জমা হলে replay ধীর হয়ে যেতে পারে (এই সমস্যার সমাধান **snapshot** — মাঝে মাঝে বর্তমান অবস্থা সংরক্ষণ করে রাখা, যাতে শুরু থেকে replay করতে না হয়), আর ডেভেলপারদের নতুন মানসিকতায় চিন্তা করতে শেখা লাগে — "অবস্থা" নয়, "ঘটনার ধারা" দিয়ে সিস্টেম মডেল করা।
+
+পরের লেসনে আমরা Service Discovery-এর গভীরে যাবো — বাস্তব টুল Consul আর etcd কীভাবে কাজ করে, আর কেন এগুলো নিজে-লেখা রেজিস্ট্রির চেয়ে ভালো।
