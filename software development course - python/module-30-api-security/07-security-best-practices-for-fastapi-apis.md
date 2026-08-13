@@ -1,0 +1,108 @@
+# ৩০.০৭. Security Best Practices for Python/FastAPI APIs
+
+এই মডিউলের ছয়টা লেসনে আমরা নির্দিষ্ট, নামযুক্ত আক্রমণের বিরুদ্ধে নির্দিষ্ট প্রতিরক্ষা শিখেছি — CORS, XSS, SQL Injection, CSRF, আর `secure` লাইব্রেরির মাধ্যমে security header। এই শেষ লেসনে আমরা দুটো বাকি থাকা, কিন্তু সমানভাবে গুরুত্বপূর্ণ বিষয় নিয়ে কথা বলবো — **rate limiting** আর **input validation** — আর তারপর পুরো Module 29 আর 30 জুড়ে যা শিখেছি, তার একটা সংক্ষিপ্ত চেকলিস্ট আকারে সারসংক্ষেপ করবো।
+
+শুরু করি এমন একটা সমস্যা দিয়ে যেটা এতক্ষণ আমরা এড়িয়ে গেছি — একজন সম্পূর্ণ বৈধ, লগইন করা ইউজারও (অথবা কোনো বট) যদি প্রতি সেকেন্ডে হাজার হাজার request পাঠায়, তোমার সার্ভার তার সম্পদ (CPU, মেমোরি, ডেটাবেজ কানেকশন) নিঃশেষ করে ফেলে অন্য সবার জন্য অনুপলব্ধ হয়ে যেতে পারে। এই ধরনের আক্রমণকে বলে **Denial of Service (DoS)**, আর এর প্রতিরক্ষা হলো **rate limiting** — একটা নির্দিষ্ট সময়ের মধ্যে একজন ক্লায়েন্ট থেকে কতগুলো request গ্রহণযোগ্য, তার একটা সীমা বেঁধে দেওয়া।
+
+Module 7-এ আমরা rate limiting-এর একটা প্রাথমিক ধারণা মিডলওয়্যার প্রজেক্টের মাধ্যমে পেয়েছিলাম। এখন সেটাকে একটা প্রোডাকশন-মানের, নির্ভরযোগ্য লাইব্রেরি দিয়ে বাস্তবায়ন করি — FastAPI ইকোসিস্টেমে সবচেয়ে পরিচিত পছন্দ হলো **`slowapi`** (Flask-এর `flask-limiter`-এর কাঠামো থেকে অনুপ্রাণিত):
+
+```bash
+pip install slowapi
+```
+
+```python
+# middleware/rate_limiter.py
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+```
+
+```python
+# main.py
+from fastapi import FastAPI
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
+from middleware.rate_limiter import limiter
+
+app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+```
+
+```python
+# routes/auth_routes.py
+from fastapi import APIRouter, Request
+from middleware.rate_limiter import limiter
+
+router = APIRouter()
+
+@router.get("/api/public-data")
+@limiter.limit("100/15minutes")  # প্রতি IP-তে সর্বোচ্চ ১০০ request
+async def public_data(request: Request):
+    return {"message": "সবার জন্য উন্মুক্ত"}
+
+# লগইনের মতো sensitive route-এ আরও কড়া সীমা
+@router.post("/api/login")
+@limiter.limit("5/15minutes")  # ব্রুট-ফোর্স পাসওয়ার্ড অনুমান ঠেকাতে
+async def login(request: Request, payload: LoginInput):
+    return await login_handler(payload)
+```
+
+লক্ষ্য করো, লগইন route-এ আলাদা, আরও কড়া সীমা বসানো হয়েছে — কারণ এটা একটা বিশেষভাবে sensitive endpoint, যেখানে আক্রমণকারী বারবার ভিন্ন ভিন্ন পাসওয়ার্ড চেষ্টা করে (brute-force attack) কারো অ্যাকাউন্টে ঢুকতে চাইতে পারে। rate limiting সেই চেষ্টাকে ব্যবহারিকভাবে অসম্ভব করে তোলে।
+
+এবার দ্বিতীয় বিষয়টায় আসি — **input validation**। এই মডিউল জুড়ে আমরা বারবার একটা কথা বলে এসেছি: "কখনো ইউজারের ইনপুটকে বিশ্বাস করো না"। SQL Injection ঠেকাতে parameterized query, XSS ঠেকাতে output encoding — এগুলো সবই এক অর্থে input-কে বিশেষ যত্নে হ্যান্ডল করার কৌশল। কিন্তু এর বাইরেও, একটা সাধারণ ভালো অভ্যাস হলো প্রতিটা route-এ ঢোকার মুখেই ইনপুটের গঠন (shape), টাইপ, আর সীমা যাচাই করে নেওয়া — এতে অনেক সমস্যা একদম শুরুতেই আটকে যায়, আক্রমণের সুযোগ পাওয়ার আগেই।
+
+Module 6-এ আমরা ছোট আকারে ম্যানুয়াল ভ্যালিডেশন দেখেছিলাম। FastAPI-এর একটা বড় সুবিধা হলো, ভ্যালিডেশনের এই কাজটা আলাদা কোনো লাইব্রেরি (যেমন Node.js জগতে zod) হিসেবে বসাতে হয় না — এটা ফ্রেমওয়ার্কের সাথেই built-in আসে **Pydantic** মডেলের মাধ্যমে, যা রানটাইম ভ্যালিডেশনের পাশাপাশি টাইপ ইনফারেন্সও দেয়:
+
+```python
+# schemas/post_schema.py
+from pydantic import BaseModel, Field
+from typing import Optional
+
+class CreatePostInput(BaseModel):
+    title: str = Field(min_length=3, max_length=200)
+    content: str = Field(min_length=1, max_length=10000)
+    tags: Optional[list[str]] = Field(default=None, max_length=5)
+```
+
+```python
+# routes/post_routes.py
+from fastapi import APIRouter, Depends
+from schemas.post_schema import CreatePostInput
+from auth.dependencies import authenticate, require_role
+
+router = APIRouter()
+
+@router.post("/posts")
+async def create_post(
+    payload: CreatePostInput,
+    current_user=Depends(authenticate),
+    _=Depends(require_role("admin", "editor")),
+):
+    return await create_post_handler(payload, current_user)
+```
+
+এই route handler-টা লক্ষ্য করার মতো — এখানে `payload: CreatePostInput` টাইপ হিন্ট দেওয়ার সাথে সাথেই FastAPI স্বয়ংক্রিয়ভাবে request body-কে সেই স্কিমা দিয়ে যাচাই করে, ভুল হলে নিজে থেকেই একটা 422 Unprocessable Entity রেসপন্স পাঠায় বিস্তারিত error breakdown সহ — আমাদের আলাদা কোনো `validate()` middleware লিখে সেটা রুটে জুড়ে দিতে হয় না, যেটা Express + zod-এর জগতে করতে হতো। authentication আর authorization এখনও `Depends()`-এর মাধ্যমে আলাদা আলাদা দায়িত্ব হিসেবে বসছে, ঠিক Module 7-এ শেখা middleware চেইনের দর্শন মেনেই — শুধু FastAPI-এ এই চেইনটা dependency injection-এর ভাষায় প্রকাশ করা হয়। প্রতিটা স্তর নিজের প্রশ্নের উত্তর দেয় — "তুমি কে", "তুমি কী করতে পারো", "তোমার পাঠানো ডেটা কি গঠনগতভাবে সঠিক" — আর শুধু সবগুলো প্রশ্নের উত্তর ইতিবাচক হলেই request আসল বিজনেস লজিকে পৌঁছায়।
+
+একটা প্রোডাকশন সতর্কতা এখানে মনে রাখা জরুরি — Pydantic-এর স্বয়ংক্রিয় ভ্যালিডেশন শুধু request body-র *গঠন* (shape, type, length) যাচাই করে, বিজনেস-লজিক-ভিত্তিক নিয়ম (যেমন "এই slug আগে থেকেই ব্যবহৃত আছে কিনা", বা "এই তারিখ ভবিষ্যতের হতে হবে") যাচাই করে না — সেগুলোর জন্য এখনও custom `@field_validator` লিখতে হয়, অথবা handler-এর ভেতরে আলাদা চেক বসাতে হয়। "Pydantic ভ্যালিডেশন পাস করেছে" মানেই "ডেটা বিজনেস লজিকের দৃষ্টিতে সঠিক" — এই ভুল ধারণাটা অনেক নতুন FastAPI ডেভেলপারকে ফাঁকিতে ফেলে।
+
+এখন, পুরো Module 29 আর 30 জুড়ে যা শিখেছি তার একটা সংক্ষিপ্ত নিরাপত্তা-চেকলিস্ট এখানে গুছিয়ে দেওয়া যাক, যেটা তুমি ভবিষ্যতে যেকোনো FastAPI প্রজেক্ট শুরু করার সময় রেফারেন্স হিসেবে ব্যবহার করতে পারো:
+
+- পাসওয়ার্ড সবসময় hash করে রাখা (bcrypt), কখনো plain text না (Module 12)
+- Access token ছোট মেয়াদের, refresh token httpOnly cookie-তে (Module 29, লেসন ১)
+- প্রতিটা sensitive route-এ authentication + সঠিক role/permission চেক (Module 29)
+- object-level authorization ভুলে না যাওয়া — ownership যাচাই (Module 29, লেসন ৫)
+- CORS whitelist দিয়ে নির্দিষ্ট origin-এ সীমাবদ্ধ, `credentials` আর `*` origin একসাথে না (লেসন ২)
+- সব SQL query parameterized অথবা ORM-নির্ভর, কখনো string concatenation না (লেসন ৩)
+- ইউজার-জেনারেটেড কনটেন্ট output-এর সময় encode/sanitize করা (লেসন ৪)
+- state-পরিবর্তনকারী request-এ CSRF টোকেন বা `sameSite` cookie (লেসন ৫)
+- `secure` লাইব্রেরি বা কাস্টম middleware দিয়ে বেসলাইন security header (লেসন ৬)
+- rate limiting, বিশেষ করে auth-সম্পর্কিত endpoint-এ (এই লেসন)
+- প্রতিটা route-এ input validation (Pydantic schema) (এই লেসন)
+- এনভায়রনমেন্ট ভ্যারিয়েবলে secret রাখা, কখনো কোডে hardcode না
+- error message-এ সিস্টেমের অভ্যন্তরীণ তথ্য (স্ট্যাক ট্রেস, ডেটাবেজ কাঠামো) ফাঁস না করা
+
+এই চেকলিস্টটাই মূলত defense-in-depth-এর একটা বাস্তব রূপ — প্রতিটা আইটেম একটা আলাদা স্তরের সুরক্ষা, আর একসাথে তারা একটা এমন সিস্টেম তৈরি করে যেখানে একটা স্তর ব্যর্থ হলেও বাকিগুলো দাঁড়িয়ে থাকে।
+
+Authentication, Authorization, আর এখন সামগ্রিক API Security — এই তিনটা মিলিয়ে আমরা একটা API-কে "সঠিক মানুষকে সঠিক অনুমতি দেওয়া" এবং "ভুল/দূষিত ইনপুট থেকে নিজেকে রক্ষা করা" — দুটো দিক থেকেই দৃঢ় করে ফেলেছি। কিন্তু একটা API নিরাপদ হলেও, সেটা দ্রুত, নির্ভরযোগ্য, আর ভারী লোডের মধ্যেও স্থিতিশীল থাকবে কিনা তা যাচাই করা এখনো বাকি। ঠিক এই প্রশ্ন থেকেই শুরু হবে পরবর্তী মডিউল — Module 31: API Testing & Performance, যেখানে আমরা শিখবো কীভাবে Postman আর JMeter-এর মতো টুল দিয়ে আমাদের এই সুরক্ষিত API-টার গতি আর সহনশীলতা পরিমাপ করা যায়।

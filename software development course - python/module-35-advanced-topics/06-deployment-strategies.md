@@ -1,0 +1,56 @@
+# ৩৫.৬ Deployment Strategies
+
+আগের লেসনে আমরা একটা backend সমস্যা খুঁজে বের করে ফিক্স করলাম। কিন্তু সেই ফিক্স production সার্ভারে পৌঁছাতে হবে, আর সেটা যদি ভুলভাবে করা হয়, তাহলে ফিক্স করতে গিয়ে নতুন সমস্যা তৈরি হতে পারে — সার্ভার কিছুক্ষণের জন্য বন্ধ থাকা, বা অর্ধেক ব্যবহারকারী পুরনো কোড আর অর্ধেক নতুন কোড পাওয়া। এই লেসনে আমরা দেখবো কীভাবে পরিকল্পিতভাবে নতুন কোড production-এ ছাড়া যায়, ঝুঁকি কমিয়ে।
+
+সবচেয়ে সহজ (কিন্তু ঝুঁকিপূর্ণ) পদ্ধতি হলো পুরনো সার্ভার বন্ধ করে নতুন কোড বসিয়ে আবার চালু করা — একে বলে **recreate deployment**। এটা অনেকটা একটা দোকান পুরোপুরি বন্ধ করে ভেতরে সংস্কার করে আবার খোলার মতো — যতক্ষণ সংস্কার চলে, ততক্ষণ কোনো কাস্টমার ঢুকতে পারে না। ছোট প্রজেক্টে এটা চলতে পারে, কিন্তু Personal Growth Tracker-এর মতো অ্যাপ যদি সবসময় চালু থাকতে হয়, এই পদ্ধতি গ্রহণযোগ্য না।
+
+```mermaid
+flowchart LR
+    subgraph Blue-Green
+        B1[পুরনো ভার্সন - Blue, লাইভ] -.সুইচ.-> B2[নতুন ভার্সন - Green, রেডি]
+    end
+    subgraph Rolling
+        R1[Instance 1: আপডেট] --> R2[Instance 2: আপডেট] --> R3[Instance 3: আপডেট]
+    end
+    subgraph Canary
+        C1[৯৫% ট্রাফিক - পুরনো] 
+        C2[৫% ট্রাফিক - নতুন, পরীক্ষামূলক]
+    end
+```
+
+**Blue-Green deployment**-এ দুইটা সম্পূর্ণ পরিবেশ থাকে — "Blue" (বর্তমানে লাইভ) আর "Green" (নতুন ভার্সন, প্রস্তুত কিন্তু ট্রাফিক পাচ্ছে না)। নতুন ভার্সন ভালোভাবে টেস্ট হওয়ার পর, load balancer-কে একবারে Green-এর দিকে সুইচ করে দেয়া হয়। সমস্যা হলে সাথে সাথে আবার Blue-এ ফিরে যাওয়া যায় — এটাই এই কৌশলের সবচেয়ে বড় সুবিধা, তাৎক্ষণিক rollback।
+
+**Rolling deployment**-এ, যদি তোমার একাধিক worker/instance চলে (Module ৩৫.১-এ শেখা Gunicorn multi-worker সেটআপের মতো, বা Docker-এ চালানো একাধিক container replica), তাহলে একটা একটা করে instance আপডেট করা হয়, বাকিগুলো তখনও পুরনো কোড দিয়ে ট্রাফিক সামলায়। কোনো মুহূর্তেই পুরো সিস্টেম বন্ধ থাকে না, তবে সাময়িকভাবে কিছু ব্যবহারকারী পুরনো আর কিছু নতুন ভার্সন পেতে পারে।
+
+**Canary deployment** সবচেয়ে সতর্ক পদ্ধতি — নতুন কোড প্রথমে মাত্র ৫% ট্রাফিকে ছাড়া হয় (যেমন একটা কয়লাখনির "canary" পাখি, যেটা বিষাক্ত গ্যাসের আগাম সংকেত দিতো)। Module ৩৩-এ শেখা monitoring দিয়ে সেই ৫% ট্রাফিকে error rate আর latency পর্যবেক্ষণ করা হয়; সব ঠিক থাকলে ধীরে ধীরে ১০%, ৫০%, তারপর ১০০%-এ নেয়া হয়।
+
+```python
+# একটা সহজ canary রাউটিং-এর উদাহরণ, FastAPI middleware দিয়ে percentage ভিত্তিক
+import random
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class CanaryRoutingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        is_canary = random.random() < 0.05  # ৫% ট্রাফিক
+        request.state.deployment_version = "v2-canary" if is_canary else "v1-stable"
+        return await call_next(request)
+
+app.add_middleware(CanaryRoutingMiddleware)
+```
+
+(বাস্তব production-এ এই রাউটিং সাধারণত অ্যাপ্লিকেশন কোডে না, বরং Nginx বা একটা service mesh/ load balancer লেয়ারে করা হয়, যাতে দুই ভার্সনের container সম্পূর্ণ আলাদা থাকে — উপরের কোডটা ধারণা বোঝানোর জন্য একটা সরলীকৃত উদাহরণ।)
+
+Docker-ভিত্তিক deployment-এ এই কৌশলগুলো বাস্তবায়ন করা সহজ হয়, কারণ প্রতিটা ভার্সন একটা স্বতন্ত্র, পুনরুৎপাদনযোগ্য (reproducible) container image:
+
+```dockerfile
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+CMD ["gunicorn", "app.main:app", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
+```
+
+> **প্রোডাকশন নুয়ান্স — "code reload" বনাম "worker restart", আর কেন `--reload` production-এ ব্যবহার করা উচিত না**: ডেভেলপমেন্টে আমরা `uvicorn app.main:app --reload` চালাই, যাতে ফাইল বদলালে সার্ভার নিজে থেকে restart হয় — এটা সুবিধাজনক কারণ Uvicorn ফাইল সিস্টেমকে watch করে। কিন্তু production-এ এই flag **কখনোই** ব্যবহার করা উচিত না, কয়েকটা কারণে: (১) ফাইল watching নিজেই CPU আর I/O খরচ করে, যা real traffic-এর নিচে performance কমায়; (২) `--reload` মোডে Uvicorn multi-worker সাপোর্ট করে না, মানে তুমি horizontal scaling-এর সব সুবিধা হারাচ্ছ; (৩) নিরাপত্তার দৃষ্টিকোণ থেকে, কেউ যদি কোনোভাবে সার্ভারের ফাইল সিস্টেমে লিখতে পারে (যেমন একটা vulnerability-এর মাধ্যমে), auto-reload সেই পরিবর্তিত কোড নিজে থেকেই লোড করে চালিয়ে দিতে পারে, কোনো review বা deploy gate ছাড়াই। এর বদলে production-এ "deploy" মানে হওয়া উচিত একটা সম্পূর্ণ **worker restart** — পুরনো worker process বন্ধ করে, নতুন Docker image থেকে নতুন worker process চালু করা (উপরের blue-green/rolling/canary কৌশলগুলোর যেকোনো একটা দিয়ে), শুধু ফাইল বদলে "hot reload" আশা করা না।
+
+কোন কৌশল বেছে নেবে সেটা নির্ভর করে ঝুঁকি সহনশীলতা আর অবকাঠামোর উপর — ছোট প্রজেক্টে rolling deployment যথেষ্ট, বড় প্রোডাকশন সিস্টেমে canary বেশি নিরাপদ। কিন্তু এই সবগুলো কৌশল যদি হাতে করে, ম্যানুয়ালি করতে হয়, তাহলে মানুষের ভুলের ঝুঁকি থেকেই যায়। পরের লেসনে আমরা দেখবো কীভাবে এই পুরো প্রক্রিয়াটা স্বয়ংক্রিয় করে একটা "frictionless" পাইপলাইন বানানো যায়।
