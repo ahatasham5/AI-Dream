@@ -1,0 +1,21 @@
+# Module 14 — Protocols And Polymorphism
+
+মডিউল ১৩-তে আমরা Class আর Inheritance শিখেছি — কীভাবে একটা ক্লাস আরেকটা ক্লাসের বৈশিষ্ট্য "উত্তরাধিকার" সূত্রে পায়। এই মডিউলে আমরা সেই ভিত্তির উপর দাঁড়িয়ে OOP-এর শেষ বড় ধারণা — Polymorphism — শিখবো, Python-এর `Protocol` আর structural/duck typing-এর ধারণা গভীরভাবে বুঝবো, আর স্পষ্টভাবে দেখবো এটা কেন TypeScript-এর `interface`-এর সরাসরি অনুবাদ না, বরং একটা ভিন্ন দর্শনের ধারণা — আর তারপর বাস্তব ব্যাকএন্ড সিস্টেমে (যেমন পেমেন্ট গেটওয়ে) এগুলো কীভাবে কাজে লাগে দেখবো।
+
+## Lessons
+
+| # | ফাইল | টপিক |
+|---|------|------|
+| 1 | [01-introduction-to-polymorphism.md](01-introduction-to-polymorphism.md) | Polymorphism পরিচিতি |
+| 2 | [02-example-with-class.md](02-example-with-class.md) | Class দিয়ে Polymorphism-এর উদাহরণ, Protocol বনাম TypeScript Interface |
+| 3 | [03-real-life-use-case-of-interface-and-polymorphism.md](03-real-life-use-case-of-interface-and-polymorphism.md) | Protocol/Interface ও Polymorphism-এর বাস্তব ব্যবহার |
+
+## এই মডিউল শেষে তুমি যা পারবে
+
+- Polymorphism কী এবং কেন এটা OOP-র জন্য গুরুত্বপূর্ণ তা ব্যাখ্যা করতে পারবে
+- একই মেথড নাম বিভিন্ন ক্লাসে ভিন্নভাবে ইমপ্লিমেন্ট করে Polymorphism দেখাতে পারবে, `ABC` আর `Protocol` — দুটো পথেই
+- Python-এর `Protocol` (structural, duck-typing-ভিত্তিক, ঐচ্ছিক) আর TypeScript-এর `interface` (structural কিন্তু কম্পাইল-টাইমে বাধ্যতামূলক, রানটাইমে অস্তিত্বহীন) — এই দুটোর মধ্যে দর্শনগত পার্থক্য ব্যাখ্যা করতে পারবে
+- কখন `ABC` (শেয়ার্ড implementation দরকার) আর কখন `Protocol` (শুধু চুক্তি দরকার) বেছে নিতে হবে তা সিদ্ধান্ত নিতে পারবে
+- পেমেন্ট গেটওয়ে বা নোটিফিকেশন সার্ভিসের মতো বাস্তব সিস্টেম ডিজাইনে Protocol ও Polymorphism প্রয়োগ করতে পারবে
+
+পরবর্তী মডিউল: **[Module 15 — Introduction To Database](../module-15-introduction-to-database/README.md)**

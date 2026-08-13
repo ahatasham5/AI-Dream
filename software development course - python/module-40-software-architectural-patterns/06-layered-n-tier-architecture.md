@@ -1,0 +1,46 @@
+# ৪০.৬ Layered (n-Tier) Architecture
+
+আগের চারটা লেসনে আমরা সিস্টেম-লেভেল স্থাপত্য (monolith, microservices, serverless, event-driven, CQRS) দেখেছি — এগুলো ঠিক করে সার্ভিসগুলো একে অপরের সাথে কীভাবে সাজানো থাকবে। এখন আমরা একটা মাত্র সার্ভিসের **ভেতরের** সংগঠন নিয়ে কথা বলবো — **layered architecture**, যেটা আমরা আসলে এই পুরো কোর্স জুড়ে প্রতিটা FastAPI প্রজেক্টে ব্যবহার করেছি, নাম না বলেই।
+
+এটা ভাবা যায় একটা তিন-তলা ভবনের মতো — নিচতলায় অভ্যর্থনা (কাস্টমারের সাথে সরাসরি যোগাযোগ), মাঝের তলায় সিদ্ধান্ত নেয়ার অফিস (ব্যবসায়িক নিয়ম), আর সবচেয়ে ভেতরের তলায় আর্কাইভ (ডেটা সংরক্ষণ)। প্রতিটা তলা শুধু তার ঠিক পাশের তলার সাথে কথা বলে, সরাসরি নিচতলা থেকে আর্কাইভে ঢুকে যায় না।
+
+```mermaid
+flowchart TD
+    A["Presentation Layer<br/>(FastAPI Routes - request/response সামলানো)"] --> B["Business Logic Layer<br/>(Service - ব্যবসায়িক নিয়ম)"]
+    B --> C["Data Access Layer<br/>(Repository - ডেটাবেজ কুয়েরি)"]
+    C --> D[(Database)]
+```
+
+TaskFlow API-তে এই তিন স্তর কোডে:
+
+```python
+# Presentation Layer (routers/tasks.py) — শুধু HTTP সামলায়
+@router.post("/tasks", status_code=201)
+async def create_task(payload: TaskCreate, current_user: User = Depends(get_current_user)):
+    task = await task_service.create_task(current_user.id, payload)
+    return task
+
+# Business Logic Layer (services/task_service.py) — নিয়ম প্রয়োগ করে
+class TaskService:
+    def __init__(self, task_repository: TaskRepository):
+        self.task_repository = task_repository
+
+    async def create_task(self, user_id: str, data: TaskCreate):
+        if data.priority == "high" and not data.deadline:
+            raise ValidationError("High priority task-এর deadline আবশ্যক")
+        return await self.task_repository.save(user_id=user_id, **data.dict())
+
+# Data Access Layer (repositories/task_repository.py) — শুধু ডেটাবেজ নিয়ে কাজ করে
+class TaskRepository:
+    async def save(self, **task_data):
+        query = "INSERT INTO tasks (...) VALUES (...) RETURNING *"
+        return await database.fetch_one(query, values=task_data)
+```
+
+এই বিভাজন Module ৩৮.২-এ শেখা Single Responsibility নীতির সরাসরি প্রয়োগ — প্রতিটা স্তরের একটাই কাজ। এর সুবিধা প্রমাণিত হয় testing-এ (Module ৩৮.২-এর Dependency Inversion মনে করো) — `TaskService`-কে টেস্ট করতে আসল ডেটাবেজ লাগে না, একটা fake `TaskRepository` বসিয়ে দিলেই চলে।
+
+আরেকটা সুবিধা — presentation layer বদলালে (যেমন REST API-এর পাশাপাশি একটা GraphQL API যোগ করলে) business logic layer একই থাকে, শুধু নতুন একটা presentation layer সেই একই `TaskService` কল করবে।
+
+একটা সাধারণ ভুল — স্তরগুলো এড়িয়ে সরাসরি route থেকে ডেটাবেজ কল করা (`@router.post` হ্যান্ডলারের ভেতরেই SQL query লেখা, Module ৩৫.৫-এর উদাহরণের মতো)। ছোট প্রজেক্টে এটা দ্রুত মনে হতে পারে, কিন্তু প্রজেক্ট বড় হলে ব্যবসায়িক নিয়ম কোডের এদিক-ওদিক ছড়িয়ে যায়, রক্ষণাবেক্ষণ কঠিন হয়ে পড়ে।
+
+Layered architecture-এর একটা জনপ্রিয় বিশেষ রূপ আছে, যেটা বিশেষভাবে ব্যবহারকারী-মুখী অ্যাপ্লিকেশনে (ওয়েব/মোবাইল UI-সহ) ব্যবহৃত হয় — পরের লেসনে আমরা সেই প্যাটার্ন, MVC নিয়ে আলোচনা করবো।
