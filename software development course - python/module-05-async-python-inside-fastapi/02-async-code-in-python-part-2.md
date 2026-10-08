@@ -54,16 +54,16 @@ asyncio.run(main())
 ```mermaid
 sequenceDiagram
     participant Main as main()
-    participant Loop as Event Loop
+    participant EL as Event Loop
     participant Tea as make_tea Task (2s)
     participant Toast as make_toast Task (1s)
 
-    Main->>Loop: create_task(make_tea) — শিডিউল হলো
-    Main->>Loop: create_task(make_toast) — শিডিউল হলো
-    Loop->>Tea: চালানো শুরু
-    Loop->>Toast: চালানো শুরু (tea-এর সাথে সমান্তরালে)
-    Toast-->>Loop: ১ সেকেন্ড পর শেষ
-    Tea-->>Loop: ২ সেকেন্ড পর শেষ
+    Main->>EL: create_task(make_tea) — শিডিউল হলো
+    Main->>EL: create_task(make_toast) — শিডিউল হলো
+    EL->>Tea: চালানো শুরু
+    EL->>Toast: চালানো শুরু (tea-এর সাথে সমান্তরালে)
+    Toast-->>EL: ১ সেকেন্ড পর শেষ
+    Tea-->>EL: ২ সেকেন্ড পর শেষ
     Main->>Main: উভয়ের ফলাফল হাতে পাওয়া গেলো, মোট সময় ~২ সেকেন্ড
 ```
 
