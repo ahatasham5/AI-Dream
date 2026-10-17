@@ -1,0 +1,23 @@
+{
+ "_নিয়ম": "কাঠামো বদলে যে id মুছে গেছে, তার নতুন ঠিকানা। পুরোনো #id ও #plan= লিংক এতে নতুন node-এ যায়। id মুছলে এখানে যোগ করো; build যাচাই করে লক্ষ্য আছে কি না।",
+ "aliases": {
+  "ft-workflow": "fine-tuning",
+  "wf-base-model": "ft-in-model",
+  "wf-data": "ft-in-data",
+  "wf-method-budget": "ft-cycle",
+  "wf-hyperparams": "ft-in-settings",
+  "wf-run-monitor": "ft-cycle-update",
+  "wf-evaluate": "ft-out-report",
+  "wf-deploy": "ft-out-model",
+  "method-params": "ft-which-params",
+  "opt-full": "full-fine-tuning",
+  "opt-head": "head-only-fine-tuning",
+  "opt-selective": "selective-fine-tuning",
+  "opt-lora": "lora-low-rank-update",
+  "opt-qlora": "qlora",
+  "opt-synthetic": "synthetic-data",
+  "opt-llm-judge": "llm-as-judge",
+  "opt-correction": "correction-dataset",
+  "scratch-workflow": "from-scratch-training"
+ }
+}

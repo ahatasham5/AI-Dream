@@ -1,0 +1,1125 @@
+{
+ "_নিয়ম": "\"NN/xx\" মানে module-NN-এর lecture-xx; \"NN/README\" মানে module-এর সূচি; \"NN/reference\" মানে reference ফাইল। build.py প্রতিটা path আছে কি না যাচাই করে। একটা node-এ সর্বোচ্চ ৩টা পাঠ। Module 01–05, 11, 17 আমি ভেতর পড়ে মেলাইনি, শুধু ফাইলের নাম দেখে দেওয়া; আগে যাচাই করে নিও।",
+ "branches": {
+  "basics": [
+   "01/01",
+   "01/02"
+  ],
+  "task": [
+   "01/02",
+   "01/03"
+  ],
+  "setting": [
+   "01/03",
+   "01/04",
+   "01/05"
+  ],
+  "model": [
+   "09/README",
+   "09/01"
+  ],
+  "training": [
+   "10/README",
+   "02/03"
+  ],
+  "evaluation": [
+   "06/README",
+   "05/03"
+  ],
+  "application": [
+   "11/README",
+   "12/README",
+   "14/README"
+  ]
+ },
+ "rules": [
+  {
+   "names": [
+    "Machine Learning (ML)"
+   ],
+   "lessons": [
+    "01/01"
+   ]
+  },
+  {
+   "names": [
+    "Data"
+   ],
+   "lessons": [
+    "05/01"
+   ]
+  },
+  {
+   "names": [
+    "Model"
+   ],
+   "lessons": [
+    "01/02",
+    "09/01"
+   ]
+  },
+  {
+   "names": [
+    "Input",
+    "Output",
+    "Prediction / Inference"
+   ],
+   "lessons": [
+    "09/01"
+   ]
+  },
+  {
+   "names": [
+    "Probability"
+   ],
+   "lessons": [
+    "01/07",
+    "04/03"
+   ]
+  },
+  {
+   "names": [
+    "Weight",
+    "Bias"
+   ],
+   "lessons": [
+    "02/01",
+    "09/02"
+   ]
+  },
+  {
+   "names": [
+    "Weighted Sum"
+   ],
+   "lessons": [
+    "02/04",
+    "09/03"
+   ]
+  },
+  {
+   "names": [
+    "Unit / Neuron"
+   ],
+   "lessons": [
+    "09/03"
+   ]
+  },
+  {
+   "names": [
+    "Layer",
+    "Hidden Layer",
+    "Output Layer"
+   ],
+   "lessons": [
+    "09/05"
+   ]
+  },
+  {
+   "names": [
+    "Input Layer"
+   ],
+   "lessons": [
+    "09/01"
+   ]
+  },
+  {
+   "names": [
+    "Architecture"
+   ],
+   "lessons": [
+    "09/08",
+    "09/09"
+   ]
+  },
+  {
+   "names": [
+    "Attention"
+   ],
+   "lessons": [
+    "12/05"
+   ]
+  },
+  {
+   "names": [
+    "Regression",
+    "Linear Regression"
+   ],
+   "lessons": [
+    "02/01",
+    "02/03"
+   ]
+  },
+  {
+   "names": [
+    "Classification",
+    "Logistic Regression"
+   ],
+   "lessons": [
+    "03/02",
+    "03/04"
+   ]
+  },
+  {
+   "names": [
+    "Generation",
+    "Autoregressive Transformer"
+   ],
+   "lessons": [
+    "12/07"
+   ]
+  },
+  {
+   "names": [
+    "Sequential Decision-making"
+   ],
+   "lessons": [
+    "17/README"
+   ]
+  },
+  {
+   "names": [
+    "Supervised Learning"
+   ],
+   "lessons": [
+    "01/03"
+   ]
+  },
+  {
+   "names": [
+    "Unsupervised Learning",
+    "K-Means"
+   ],
+   "lessons": [
+    "01/04"
+   ]
+  },
+  {
+   "names": [
+    "Reinforcement Learning (RL)"
+   ],
+   "lessons": [
+    "01/05",
+    "17/README"
+   ]
+  },
+  {
+   "names": [
+    "Self-supervised Learning",
+    "Next-token Prediction",
+    "Autoregressive / Next-token Prediction"
+   ],
+   "lessons": [
+    "12/04"
+   ]
+  },
+  {
+   "names": [
+    "Agent–Environment Interaction",
+    "Agent",
+    "Environment",
+    "Reward",
+    "State",
+    "Action"
+   ],
+   "lessons": [
+    "17/02"
+   ]
+  },
+  {
+   "names": [
+    "Value-based",
+    "Tabular Q-learning",
+    "Q-value Update"
+   ],
+   "lessons": [
+    "17/04"
+   ]
+  },
+  {
+   "names": [
+    "On-policy",
+    "Off-policy"
+   ],
+   "lessons": [
+    "17/05"
+   ]
+  },
+  {
+   "names": [
+    "Policy-based"
+   ],
+   "lessons": [
+    "17/06"
+   ]
+  },
+  {
+   "names": [
+    "Actor–Critic"
+   ],
+   "lessons": [
+    "17/07"
+   ]
+  },
+  {
+   "names": [
+    "Neural Network"
+   ],
+   "lessons": [
+    "09/README",
+    "10/README"
+   ]
+  },
+  {
+   "names": [
+    "Multilayer Perceptron (MLP)"
+   ],
+   "lessons": [
+    "09/06"
+   ]
+  },
+  {
+   "names": [
+    "Linear / Dense Layer"
+   ],
+   "lessons": [
+    "09/05",
+    "09/07"
+   ]
+  },
+  {
+   "names": [
+    "Activation",
+    "ReLU"
+   ],
+   "lessons": [
+    "09/04"
+   ]
+  },
+  {
+   "names": [
+    "Sigmoid",
+    "Logit ও Sigmoid"
+   ],
+   "lessons": [
+    "03/01",
+    "09/04"
+   ]
+  },
+  {
+   "names": [
+    "Softmax",
+    "Logits"
+   ],
+   "lessons": [
+    "12/03"
+   ]
+  },
+  {
+   "names": [
+    "Task Head"
+   ],
+   "lessons": [
+    "09/10"
+   ]
+  },
+  {
+   "names": [
+    "Convolutional Neural Network (CNN)",
+    "Convolution",
+    "Filter / Kernel (CNN)"
+   ],
+   "lessons": [
+    "11/03",
+    "11/04"
+   ]
+  },
+  {
+   "names": [
+    "Embedding",
+    "Token",
+    "Input representation"
+   ],
+   "lessons": [
+    "12/01",
+    "12/02"
+   ]
+  },
+  {
+   "names": [
+    "Self-attention",
+    "Cross-attention",
+    "Multi-head Attention",
+    "Query (Q)",
+    "Key (K)",
+    "Value (V)",
+    "Attention Mask"
+   ],
+   "lessons": [
+    "12/05"
+   ]
+  },
+  {
+   "names": [
+    "Transformer",
+    "Transformer Block",
+    "Residual Connection",
+    "LayerNorm",
+    "Block Normalization",
+    "Transformer FFN",
+    "Feed-forward Network (FFN)"
+   ],
+   "lessons": [
+    "12/06"
+   ]
+  },
+  {
+   "names": [
+    "Decoder"
+   ],
+   "lessons": [
+    "12/07"
+   ]
+  },
+  {
+   "names": [
+    "Encoder"
+   ],
+   "lessons": [
+    "11/06"
+   ]
+  },
+  {
+   "names": [
+    "Projection"
+   ],
+   "lessons": [
+    "12/08"
+   ]
+  },
+  {
+   "names": [
+    "Soft Target"
+   ],
+   "lessons": [
+    "18/03",
+    "18/04"
+   ]
+  },
+  {
+   "names": [
+    "Sequence Target ও Loss Mask"
+   ],
+   "lessons": [
+    "15/02"
+   ]
+  },
+  {
+   "names": [
+    "সঠিক Output / Correction"
+   ],
+   "lessons": [
+    "15/06",
+    "17/01"
+   ]
+  },
+  {
+   "names": [
+    "Preference Pair"
+   ],
+   "lessons": [
+    "16/01"
+   ]
+  },
+  {
+   "names": [
+    "Reward Signal"
+   ],
+   "lessons": [
+    "17/01",
+    "17/02"
+   ]
+  },
+  {
+   "names": [
+    "Regularized Objective"
+   ],
+   "lessons": [
+    "07/03"
+   ]
+  },
+  {
+   "names": [
+    "MSE — squared error",
+    "Squared-error Loss"
+   ],
+   "lessons": [
+    "02/02"
+   ]
+  },
+  {
+   "names": [
+    "MAE — absolute error"
+   ],
+   "lessons": [
+    "06/02"
+   ]
+  },
+  {
+   "names": [
+    "Binary Cross-entropy"
+   ],
+   "lessons": [
+    "03/03"
+   ]
+  },
+  {
+   "names": [
+    "Multiclass Cross-entropy",
+    "Cross-entropy"
+   ],
+   "lessons": [
+    "12/04"
+   ]
+  },
+  {
+   "names": [
+    "একটি Gradient Step"
+   ],
+   "lessons": [
+    "10/01"
+   ]
+  },
+  {
+   "names": [
+    "Batch → Step → Epoch",
+    "Gradient Accumulation",
+    "Mini-batch Gradient Descent"
+   ],
+   "lessons": [
+    "10/06",
+    "10/reference"
+   ]
+  },
+  {
+   "names": [
+    "Gradient",
+    "Derivative — এক মানের পরিবর্তন",
+    "Partial Derivative → Gradient Vector"
+   ],
+   "lessons": [
+    "10/02",
+    "04/04"
+   ]
+  },
+  {
+   "names": [
+    "Chain Rule",
+    "Chain Rule → Backpropagation",
+    "Logit Gradient ও Backpropagation"
+   ],
+   "lessons": [
+    "10/03",
+    "10/04"
+   ]
+  },
+  {
+   "names": [
+    "Gradient Descent",
+    "Gradient Descent Update",
+    "Full-batch Gradient Descent",
+    "Stochastic Gradient Descent"
+   ],
+   "lessons": [
+    "02/03",
+    "10/05"
+   ]
+  },
+  {
+   "names": [
+    "SGD — plain update",
+    "Momentum — gradient-এর স্মৃতি",
+    "Adam — adaptive update",
+    "AdamW — decoupled weight decay",
+    "Optimizer",
+    "Learning Rate",
+    "Constant Learning Rate",
+    "Learning-rate Decay",
+    "Warmup"
+   ],
+   "lessons": [
+    "10/05"
+   ]
+  },
+  {
+   "names": [
+    "Trainable Parameters",
+    "Frozen Parameters"
+   ],
+   "lessons": [
+    "13/02",
+    "13/06"
+   ]
+  },
+  {
+   "names": [
+    "Initialization"
+   ],
+   "lessons": [
+    "10/08",
+    "13/07"
+   ]
+  },
+  {
+   "names": [
+    "Parameter বনাম Hyperparameter"
+   ],
+   "lessons": [
+    "09/02",
+    "07/05"
+   ]
+  },
+  {
+   "names": [
+    "From-scratch Training",
+    "Pretraining"
+   ],
+   "lessons": [
+    "13/01",
+    "15/01"
+   ]
+  },
+  {
+   "names": [
+    "Fine-tuning",
+    "Full Fine-tuning",
+    "Head-only Fine-tuning",
+    "Parameter-efficient Fine-tuning (PEFT)"
+   ],
+   "lessons": [
+    "13/02",
+    "13/06",
+    "08/README"
+   ]
+  },
+  {
+   "names": [
+    "LoRA — low-rank update"
+   ],
+   "lessons": [
+    "13/03",
+    "13/04",
+    "13/07"
+   ]
+  },
+  {
+   "names": [
+    "Supervised Fine-tuning (SFT)"
+   ],
+   "lessons": [
+    "15/02"
+   ]
+  },
+  {
+   "names": [
+    "Train Data",
+    "Validation Data",
+    "Test Data"
+   ],
+   "lessons": [
+    "05/03",
+    "05/04"
+   ]
+  },
+  {
+   "names": [
+    "Metrics"
+   ],
+   "lessons": [
+    "06/02",
+    "06/03"
+   ]
+  },
+  {
+   "names": [
+    "Generalization",
+    "Overfitting",
+    "Underfitting"
+   ],
+   "lessons": [
+    "07/01",
+    "07/02"
+   ]
+  },
+  {
+   "names": [
+    "Neural Network + Regression Head"
+   ],
+   "lessons": [
+    "10/01",
+    "10/08"
+   ]
+  },
+  {
+   "names": [
+    "Neural Network + Sigmoid Head"
+   ],
+   "lessons": [
+    "03/03",
+    "10/04"
+   ]
+  },
+  {
+   "names": [
+    "Neural Network + Softmax Head",
+    "Softmax Regression"
+   ],
+   "lessons": [
+    "12/03",
+    "12/04"
+   ]
+  },
+  {
+   "names": [
+    "Computer Vision"
+   ],
+   "lessons": [
+    "11/README"
+   ]
+  },
+  {
+   "names": [
+    "Natural Language Processing (NLP)"
+   ],
+   "lessons": [
+    "12/README"
+   ]
+  },
+  {
+   "names": [
+    "Checkpoint"
+   ],
+   "lessons": [
+    "15/01",
+    "13/01"
+   ]
+  },
+  {
+   "names": [
+    "প্রশ্ন ১ — কোন parameter বদলাবে?",
+    "Selective Fine-tuning",
+    "Bias-only (BitFit)"
+   ],
+   "lessons": [
+    "13/02",
+    "13/06"
+   ]
+  },
+  {
+   "names": [
+    "LoRA-র forward pass ও scale"
+   ],
+   "lessons": [
+    "13/03",
+    "13/04"
+   ]
+  },
+  {
+   "names": [
+    "Rank (r) — সংশোধনের ক্ষমতা",
+    "Alpha (α) — সংশোধনের জোর",
+    "LoRA-র শুরুর মান — B শূন্য",
+    "LoRA Dropout"
+   ],
+   "lessons": [
+    "13/07"
+   ]
+  },
+  {
+   "names": [
+    "Target modules — কোথায় বসাবে",
+    "Frozen-এর ভেতর দিয়ে gradient ও Memory"
+   ],
+   "lessons": [
+    "13/08"
+   ]
+  },
+  {
+   "names": [
+    "Merge ও Unmerge",
+    "Adapter save বনাম Merged save"
+   ],
+   "lessons": [
+    "13/09"
+   ]
+  },
+  {
+   "names": [
+    "QLoRA",
+    "Quantization"
+   ],
+   "lessons": [
+    "13/05",
+    "13/10"
+   ]
+  },
+  {
+   "names": [
+    "NF4 ও Block-wise scale"
+   ],
+   "lessons": [
+    "13/10",
+    "13/05"
+   ]
+  },
+  {
+   "names": [
+    "LoRA-র variant — কোন অংশ বদলাল?"
+   ],
+   "lessons": [
+    "13/11",
+    "13/12"
+   ]
+  },
+  {
+   "names": [
+    "rsLoRA",
+    "AdaLoRA",
+    "DoRA"
+   ],
+   "lessons": [
+    "13/11"
+   ]
+  },
+  {
+   "names": [
+    "PiSSA",
+    "LoftQ"
+   ],
+   "lessons": [
+    "13/12"
+   ]
+  },
+  {
+   "names": [
+    "অন্য PEFT — কোথায় বসে, merge হয় কি না",
+    "Adapter layer",
+    "Soft Prompt ও Prefix Tuning",
+    "IA³"
+   ],
+   "lessons": [
+    "13/13"
+   ]
+  },
+  {
+   "names": [
+    "Fine-tuning পদ্ধতির ন্যায্য তুলনা"
+   ],
+   "lessons": [
+    "13/14"
+   ]
+  },
+  {
+   "names": [
+    "প্রশ্ন ২ — কী থেকে শিখবে?"
+   ],
+   "lessons": [
+    "13/02"
+   ]
+  },
+  {
+   "names": [
+    "Instruction Tuning",
+    "Loss Mask — কোন token-এ loss"
+   ],
+   "lessons": [
+    "15/02"
+   ]
+  },
+  {
+   "names": [
+    "Continued Pretraining (CPT)",
+    "DAPT ও TAPT"
+   ],
+   "lessons": [
+    "15/04"
+   ]
+  },
+  {
+   "names": [
+    "Preference Optimization (যেমন DPO)"
+   ],
+   "lessons": [
+    "16/README"
+   ]
+  },
+  {
+   "names": [
+    "RL-based Tuning"
+   ],
+   "lessons": [
+    "17/README"
+   ]
+  },
+  {
+   "names": [
+    "Knowledge Distillation"
+   ],
+   "lessons": [
+    "18/README"
+   ]
+  },
+  {
+   "names": [
+    "Domain ও Task Adaptation — মানিয়ে নেওয়া"
+   ],
+   "lessons": [
+    "15/README"
+   ]
+  },
+  {
+   "names": [
+    "Domain Adaptation — ঘাটতি চিনে পদ্ধতি বাছা",
+    "Data Selection — পাঁচ প্রশ্ন"
+   ],
+   "lessons": [
+    "15/03"
+   ]
+  },
+  {
+   "names": [
+    "Data Mixture — multi-task ও multilingual"
+   ],
+   "lessons": [
+    "15/05"
+   ]
+  },
+  {
+   "names": [
+    "Correction Dataset ও Hard Examples"
+   ],
+   "lessons": [
+    "15/06"
+   ]
+  },
+  {
+   "names": [
+    "Forgetting ও evaluation",
+    "Leakage",
+    "Memorization"
+   ],
+   "lessons": [
+    "15/07"
+   ]
+  },
+  {
+   "names": [
+    "Adaptation experiment — Base, CPT, SFT, Retrieval",
+    "Retrieval — weights না বদলে"
+   ],
+   "lessons": [
+    "15/08"
+   ]
+  },
+  {
+   "names": [
+    "Full — কী trainable, কী বদলায়",
+    "Head-only — ৩টা trainable, ২টা বদলায়",
+    "Bias-only — শুধু bias trainable"
+   ],
+   "lessons": [
+    "13/06"
+   ]
+  },
+  {
+   "names": [
+    "SFT — Input ও Target",
+    "SFT — শেখার চক্র"
+   ],
+   "lessons": [
+    "15/02"
+   ]
+  },
+  {
+   "names": [
+    "CPT — Input ও Target"
+   ],
+   "lessons": [
+    "15/04"
+   ]
+  },
+  {
+   "names": [
+    "লক্ষ্য ও মাপকাঠি ঠিক করা"
+   ],
+   "lessons": [
+    "08/01",
+    "08/03",
+    "06/README"
+   ]
+  },
+  {
+   "names": [
+    "Chat template",
+    "Synthetic data — নিজে-বানানো উত্তর"
+   ],
+   "lessons": [
+    "15/02"
+   ]
+  },
+  {
+   "names": [
+    "Mixed precision ও Gradient checkpointing"
+   ],
+   "lessons": [
+    "13/08",
+    "13/10"
+   ]
+  },
+  {
+   "names": [
+    "LLM-as-judge ও মানুষের মূল্যায়ন"
+   ],
+   "lessons": [
+    "15/07",
+    "13/14",
+    "14/08"
+   ]
+  },
+  {
+   "names": [
+    "ভুল থেকে আবার ঘোরা"
+   ],
+   "lessons": [
+    "15/06",
+    "15/08",
+    "08/04"
+   ]
+  },
+  {
+   "names": [
+    "Catastrophic Forgetting"
+   ],
+   "lessons": [
+    "15/07"
+   ]
+  },
+  {
+   "names": [
+    "RLHF-এর তিন ধাপ",
+    "Reward Model",
+    "PPO",
+    "KL শাস্তি — SFT থেকে বেশি না সরা"
+   ],
+   "lessons": [
+    "17/README",
+    "16/README"
+   ]
+  },
+  {
+   "names": [
+    "Input — আগের model ও নতুন data",
+    "আগের model — checkpoint, tokenizer, config"
+   ],
+   "lessons": [
+    "13/01",
+    "15/01"
+   ]
+  },
+  {
+   "names": [
+    "নতুন data ও শেখার সংকেত"
+   ],
+   "lessons": [
+    "13/02",
+    "15/02",
+    "05/03"
+   ]
+  },
+  {
+   "names": [
+    "সেটিং — কোন parameter বদলাবে, hyperparameter"
+   ],
+   "lessons": [
+    "13/06",
+    "13/07",
+    "10/05"
+   ]
+  },
+  {
+   "names": [
+    "Output — নতুন model ও রিপোর্ট",
+    "নতুন model — পূর্ণ weight বা adapter"
+   ],
+   "lessons": [
+    "13/09"
+   ]
+  },
+  {
+   "names": [
+    "Training log ও মাপের রিপোর্ট"
+   ],
+   "lessons": [
+    "15/07",
+    "13/14",
+    "14/08"
+   ]
+  },
+  {
+   "names": [
+    "Model শেখা (Fine-tuning-এ)",
+    "Prediction — checkpoint-এর মান থেকে শুরু",
+    "Update — শুধু trainable-এ"
+   ],
+   "lessons": [
+    "13/01",
+    "13/06",
+    "13/08"
+   ]
+  },
+  {
+   "names": [
+    "Loss — সংকেত অনুযায়ী"
+   ],
+   "lessons": [
+    "15/02",
+    "13/02"
+   ]
+  },
+  {
+   "names": [
+    "Learning Setting-এর সঙ্গে মিল"
+   ],
+   "lessons": [
+    "13/02",
+    "01/03"
+   ]
+  },
+  {
+   "names": [
+    "মানচিত্রের অন্য শাখার সঙ্গে যোগ"
+   ],
+   "lessons": [
+    "13/01",
+    "10/README"
+   ]
+  },
+  {
+   "names": [
+    "সংকেত — data-র নিজের গঠন",
+    "Model শেখা (Unsupervised-এ)"
+   ],
+   "lessons": [
+    "01/04"
+   ]
+  },
+  {
+   "names": [
+    "সংকেত — data-র একটা অংশই লেবেল",
+    "Model শেখা (Self-supervised-এ)"
+   ],
+   "lessons": [
+    "12/04"
+   ]
+  }
+ ]
+}

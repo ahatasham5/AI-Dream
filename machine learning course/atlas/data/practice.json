@@ -1,0 +1,2128 @@
+{
+ "_নিয়ম": "facts = সূত্রে-যাচাই করা দাবি (সূত্রসহ); typical/pitfalls = অভিজ্ঞতা-ভিত্তিক, নিয়ম নয়; outside = কোর্সে যা নেই।",
+ "entries": [
+  {
+   "names": [
+    "Pretraining"
+   ],
+   "practice": {
+    "scenario": "বাস্তবে বেশির ভাগ মানুষ ও কোম্পানি নিজে pretraining করে না। বিশাল GPU-ক্লাস্টার, সপ্তাহ-মাস সময় আর বিশাল data লাগে। তারা কারও আগে-শেখা (প্রায়ই open-weight) model ডাউনলোড করে সেখান থেকে শুরু করে।",
+    "typical": [
+     "নিজের pretraining প্রায় শুধু বড় গবেষণা-দল বা কোম্পানি করে; ব্যক্তি বা ছোট দল সাধারণত পাওয়া checkpoint নেয়।",
+     "কোন checkpoint নেবে তা বাছাই (আকার, ভাষা, licence) নিজেই একটা সিদ্ধান্ত। বাংলা-জাতীয় কম-পাওয়া ভাষায় base model-এর ঘাটতি fine-tuning-এ পুরো পোষায় না, আগে সেটা পরীক্ষা করা ভালো।"
+    ],
+    "pitfalls": [
+     "licence না দেখে নেওয়া: কিছু checkpoint-এর ব্যবহারে শর্ত আছে।",
+     "tokenizer বদলে ফেলা: checkpoint-এর সঙ্গে তারই tokenizer চালাতে হয়।"
+    ],
+    "outside": "কোন checkpoint নেবে, licence আর ভাষা-সমর্থন কোর্সে নেই।"
+   }
+  },
+  {
+   "names": [
+    "Fine-tuning"
+   ],
+   "practice": {
+    "scenario": "ধরো তোমার একটা বাংলা গ্রাহকসেবা বট দরকার যে ব্যাংকের নিয়ম মেনে নির্দিষ্ট ভঙ্গিতে উত্তর দেয়। আগে prompt দিয়ে চেষ্টা করো। কাজ না হলে তথ্যের জন্য retrieval জোড়ো। উত্তরের ধরন, ভঙ্গি, ফরম্যাট বা সরু দক্ষতা তবুও না মিললে তবে fine-tuning।",
+    "facts": [
+     {
+      "t": "BERT-এ মূল model-এর ওপর মাত্র একটা বাড়তি output layer জুড়ে বহু কাজের জন্য fine-tune করা যায়।",
+      "s": "BERT paper (Devlin et al.), ২০১৮",
+      "u": "https://arxiv.org/abs/1810.04805"
+     },
+     {
+      "t": "ULMFiT NLP-তে transfer learning-এর জন্য একটা পদ্ধতি দেয়, আর ছয়টা text classification কাজে বেশির ভাগ dataset-এ error ১৮–২৪% কমায় বলে paper জানিয়েছে।",
+      "s": "ULMFiT paper (Howard & Ruder), ২০১৮",
+      "u": "https://arxiv.org/abs/1801.06146"
+     },
+     {
+      "t": "মাত্র ১,০০০ যত্নে-বাছা উদাহরণেই SFT শক্ত ফল দিতে পারে (LIMA)।",
+      "s": "LIMA paper (Zhou et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.11206"
+     }
+    ],
+    "typical": [
+     "কাজের ক্রম প্রায়ই: prompt → (দরকারে) retrieval → fine-tuning। উল্টো ক্রমে শুরু করা বেশি খরচের।",
+     "fine-tuning সাধারণত আচরণ, ভঙ্গি, ফরম্যাট ও সরু দক্ষতায় ভালো; নতুন বিশাল তথ্য মুখস্থ করাতে নির্ভরযোগ্য নয় বলে প্রচলিত ধারণা। তথ্য বদলায় এমন হলে retrieval আগে ভাবো।",
+     "শুরুতে ছোট, পরিষ্কার data আর ছোট LoRA run দিয়ে 'কাজ হচ্ছে কি না' দেখো; তারপর বড় করো।",
+     "প্রথম চক্র ছোট রাখো: ছোট, পরিষ্কার data আর ছোট run; 'কাজ হচ্ছে কি না' আগে দেখো, তারপর বড় করো।",
+     "ধাপগুলো সরলরেখা নয়, চক্র: মাপার ফল দেখে data বা সেটিং-এ ফিরতে হয়।"
+    ],
+    "pitfalls": [
+     "আগে test আলাদা না করে tuning শুরু করা।",
+     "শুধু নতুন কাজে মাপা: পুরোনো সাধারণ ক্ষমতা কমল কি না না-দেখা।",
+     "data ভুল বা অসামঞ্জস্যপূর্ণ থাকা: model সেই ভুলই শিখবে।",
+     "মাপকাঠি ঠিক না করেই training শুরু করা।"
+    ],
+    "outside": "prompt/retrieval বনাম fine-tuning-এর সিদ্ধান্ত-ক্রম কোর্সের বাইরের অভিজ্ঞতা।"
+   }
+  },
+  {
+   "names": [
+    "Full Fine-tuning"
+   ],
+   "practice": {
+    "scenario": "ছোট বা মাঝারি model (বা যথেষ্ট GPU), আর নতুন কাজ মূল model-এর থেকে অনেক আলাদা। তখন সব weight বদলে সর্বোচ্চ মান আশা করা যায়।",
+    "facts": [
+     {
+      "t": "QLoRA paper জানায়, full finetuning-এর ডিফল্ট hyperparameter বেশির ভাগ সময় ঠিকমতো tune করা নয়; তারা learning rate 1e-6 থেকে 5e-5 আর batch size 8 থেকে 128-এর মধ্যে খুঁজে শক্ত baseline বানিয়েছিল।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     }
+    ],
+    "typical": [
+     "full fine-tuning-এর learning rate সাধারণত LoRA-র চেয়ে অনেক ছোট।",
+     "প্রতি কাজের জন্য পুরো model-এর আলাদা কপি রাখতে হয়, তাই অনেক কাজ থাকলে খরচ বাড়ে।"
+    ],
+    "pitfalls": [
+     "learning rate বেশি রাখলে আগে-শেখা জ্ঞান নষ্ট হয় (forgetting)।",
+     "তুলনায় LoRA-র hyperparameter tune করে full-এরটা না করা: তুলনা অন্যায্য হয়।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Head-only Fine-tuning"
+   ],
+   "practice": {
+    "scenario": "classic ছবির কাজ: ImageNet-এ শেখা backbone স্থির রেখে শেষ classifier বদলে নিজের ১০টা class শেখানো। data অল্প হলে এটা দ্রুত, সস্তা আর নিরাপদ।",
+    "facts": [
+     {
+      "t": "BERT-এ মাত্র একটা বাড়তি output layer জুড়ে বহু কাজের জন্য fine-tune করার কথা paper-এই আছে।",
+      "s": "BERT paper (Devlin et al.), ২০১৮",
+      "u": "https://arxiv.org/abs/1810.04805"
+     }
+    ],
+    "typical": [
+     "data খুব কম হলে প্রথম চেষ্টা হিসেবে ভালো: ঝুঁকি কম।",
+     "মান পর্যাপ্ত না হলে পরের ধাপ: ওপরের কয়েকটা layer খোলা (selective) বা LoRA।"
+    ],
+    "pitfalls": [
+     "নতুন কাজ মূল model-এর আচরণের থেকে অনেক আলাদা হলে শুধু head যথেষ্ট না হতে পারে।"
+    ],
+    "outside": "ছবির পুরোনো transfer-learning অভ্যাস কোর্সে আলাদা করে নেই।"
+   }
+  },
+  {
+   "names": [
+    "Selective Fine-tuning"
+   ],
+   "practice": {
+    "scenario": "head-only-তে মান কম, অথচ full ভারী: তাই শেষের কয়েকটা layer বা বেছে নেওয়া অংশ খুলে দাও, আগের layer স্থির রাখো।",
+    "typical": [
+     "সাধারণ চর্চা: নিচের layer-এ সাধারণ বৈশিষ্ট্য, ওপরের layer-এ কাজ-নির্দিষ্ট; তাই ওপরের অংশ খোলা সহজ শুরু।",
+     "এখন বাস্তবে এই কাজ বেশির ভাগ সময় LoRA-র মতো PEFT দিয়ে করা হয়, কারণ সেটা বেছে-নেওয়া অংশের চেয়ে সহজে ব্যবহারযোগ্য।"
+    ],
+    "pitfalls": [
+     "কোন layer খুলবে তা আন্দাজে বাছা: validation দিয়ে বাছো।"
+    ],
+    "outside": "'ওপরের layer-ই খুলি' অভ্যাসটা সাধারণ চর্চা; কোর্সে নেই।"
+   }
+  },
+  {
+   "names": [
+    "Bias-only (BitFit)"
+   ],
+   "practice": {
+    "scenario": "data অল্প বা মাঝারি, আর অতি অল্প parameter বদলে মানাতে চাও।",
+    "facts": [
+     {
+      "t": "BitFit শুধু bias শেখায়; paper বলে অল্প-থেকে-মাঝারি data-তে BERT-এ এটা পুরো fine-tuning-এর সঙ্গে তুলনীয়, কখনো ভালো।",
+      "s": "BitFit paper (Ben Zaken et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.10199"
+     }
+    ],
+    "typical": [
+     "বড় আধুনিক LLM-এ এখন LoRA বেশি প্রচলিত; BitFit বেশি দেখা যায় গবেষণা বা ছোট encoder model-এ।"
+    ],
+    "pitfalls": [
+     "BERT-জাতীয় masked-LM model-এর ফল সব LLM-এ হুবহু খাটবে ধরে নেওয়া।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Parameter-efficient Fine-tuning (PEFT)"
+   ],
+   "practice": {
+    "scenario": "একই base model-এ ১০টা আলাদা গ্রাহকের ১০টা কাজ। প্রতিটার জন্য পুরো কপি না রেখে ১০টা ছোট adapter রাখলেই চলে।",
+    "facts": [
+     {
+      "t": "Adapter paper: BERT-কে ২৬টা text classification কাজে নিয়ে গিয়ে প্রতি কাজে মাত্র ৩.৬% বাড়তি parameter-এ GLUE-তে full fine-tuning-এর ০.৪%-এর মধ্যে পৌঁছেছে।",
+      "s": "Adapter paper (Houlsby et al.), ২০১৯",
+      "u": "https://arxiv.org/abs/1902.00751"
+     },
+     {
+      "t": "T-Few paper দেখায়, কম example-এর কাজে PEFT in-context learning-এর চেয়ে ভালো ও সস্তা হতে পারে।",
+      "s": "T-Few / (IA)³ paper (Liu et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2205.05638"
+     }
+    ],
+    "typical": [
+     "practice-এ সবচেয়ে বেশি দেখা যায় LoRA/QLoRA।",
+     "একটা base আর অনেক adapter: serving ও সংরক্ষণ সস্তা।"
+    ],
+    "pitfalls": [
+     "PEFT মানেই full-এর সমান মান নয়: তুলনা নিজের কাজে মাপো।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "LoRA — low-rank update"
+   ],
+   "practice": {
+    "scenario": "৭B model, একটা ২৪ GB GPU: full fine-tuning ধরে না। LoRA-য় মূল weight স্থির, শুধু ছোট A, B শেখা হয়; শেষে adapter আলাদা রাখো বা merge করো।",
+    "facts": [
+     {
+      "t": "GPT-3 175B-কে Adam-এ fine-tune করার তুলনায় LoRA trainable parameter ১০,০০০ গুণ আর GPU memory ৩ গুণ কমাতে পারে, আর adapter-এর মতো বাড়তি inference latency নেই (paper-এর দাবি)।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     },
+     {
+      "t": "মূল paper-এ শুধু attention weight (বেশির ভাগ পরীক্ষায় Wq ও Wv) adapt করা হয়েছিল, MLP স্থির।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     },
+     {
+      "t": "QLoRA paper-এ দেখা গেছে, শুধু query ও value-তে বসালে বড় model-এ full fine-tuning-এর সমান ফল আনা যায়নি; সব linear layer-এ বসালে সমান হয়েছে।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     }
+    ],
+    "typical": [
+     "সাধারণত r = 8 থেকে 64, α প্রায়ই r-এর সমান বা দ্বিগুণ (অভিজ্ঞতা, নিয়ম নয়)।",
+     "LoRA-র learning rate সাধারণত full fine-tuning-এর চেয়ে বেশি: QLoRA paper-এর ছোট model-এ 2e-4 ছিল।",
+     "শেষে merge করে deploy করলে বাড়তি খরচ প্রায় নেই; অনেক কাজ থাকলে adapter আলাদা রাখো।"
+    ],
+    "pitfalls": [
+     "শুধু q, v-তে বসিয়ে ফল খারাপ দেখে LoRA-কেই দোষ দেওয়া: target বাড়িয়ে দেখো।",
+     "base model বদলালে পুরোনো adapter বেকার: base-এর নাম/version লিখে রাখো।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Rank (r) — সংশোধনের ক্ষমতা"
+   ],
+   "practice": {
+    "scenario": "প্রথমে ছোট r (যেমন 8) দিয়ে শুরু করো; মান কম হলে বাড়াও।",
+    "facts": [
+     {
+      "t": "LoRA paper-এ অবাক করা ফল: Wq ও Wv দুটোয় বসালে r = 1-ও WikiSQL ও MultiNLI-তে প্রতিযোগিতামূলক ছিল।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     },
+     {
+      "t": "QLoRA paper: সব layer-এ LoRA থাকলে r-এর মান শেষ ফলের সঙ্গে সম্পর্কহীন দেখা গেছে (তাদের পরীক্ষায়)।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     }
+    ],
+    "typical": [
+     "r নিয়ে বেশি সময় না দিয়ে আগে 'কোথায় বসাব' ঠিক করো।"
+    ],
+    "pitfalls": [
+     "বড় r মানেই ভালো ধরে নেওয়া: parameter ও overfitting-এর ঝুঁকি বাড়ে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Alpha (α) — সংশোধনের জোর"
+   ],
+   "practice": {
+    "scenario": "r বদলে পরীক্ষা চালালে α/r এক রেখে তুলনা করো, নইলে দুই পরিবর্তন মিশে যায়।",
+    "facts": [
+     {
+      "t": "LoRA paper: Adam-এ α টিউন করা প্রায় learning rate টিউনের সমান; তাই তারা α-কে প্রথম পরীক্ষা-করা r-এর সমান রেখেছিল।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     },
+     {
+      "t": "rsLoRA paper বলে, rank-দিয়ে-ভাগ করা scale বড় rank-এ শেখা ধীর ও ফল দুর্বল করে; তারা scale বদলানোর প্রস্তাব দেয়।",
+      "s": "rsLoRA paper (Kalajdzievski), ২০২৩",
+      "u": "https://arxiv.org/abs/2312.03732"
+     }
+    ],
+    "pitfalls": [
+     "α আর learning rate একসঙ্গে বদলানো: কারণ আলাদা করা যায় না।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Target modules — কোথায় বসাবে"
+   ],
+   "practice": {
+    "scenario": "library-তে `target_modules` তালিকা দাও। প্রথমে শুধু attention-এর q, v দিয়ে দেখা যায়; মান কম হলে সব linear layer-এ।",
+    "facts": [
+     {
+      "t": "মূল LoRA paper attention-এর Wq ও Wv-তে কেন্দ্রীভূত ছিল, MLP বাদ।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     },
+     {
+      "t": "QLoRA paper-এ সব linear layer-এ বসানো full fine-tuning-এর মানের জন্য জরুরি দেখা গেছে।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     }
+    ],
+    "typical": [
+     "module-এর নাম model-ভেদে আলাদা: নাম মিলিয়ে নাও।"
+    ],
+    "pitfalls": [
+     "ভুল নাম দিলে library কিছুই বসায় না বা error দেয়: trainable parameter সংখ্যা ছাপিয়ে নিশ্চিত হও।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Merge ও Unmerge"
+   ],
+   "practice": {
+    "scenario": "deploy-এর সময় একটাই কাজ হলে adapter merge করে সাধারণ model হিসেবে চালাও; অনেক কাজ হলে base রেখে adapter বদলাও।",
+    "facts": [
+     {
+      "t": "LoRA paper: W = W0 + BA হিসাব করে রেখে inference সাধারণভাবে চালানো যায়; অন্য কাজে যেতে BA বিয়োগ করে নতুন B′A′ যোগ করা যায়।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     }
+    ],
+    "pitfalls": [
+     "quantized base-এ merge করলে দ্বিতীয় rounding-এ output সামান্য সরতে পারে: merge-এর পরে test input-এ মিলিয়ে দেখো।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Adapter save বনাম Merged save"
+   ],
+   "practice": {
+    "scenario": "একই base-এ অনেক কাজ: base একবার, adapter আলাদা আলাদা file। একটাই কাজ: merged file।",
+    "typical": [
+     "adapter file ছোট বলে version control বা দল-ভাগাভাগিতে সুবিধা।"
+    ],
+    "pitfalls": [
+     "adapter-এর সঙ্গে base-এর নাম ও version না রাখা: পরে কোন base-এর জন্য তা মনে থাকে না।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "QLoRA"
+   ],
+   "practice": {
+    "scenario": "একটাই ২৪ GB বা ৪৮ GB GPU, অথচ ৩০–৬৫B model শেখাতে চাও: তখন QLoRA।",
+    "facts": [
+     {
+      "t": "QLoRA paper: ৬৫B model একটা ৪৮ GB GPU-তে fine-tune করা যায়, 16-bit full fine-tuning-এর কাজের মান ধরে রেখে (paper-এর দাবি)।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     },
+     {
+      "t": "QLoRA-র তিন উদ্ভাবন: 4-bit NormalFloat (NF4), double quantization, paged optimizer।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     }
+    ],
+    "typical": [
+     "সাধারণ stack: Hugging Face transformers + peft + bitsandbytes (tooling-এর নাম, অভিজ্ঞতা)।",
+     "speed LoRA-র চেয়ে কিছু ধীর হতে পারে কারণ dequantize করতে হয়; সিদ্ধান্তের আগে মাপো।"
+    ],
+    "pitfalls": [
+     "quantization-এর ক্ষতি মাপা ছাড়া 'প্রায় একই' ধরে নেওয়া।"
+    ],
+    "outside": "কোন library-তে চালাবে (transformers, peft, bitsandbytes) কোর্সে নেই।"
+   }
+  },
+  {
+   "names": [
+    "Quantization"
+   ],
+   "practice": {
+    "scenario": "ছোট GPU-তে বড় model আঁটাতে weight কম bit-এ রাখা।",
+    "typical": [
+     "inference-এর জন্য quantization আর training-এর জন্য (QLoRA) আলাদা প্রসঙ্গ।"
+    ],
+    "pitfalls": [
+     "output-এর quality সংখ্যায় না মেপে শুধু memory দেখা।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "NF4 ও Block-wise scale"
+   ],
+   "practice": {
+    "scenario": "4-bit-এ weight রাখার বাস্তব কৌশল।",
+    "facts": [
+     {
+      "t": "QLoRA paper: NF4 স্বাভাবিক-বণ্টনের weight-এর জন্য তাত্ত্বিকভাবে সর্বোত্তম data type; double quantization quantization-constant-কেও quantize করে memory কমায়; paged optimizers memory-র হঠাৎ-উচ্চতা সামলায়।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "rsLoRA"
+   ],
+   "practice": {
+    "scenario": "r বাড়াতে চাও, কিন্তু সাধারণ LoRA-তে বড় r-এ মান আটকে যায়।",
+    "facts": [
+     {
+      "t": "rsLoRA paper: rank দিয়ে ভাগ করা scale বড় rank-এ শেখা ধীর করে; α/√r-এর মতো স্থিতিশীল scale প্রস্তাব।",
+      "s": "rsLoRA paper (Kalajdzievski), ২০২৩",
+      "u": "https://arxiv.org/abs/2312.03732"
+     }
+    ],
+    "pitfalls": [
+     "rsLoRA আর সাধারণ LoRA একই α-তে তুলনা করা।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "DoRA"
+   ],
+   "practice": {
+    "scenario": "LoRA আর full fine-tuning-এর মধ্যে মানের ফাঁক কমাতে।",
+    "facts": [
+     {
+      "t": "DoRA pre-trained weight-কে magnitude ও direction-এ ভাঙে, direction-এ LoRA ব্যবহার করে; paper দাবি করে LLaMA, LLaVA ও VL-BART-এ LoRA-র চেয়ে ভালো, বাড়তি inference খরচ ছাড়া।",
+      "s": "DoRA paper (Liu et al.), ২০২৪",
+      "u": "https://arxiv.org/abs/2402.09353"
+     }
+    ],
+    "pitfalls": [
+     "নতুন variant মানেই সব কাজে ভালো নয়: নিজের কাজে মাপো।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Adapter layer"
+   ],
+   "practice": {
+    "scenario": "সেই সময় থেকে চলে আসা পদ্ধতি, যখন LoRA ছিল না।",
+    "facts": [
+     {
+      "t": "Adapter paper (২০১৯): মূল model স্থির রেখে প্রতি কাজে কয়েকটা parameter যোগ; নতুন কাজ আগের কাজ না ছুঁয়েই যোগ করা যায়।",
+      "s": "Adapter paper (Houlsby et al.), ২০১৯",
+      "u": "https://arxiv.org/abs/1902.00751"
+     },
+     {
+      "t": "LoRA paper বলে adapter layer অতিরিক্ত inference latency আনে, LoRA আনে না।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     }
+    ],
+    "pitfalls": [
+     "অনলাইন serving-এ latency-সংবেদী হলে adapter layer-এর বাড়তি খরচ মাপো।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Soft Prompt ও Prefix Tuning"
+   ],
+   "practice": {
+    "scenario": "model-এর ভেতরে হাত না দিয়ে শুধু input-এর আগে শেখা vector জুড়ে মানানো।",
+    "facts": [
+     {
+      "t": "Prefix-tuning paper (২০২১): LM স্থির রেখে একটা ছোট continuous task-specific vector (prefix) শেখে; প্রতি কাজে পুরো কপি রাখার দরকার হয় না।",
+      "s": "Prefix-Tuning paper (Li & Liang), ২০২১",
+      "u": "https://arxiv.org/abs/2101.00190"
+     }
+    ],
+    "pitfalls": [
+     "বাড়তি vector sequence-এর কিছু দৈর্ঘ্য খেয়ে নেয়: context ছোট হয়ে যায়।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "IA³"
+   ],
+   "practice": {
+    "scenario": "একদম অল্প parameter দিয়ে, ছোট data-য় কাজ চালাতে।",
+    "facts": [
+     {
+      "t": "(IA)³ activation-কে শেখা vector দিয়ে scale করে; T-Few paper-এ এটা অল্প parameter-এ শক্ত ফল দিয়েছে এবং RAFT benchmark-এ আগের সেরার চেয়ে ৬% বেশি।",
+      "s": "T-Few / (IA)³ paper (Liu et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2205.05638"
+     }
+    ],
+    "pitfalls": [
+     "এই ফল নির্দিষ্ট benchmark ও model-এর; অন্য কাজে আলাদা হতে পারে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Supervised Fine-tuning (SFT)"
+   ],
+   "practice": {
+    "scenario": "base model লেখা চালিয়ে যায়, প্রশ্নের উত্তর দেয় না। সেটাকে 'সহকারী' বানাতে প্রশ্ন-উত্তরের জোড়া দিয়ে SFT।",
+    "facts": [
+     {
+      "t": "InstructGPT-এ প্রথম ধাপ ছিল labeler-লেখা demonstration দিয়ে supervised fine-tuning; এরপর RLHF।",
+      "s": "InstructGPT paper (Ouyang et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2203.02155"
+     },
+     {
+      "t": "LIMA: ৬৫B LLaMA-কে মাত্র ১,০০০ যত্নে-বাছা prompt-response দিয়ে SFT করেই শক্ত ফল; paper-এর সিদ্ধান্ত: প্রায় সব জ্ঞান pretraining-এ শেখা হয়, আর ভালো মানের উত্তর দেওয়া শেখাতে অল্প instruction data-ই লাগে।",
+      "s": "LIMA paper (Zhou et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.11206"
+     }
+    ],
+    "typical": [
+     "epoch সাধারণত ১–৩; বেশি হলে মুখস্থ হওয়ার ঝুঁকি।",
+     "সংখ্যার চেয়ে মান: কম, পরিষ্কার, বৈচিত্র্যময় উদাহরণ।"
+    ],
+    "pitfalls": [
+     "prompt ছাঁচ (chat template) training আর ব্যবহারে আলাদা হওয়া: model বিভ্রান্ত।",
+     "ভুল উত্তর data-তে থাকা: model ভুলই শেখে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Instruction Tuning"
+   ],
+   "practice": {
+    "scenario": "নানা ধরনের নির্দেশ ও উত্তর একসঙ্গে শিখিয়ে model-কে 'যেকোনো নির্দেশ মেনে চলা' বানানো।",
+    "facts": [
+     {
+      "t": "InstructGPT: ১.৩B parameter-এর InstructGPT-এর উত্তর ১৭৫B GPT-3-এর চেয়ে মানুষ বেশি পছন্দ করেছে (তাদের prompt বণ্টনে)।",
+      "s": "InstructGPT paper (Ouyang et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2203.02155"
+     }
+    ],
+    "pitfalls": [
+     "benchmark-এর সংখ্যা ভালো, কিন্তু বাস্তব কথোপকথনে খারাপ: QLoRA paper-ও বলে বর্তমান chatbot benchmark পুরো ভরসাযোগ্য নয়।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Continued Pretraining (CPT)"
+   ],
+   "practice": {
+    "scenario": "ব্যাংকের লক্ষাধিক নথি, প্রশ্ন-উত্তর জোড়া নেই: নথিতেই next-token লক্ষ্যে আরও শেখানো।",
+    "facts": [
+     {
+      "t": "Don't Stop Pretraining paper: in-domain text-এ দ্বিতীয় ধাপের pretraining (domain-adaptive) চারটা domain ও আটটা classification কাজে উন্নতি এনেছে।",
+      "s": "Don't Stop Pretraining paper (Gururangan et al.), ২০২০",
+      "u": "https://arxiv.org/abs/2004.10964"
+     }
+    ],
+    "typical": [
+     "CPT-র পরে সাধারণত SFT লাগে, কারণ CPT উত্তর দেওয়ার আচরণ শেখায় না।"
+    ],
+    "pitfalls": [
+     "learning rate বেশি রাখলে সাধারণ ক্ষমতা ভুলে যাওয়া।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "DAPT ও TAPT"
+   ],
+   "practice": {
+    "scenario": "DAPT: বড় domain text; TAPT: কাজের ছোট unlabeled text।",
+    "facts": [
+     {
+      "t": "paper: task-adaptive pretraining (কাজের unlabeled data) domain-adaptive-এর পরেও উন্নতি দিয়েছে; কাজের corpus সহজ data-selection-এ বড় করাও কার্যকর বিকল্প।",
+      "s": "Don't Stop Pretraining paper (Gururangan et al.), ২০২০",
+      "u": "https://arxiv.org/abs/2004.10964"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Preference Optimization (যেমন DPO)"
+   ],
+   "practice": {
+    "scenario": "'ভালো উত্তর' লেখা কঠিন, কিন্তু দুটোর মধ্যে কোনটা ভালো বলা সহজ: তখন preference data।",
+    "facts": [
+     {
+      "t": "DPO paper: RLHF-এর জটিল ও অস্থির ধাপের বদলে সরল classification loss দিয়ে একই সমস্যা সমাধান; fine-tuning-এর সময় LM থেকে sample নেওয়া লাগে না।",
+      "s": "DPO paper (Rafailov et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.18290"
+     }
+    ],
+    "typical": [
+     "সাধারণ ক্রম: pretraining → SFT → preference/RL।"
+    ],
+    "pitfalls": [
+     "preference data-র মান খারাপ হলে model খারাপ প্রবণতাই শেখে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "RL-based Tuning"
+   ],
+   "practice": {
+    "scenario": "উত্তরের মান একটা score বা নিয়মে যাচাই করা যায় (কোড টেস্ট পাস, গাণিতিক উত্তর মেলা)।",
+    "facts": [
+     {
+      "t": "InstructGPT: SFT-এর পর মানুষের ranking থেকে reward দিয়ে RLHF।",
+      "s": "InstructGPT paper (Ouyang et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2203.02155"
+     }
+    ],
+    "typical": [
+     "RL-ভিত্তিক tuning SFT-এর চেয়ে জটিল ও অস্থির হতে পারে; তাই সব কাজে প্রথম পছন্দ নয়।"
+    ],
+    "pitfalls": [
+     "reward ফাঁকি: model score বাড়ায়, আসল লক্ষ্য নয়।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Knowledge Distillation"
+   ],
+   "practice": {
+    "scenario": "বড় model ভালো, কিন্তু ফোনে বা কম খরচে চালাতে ছোট model দরকার।",
+    "facts": [
+     {
+      "t": "Hinton et al. (২০১৫): ensemble-এর জ্ঞান একটা একক model-এ সংকুচিত করা যায় (Caruana-দের কাজ অনুসরণে), যাতে বড় ensemble চালানোর খরচ এড়ানো যায়।",
+      "s": "Distillation paper (Hinton et al.), ২০১৫",
+      "u": "https://arxiv.org/abs/1503.02531"
+     }
+    ],
+    "pitfalls": [
+     "teacher-এর ভুলও student শেখে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Domain ও Task Adaptation — মানিয়ে নেওয়া"
+   ],
+   "practice": {
+    "scenario": "একই base model-কে ব্যাংকের, হাসপাতালের, আইনের কাজে মানাতে প্রতিটার ঘাটতি আলাদা: শব্দ, ধরন, তথ্য নাকি কাজ।",
+    "facts": [
+     {
+      "t": "Don't Stop Pretraining: domain ও task-এর unlabeled text-এ আরও pretraining আলাদা আলাদা লাভ দিয়েছে।",
+      "s": "Don't Stop Pretraining paper (Gururangan et al.), ২০২০",
+      "u": "https://arxiv.org/abs/2004.10964"
+     }
+    ],
+    "typical": [
+     "প্রথমে ছোট 'ঘাটতি-নির্ণয়' পরীক্ষা: base model-কে নিজের test-এ ধরে দেখো কোথায় ভুল করে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Data Selection — পাঁচ প্রশ্ন"
+   ],
+   "practice": {
+    "scenario": "সব data ঢালার আগে test আলাদা, তারপর ডুপ্লিকেট, মান, প্রাসঙ্গিকতা, ব্যক্তিগত তথ্য।",
+    "facts": [
+     {
+      "t": "QLoRA paper: data-র মান আকারের চেয়ে অনেক বেশি জরুরি; ৯ হাজার-নমুনার OASST1 ৪.৫ লাখ-নমুনার (subsampled) FLAN v2-কে chatbot ফলে ছাড়িয়েছে।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     },
+     {
+      "t": "LIMA মাত্র ১,০০০ যত্নে-বাছা উদাহরণে শক্ত ফল।",
+      "s": "LIMA paper (Zhou et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.11206"
+     }
+    ],
+    "pitfalls": [
+     "সব ঢেলে দেওয়ার প্রলোভন: পরিমাণ বাড়ালেই মান বাড়ে না।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Forgetting ও evaluation"
+   ],
+   "practice": {
+    "scenario": "tuning-এর পরে ব্যাংকের প্রশ্নে ভালো, কিন্তু সাধারণ প্রশ্নে বা অন্য ভাষায় খারাপ? সেটাই forgetting।",
+    "typical": [
+     "একটা ছোট 'পুরোনো ক্ষমতা'-র test set আগেই তৈরি করে রাখো; tuning-এর আগে-পরে চালাও।",
+     "সাধারণ data-র কিছু অংশ মিশিয়ে training করলে forgetting কমতে পারে (অভিজ্ঞতা)।",
+     "learning rate কম, epoch কম, LoRA-র মতো সীমিত পরিবর্তন সাধারণত ভুলে যাওয়া কমায়।"
+    ],
+    "pitfalls": [
+     "শুধু নতুন কাজের loss দেখে সফল ধরা।"
+    ],
+    "outside": "forgetting কমানোর বাস্তব উপায় (মিশ্রণ, ছোট learning rate) অভিজ্ঞতা-ভিত্তিক।"
+   }
+  },
+  {
+   "names": [
+    "Retrieval — weights না বদলে"
+   ],
+   "practice": {
+    "scenario": "কোম্পানির নীতিমালা প্রতি মাসে বদলায়: প্রতিবার model শেখানো অচল, নথি বদলানোই সহজ।",
+    "facts": [
+     {
+      "t": "RAG paper (২০২০): paper-এর প্রেরণা, model-এর parameter-এ থাকা জ্ঞান হালনাগাদ করা ও উৎস দেখানো কঠিন। তাই model (parametric) আর নথির index (non-parametric memory) জোড়া হয়েছে; paper-এ RAG-এর উত্তর parametric-only model-এর চেয়ে বেশি নির্দিষ্ট ও তথ্যনির্ভর পাওয়া গেছে।",
+      "s": "RAG paper (Lewis et al.), ২০২০",
+      "u": "https://arxiv.org/abs/2005.11401"
+     }
+    ],
+    "typical": [
+     "প্রায়ই retrieval আর fine-tuning মেশানো হয়: retrieval তথ্য আনে, fine-tuning ভঙ্গি ঠিক করে।"
+    ],
+    "pitfalls": [
+     "খারাপ retrieval হলে model ভুল নথিতে ভর করে: retrieval-এর মান আলাদা মাপো।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Fine-tuning পদ্ধতির ন্যায্য তুলনা"
+   ],
+   "practice": {
+    "scenario": "কেউ বলল 'LoRA full-এর সমান'। তুমি নিজের কাজে একই data, একই test, একই budget-এ দুটো চালিয়ে দেখো।",
+    "facts": [
+     {
+      "t": "QLoRA paper: তাদের পরীক্ষায় full finetuning-এর ডিফল্ট hyperparameter undertuned ছিল, তাই তারা learning rate ও batch size খুঁজে শক্ত baseline বানিয়েছিল।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     }
+    ],
+    "typical": [
+     "অন্তত দুই-তিনটা seed চালাও; পার্থক্য seed-ছড়ানোর ভেতরে হলে কোনোটাকে ভালো বোলো না।"
+    ],
+    "pitfalls": [
+     "এক পদ্ধতির hyperparameter tune করে অন্যটার না করা।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Checkpoint"
+   ],
+   "practice": {
+    "scenario": "প্রতি কয়েক ধাপে checkpoint সংরক্ষণ করলে training মাঝপথে থামলে আবার চালানো যায়, আর কোন ধাপের model সবচেয়ে ভালো তাও বেছে নেওয়া যায়।",
+    "typical": [
+     "validation ফল সবচেয়ে ভালো ধাপের checkpoint রাখা; শেষটা সবসময় সেরা নয়।"
+    ],
+    "pitfalls": [
+     "tokenizer ও config আলাদা রাখা: পরে মিলিয়ে চালানো যায় না।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "From-scratch Training"
+   ],
+   "practice": {
+    "scenario": "যখন তোমার data-র ধরন একদম আলাদা (যেমন বিশেষ সংকেত, নতুন ভাষা) আর মানানসই আগে-শেখা model নেই।",
+    "typical": [
+     "বেশির ভাগ বাস্তব কাজে এখন আগে-শেখা model থেকে শুরু করাই ডিফল্ট; scratch প্রয়োজন কমই।"
+    ],
+    "pitfalls": [
+     "সামান্য data নিয়ে scratch training: model মুখস্থ করে বসে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "লক্ষ্য ও মাপকাঠি ঠিক করা"
+   ],
+   "practice": {
+    "scenario": "'ভালো' বলতে কী: গ্রাহকের প্রশ্নের ৮০% ঠিক? ছবির লেখা পড়ায় CER কত? তার সঙ্গে base model + ভালো prompt আজ কত পায়, সেই সংখ্যাই baseline।",
+    "facts": [
+     {
+      "t": "QLoRA paper বলে, বর্তমান chatbot benchmark আসল মান মাপতে পুরো ভরসাযোগ্য নয়।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     }
+    ],
+    "typical": [
+     "baseline = base model + ভালো prompt (দরকারে কয়েকটা উদাহরণসহ)।",
+     "মাপকাঠি নিজের কাজ থেকে বানাও: সাধারণ benchmark নয়।"
+    ],
+    "pitfalls": [
+     "শুধু সাধারণ benchmark-এর উন্নতি দেখে সফল ধরা।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Chat template"
+   ],
+   "practice": {
+    "scenario": "base model-এর নিজস্ব ছাঁচ আছে (কোন চিহ্নে user, কোন চিহ্নে assistant)। সেই ছাঁচেই training data সাজাতে হয়, আর ব্যবহারেও একই ছাঁচ।",
+    "typical": [
+     "library-র দেওয়া template ব্যবহার করে training ও ব্যবহারে এক ফাংশন চালাও।",
+     "শেষ-চিহ্ন (<end>) না থাকলে model থামতে শেখে না।"
+    ],
+    "pitfalls": [
+     "training-এ এক ছাঁচ, ব্যবহারে অন্য: আচরণ ভাঙে।"
+    ],
+    "outside": "Chat template-এর নির্দিষ্ট ফরম্যাট model-ভেদে আলাদা; কোর্সে শুধু ধারণা (প্রশ্ন + উত্তর + <end>)।"
+   }
+  },
+  {
+   "names": [
+    "Synthetic data — নিজে-বানানো উত্তর"
+   ],
+   "practice": {
+    "scenario": "প্রশ্ন-উত্তর কম, কিন্তু একটা শক্ত model-কে দিয়ে নতুন নির্দেশ-উত্তর বানিয়ে ফিল্টার করে নিজের model শেখানো সম্ভব।",
+    "facts": [
+     {
+      "t": "Self-Instruct: model থেকে instruction, input ও output নমুনা বানিয়ে, অকেজো বা প্রায়-একই গুলো ফিল্টার করে মূল model-কে fine-tune।",
+      "s": "Self-Instruct paper (Wang et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2212.10560"
+     }
+    ],
+    "typical": [
+     "ফিল্টার ও মানুষের নমুনা-যাচাই ছাড়া ঢালা বিপজ্জনক: generator-এর ভুলও শেখা হয়।"
+    ],
+    "pitfalls": [
+     "generator model-এর ব্যবহারের শর্ত না দেখা (অভিজ্ঞতা, নিয়ম নয়)।",
+     "test-এ synthetic data ঢুকে যাওয়া।"
+    ],
+    "outside": "কোন শক্ত model দিয়ে বানানো বৈধ, তা model-ভেদে আলাদা; কোর্সে নেই।"
+   }
+  },
+  {
+   "names": [
+    "Mixed precision ও Gradient checkpointing"
+   ],
+   "practice": {
+    "scenario": "GPU-তে আর অল্প একটু memory লাগবে: bf16/mixed precision চালু, তারপর gradient checkpointing, তারপর batch ছোট + accumulation।",
+    "facts": [
+     {
+      "t": "Mixed precision: weight, activation, gradient half-precision-এ রাখা হয়, সঙ্গে একটা single-precision weight-কপি gradient জমা করে।",
+      "s": "Mixed Precision Training paper (Micikevicius et al.), ২০১৭",
+      "u": "https://arxiv.org/abs/1710.03740"
+     },
+     {
+      "t": "Gradient checkpointing: n-layer network-এ O(√n) memory, বদলে প্রতি mini-batch-এ একটা বাড়তি forward pass।",
+      "s": "Sublinear Memory paper (Chen et al.), ২০১৬",
+      "u": "https://arxiv.org/abs/1604.06174"
+     }
+    ],
+    "typical": [
+     "নতুন GPU-তে প্রায়ই bf16 পছন্দ করা হয়, কারণ পরিসর বড় (অভিজ্ঞতা)।"
+    ],
+    "pitfalls": [
+     "checkpointing চালু করে speed না মাপা: সময় বাড়ে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "LLM-as-judge ও মানুষের মূল্যায়ন"
+   ],
+   "practice": {
+    "scenario": "দুই model-এর উত্তর পাশাপাশি দিয়ে শক্ত model-কে বলা 'কোনটা ভালো'; আর মানুষ ২০–৫০টা নমুনা দেখে মিলিয়ে নেয় বিচারক ঠিক চলছে কি না।",
+    "facts": [
+     {
+      "t": "paper চিহ্নিত করেছে LLM judge-এর পক্ষপাত: অবস্থান (কোনটা আগে), দীর্ঘতা (লম্বা উত্তর পছন্দ), আর নিজের উত্তরে ঝোঁক (self-enhancement)।",
+      "s": "LLM-as-a-judge paper (Zheng et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2306.05685"
+     }
+    ],
+    "typical": [
+     "অবস্থান বদলে দুইবার জিজ্ঞেস করা পক্ষপাত কমায়।"
+    ],
+    "pitfalls": [
+     "বিচারক ও training-data একই model থেকে হলে ঝোঁক ঢোকে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "ভুল থেকে আবার ঘোরা"
+   ],
+   "practice": {
+    "scenario": "গ্রাহক-সেবায় প্রতি সপ্তাহের ভুল জমিয়ে সঠিক উত্তর যাচাই করে নতুন data; পুরোনো test অপরিবর্তিত রেখে দেখো নতুন version আগেরটার চেয়ে ভালো কি না।",
+    "typical": [
+     "প্রতি চক্রে একটা জিনিস বদলাও (data নাকি সেটিং), নইলে কারণ বোঝা যায় না।"
+    ],
+    "pitfalls": [
+     "correction data-র উদাহরণ test-এ ঢুকে যাওয়া।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Catastrophic Forgetting"
+   ],
+   "practice": {
+    "scenario": "tuning-এর পর ব্যাংকের প্রশ্নে ভালো, কিন্তু সাধারণ প্রশ্ন বা ইংরেজি উত্তরে খারাপ: এটাই লক্ষণ।",
+    "facts": [
+     {
+      "t": "EWC paper: আগের কাজের জন্য গুরুত্বপূর্ণ weight-এর শেখা ধীর করে দিয়ে ভুলে যাওয়া কমানো যায় (ছোট classification কাজে প্রমাণিত)।",
+      "s": "EWC paper (Kirkpatrick et al.), ২০১৬",
+      "u": "https://arxiv.org/abs/1612.00796"
+     },
+     {
+      "t": "InstructGPT paper: pretraining distribution-এর log-likelihood update মিশিয়ে regression অনেক কমানো গেছে।",
+      "s": "InstructGPT paper (Ouyang et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2203.02155"
+     }
+    ],
+    "typical": [
+     "ছোট learning rate, LoRA-র মতো সীমিত পরিবর্তন, আর কিছু সাধারণ data মেশানো প্রায়ই ভুলে যাওয়া কমায়।"
+    ],
+    "pitfalls": [
+     "শুধু নতুন কাজ মাপা।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "RLHF-এর তিন ধাপ"
+   ],
+   "practice": {
+    "scenario": "বাস্তবে আলাদা আলাদা দল বা কাজ: SFT-দল, তুলনা-লেবেলার দল, RL চালানোর দল।",
+    "facts": [
+     {
+      "t": "InstructGPT-এ তিন ধাপ: (১) labeler-র demonstration দিয়ে supervised policy, (২) তুলনার data দিয়ে reward model, (৩) সেই reward-এ PPO।",
+      "s": "InstructGPT paper (Ouyang et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2203.02155"
+     }
+    ],
+    "typical": [
+     "অনেক দল এখন তুলনা-ভিত্তিক ধাপ DPO দিয়ে সরল করে, কিন্তু সবক্ষেত্রে নয়।"
+    ],
+    "pitfalls": [
+     "reward model-এর ভুল RL-এ বাড়ে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Reward Model"
+   ],
+   "practice": {
+    "scenario": "labeler একই প্রশ্নের দুই উত্তরের মধ্যে কোনটা পছন্দ জানায়; সেই হাজার হাজার তুলনা দিয়ে reward model শেখে।",
+    "facts": [
+     {
+      "t": "InstructGPT: তুলনার data থেকে এমন reward model শেখানো হয়, যা মানুষের-পছন্দের উত্তর অনুমান করে।",
+      "s": "InstructGPT paper (Ouyang et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2203.02155"
+     }
+    ],
+    "pitfalls": [
+     "labeler-দের মতভেদ: reward model গড় পছন্দ শেখে, ব্যক্তির নয়।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "PPO"
+   ],
+   "practice": {
+    "scenario": "RL-এর বড় update ভেঙে ফেলতে পারে; PPO ছোট, নিয়ন্ত্রিত ধাপ নেয়।",
+    "facts": [
+     {
+      "t": "PPO: নমুনা সংগ্রহ আর surrogate objective-এ gradient ascent পালা করে চলে; এক দল নমুনায় একাধিক epoch minibatch update সম্ভব।",
+      "s": "PPO paper (Schulman et al.), ২০১৭",
+      "u": "https://arxiv.org/abs/1707.06347"
+     }
+    ],
+    "pitfalls": [
+     "hyperparameter-সংবেদী: ছোট বদলেও অস্থির হতে পারে (সাধারণ অভিজ্ঞতা)।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "KL শাস্তি — SFT থেকে বেশি না সরা"
+   ],
+   "practice": {
+    "scenario": "শাস্তি না থাকলে model reward model-কে 'ঠকানো' উত্তর শেখে।",
+    "facts": [
+     {
+      "t": "InstructGPT: প্রতি token-এ SFT model থেকে KL শাস্তি যোগ, reward model-এর over-optimization কমাতে।",
+      "s": "InstructGPT paper (Ouyang et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2203.02155"
+     }
+    ],
+    "pitfalls": [
+     "শাস্তি বেশি হলে model প্রায় কিছুই শেখে না, কম হলে সরে যায়।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Training-এর ধাপ ও আগে শেখা model"
+   ],
+   "practice": {
+    "scenario": "প্রথম সিদ্ধান্ত: শূন্য থেকে, না আগে-শেখা model থেকে? বেশির ভাগ বাস্তব কাজে দ্বিতীয়টাই ডিফল্ট।",
+    "typical": [
+     "scratch শুধু তখন, যখন ধরন একদম আলাদা আর মানানসই checkpoint নেই।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "প্রশ্ন ১ — কোন parameter বদলাবে?"
+   ],
+   "practice": {
+    "scenario": "সম্পদ আর data দেখে বাছো: অল্প data/GPU → head-only বা LoRA; যথেষ্ট সম্পদ আর ভিন্ন কাজ → full।",
+    "facts": [
+     {
+      "t": "LoRA paper: RoBERTa, DeBERTa, GPT-2 ও GPT-3-এ মান full fine-tuning-এর সমান বা ভালো, কম trainable parameter দিয়ে।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     }
+    ],
+    "typical": [
+     "প্রথমে সস্তা বিকল্প (LoRA); মান না পোষালে ক্ষমতা বাড়াও।"
+    ],
+    "pitfalls": [
+     "শুরুতেই full দিয়ে বড় খরচ।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Full — কী trainable, কী বদলায়"
+   ],
+   "practice": {
+    "scenario": "নিজের code-এ trainable parameter সংখ্যা ছাপিয়ে নিশ্চিত হও কী কী সত্যিই trainable।",
+    "typical": [
+     "প্রতিটা run-এর শুরুতে trainable সংখ্যা ছাপা।"
+    ],
+    "pitfalls": [
+     "ভেবেছিলে frozen, আসলে trainable (বা উল্টো)।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Head-only — ৩টা trainable, ২টা বদলায়"
+   ],
+   "practice": {
+    "scenario": "trainable হলেই মান বদলায় না, gradient 0 হলে বদলায় না। বাস্তবে loss না নামলে gradient আসছে কি না দেখো।",
+    "typical": [
+     "gradient-এর মাপ ছাপিয়ে 'মরা' অংশ ধরো।"
+    ],
+    "pitfalls": [
+     "trainable বলে ধরে নেওয়া যে সবাই শিখছে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Bias-only — শুধু bias trainable"
+   ],
+   "practice": {
+    "scenario": "খুব ছোট data-য় সবচেয়ে সস্তা পরীক্ষা হিসেবে চেষ্টা করা যায়।",
+    "typical": [
+     "এটা সাধারণত গবেষণা বা ছোট model-এ পরীক্ষার জন্য; উৎপাদনে LoRA বেশি দেখা যায়।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "LoRA-র forward pass ও scale"
+   ],
+   "practice": {
+    "scenario": "code-এ এটা দুটো ছোট linear layer, একটা scale আর যোগ।",
+    "facts": [
+     {
+      "t": "LoRA paper: ΔW x কে α/r দিয়ে scale করা হয়; B শূন্য দিয়ে শুরু, তাই training-এর শুরুতে ΔW = 0।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     }
+    ],
+    "typical": [
+     "library-তে এটা `lora_alpha` ও `r` সেটিং; নাম মিলিয়ে নাও।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "LoRA-র শুরুর মান — B শূন্য"
+   ],
+   "practice": {
+    "scenario": "ডিফল্টে B শূন্য, তাই শুরুতে model অপরিবর্তিত; বদলাতে চাইলে PiSSA/LoftQ-এর মতো বিকল্প আছে।",
+    "facts": [
+     {
+      "t": "LoRA paper: B শূন্য, A random দিয়ে শুরু।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     },
+     {
+      "t": "PiSSA paper: LoRA-র 'Noise & Zero' শুরু ধীর অভিসরণ আনতে পারে; PiSSA A, B-কে প্রধান singular মান-ভেক্টর দিয়ে শুরু করে।",
+      "s": "PiSSA paper (Meng et al.), ২০২৪",
+      "u": "https://arxiv.org/abs/2404.02948"
+     }
+    ],
+    "pitfalls": [
+     "সব শূন্য দিয়ে শুরু: শেখা আটকে যায়।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "LoRA Dropout"
+   ],
+   "practice": {
+    "scenario": "ছোট data-য় adapter মুখস্থ করার প্রবণতা থাকলে সামান্য dropout চেষ্টা করা যায়।",
+    "facts": [
+     {
+      "t": "QLoRA paper-এর hyperparameter খোঁজে LoRA dropout {0.0, 0.05, 0.1} ধরা হয়েছিল।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     }
+    ],
+    "typical": [
+     "ছোট মান (০–০.১) দিয়ে শুরু; প্রভাব মাপো।"
+    ],
+    "pitfalls": [
+     "বড় dropout: শেখাই কঠিন হয়।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Frozen-এর ভেতর দিয়ে gradient ও Memory"
+   ],
+   "practice": {
+    "scenario": "memory-র হিসাবে মনে রাখো: frozen weight-ও GPU-তে থাকে, আর activation-ও।",
+    "facts": [
+     {
+      "t": "QLoRA frozen, 4-bit quantized model-এর ভেতর দিয়ে LoRA-তে gradient পাঠায়।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     },
+     {
+      "t": "gradient checkpointing activation-এর memory কমায়, বদলে একটা বাড়তি forward pass।",
+      "s": "Sublinear Memory paper (Chen et al.), ২০১৬",
+      "u": "https://arxiv.org/abs/1604.06174"
+     }
+    ],
+    "pitfalls": [
+     "'LoRA মানে প্রায় শূন্য memory' ধারণা।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "LoRA-র variant — কোন অংশ বদলাল?"
+   ],
+   "practice": {
+    "scenario": "বাস্তবে LoRA দিয়ে শুরু করো; variant তখনই, যখন নির্দিষ্ট সমস্যা (বড় rank-এ আটকে যাওয়া, quantization-ক্ষতি) দেখা যায়।",
+    "typical": [
+     "একবারে একটাই variant বদলে তুলনা।"
+    ],
+    "pitfalls": [
+     "নতুন নাম দেখে বদলে ফেলা।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "AdaLoRA"
+   ],
+   "practice": {
+    "scenario": "সব module-এ সমান rank অপচয় হলে, গুরুত্ব অনুযায়ী বণ্টন।",
+    "facts": [
+     {
+      "t": "AdaLoRA paper: বিদ্যমান পদ্ধতিগুলো সব weight matrix-এ সমানভাবে budget ভাগ করে ও গুরুত্ব উপেক্ষা করে; তাই গুরুত্ব অনুযায়ী adaptive বণ্টন প্রস্তাব।",
+      "s": "AdaLoRA paper (Zhang et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2303.10512"
+     }
+    ],
+    "pitfalls": [
+     "বাড়তি জটিলতার লাভ নিজের কাজে মাপা ছাড়া ধরে নেওয়া।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "PiSSA"
+   ],
+   "practice": {
+    "scenario": "LoRA ধীরে শিখছে মনে হলে চেষ্টা।",
+    "facts": [
+     {
+      "t": "PiSSA LoRA-র মতোই গঠন, কিন্তু A, B-কে মূল weight-এর প্রধান singular মান ও ভেক্টর দিয়ে শুরু করে এবং বাকি অংশ frozen রাখে।",
+      "s": "PiSSA paper (Meng et al.), ২০২৪",
+      "u": "https://arxiv.org/abs/2404.02948"
+     }
+    ],
+    "pitfalls": [
+     "সব model/কাজে দ্রুত অভিসরণ ধরে নেওয়া।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "LoftQ"
+   ],
+   "practice": {
+    "scenario": "QLoRA-র মান full-এর থেকে পিছিয়ে থাকলে এর কথা ভাবা যায়।",
+    "facts": [
+     {
+      "t": "LoftQ: quantization আর LoRA-র শুরুর মান একসঙ্গে ঠিক করে, যাতে quantized + LoRA আর full fine-tuning-এর মধ্যে ফাঁক কমে।",
+      "s": "LoftQ paper (Li et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2310.08659"
+     }
+    ],
+    "pitfalls": [
+     "অতিরিক্ত প্রস্তুতি-খরচ হিসাবে না ধরা।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "অন্য PEFT — কোথায় বসে, merge হয় কি না"
+   ],
+   "practice": {
+    "scenario": "deploy-এর সময় মূল প্রশ্ন: inference-এ বাড়তি খরচ থাকবে কি না, আর একটা base-এ অনেক adapter রাখা যাবে কি না।",
+    "facts": [
+     {
+      "t": "LoRA paper বলে adapter layer অতিরিক্ত inference latency আনে।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     },
+     {
+      "t": "Adapter paper: প্রতি কাজে মাত্র ৩.৬% parameter যোগ করে GLUE-তে full fine-tuning-এর ০.৪%-এর মধ্যে।",
+      "s": "Adapter paper (Houlsby et al.), ২০১৯",
+      "u": "https://arxiv.org/abs/1902.00751"
+     }
+    ],
+    "typical": [
+     "আজ LLM-এ LoRA প্রধান; অন্যগুলো বিশেষ কারণে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "প্রশ্ন ২ — কী থেকে শিখবে?"
+   ],
+   "practice": {
+    "scenario": "সাধারণ ক্রম: pretraining → SFT → (দরকারে) preference/RL।",
+    "facts": [
+     {
+      "t": "InstructGPT: প্রথমে supervised fine-tuning, তারপর মানুষের ranking দিয়ে RLHF।",
+      "s": "InstructGPT paper (Ouyang et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2203.02155"
+     }
+    ],
+    "typical": [
+     "প্রথমে SFT-ই যথেষ্ট কি না দেখো; বাকিগুলো পরে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Loss Mask — কোন token-এ loss"
+   ],
+   "practice": {
+    "scenario": "padding আর প্রশ্নের অংশ মুখস্থ শেখানোর কিছু নেই: mask দিয়ে বাদ।",
+    "typical": [
+     "library-র data collator সাধারণত mask-এর কাজ করে; ডিফল্ট জেনে নাও।"
+    ],
+    "pitfalls": [
+     "mask ভুল হলে model প্রশ্নও বানাতে শেখে বা উত্তরের loss গোনাই হয় না।"
+    ],
+    "outside": "Collator-এ mask-এর বাস্তব সেটিং library-ভেদে আলাদা।"
+   }
+  },
+  {
+   "names": [
+    "SFT — Input ও Target"
+   ],
+   "practice": {
+    "scenario": "একটা সারি: প্রশ্ন + ভালো উত্তর + শেষ-চিহ্ন; model শিখছে উত্তর-অংশ।",
+    "typical": [
+     "উত্তরের মান একরকম রাখো (ভঙ্গি, দৈর্ঘ্য), নইলে model অস্থির হয়।"
+    ],
+    "pitfalls": [
+     "একই প্রশ্নে পরস্পরবিরোধী উত্তর।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "SFT — শেখার চক্র"
+   ],
+   "practice": {
+    "scenario": "কোডে এটা সাধারণ language-model training, শুধু data আর mask আলাদা।",
+    "typical": [
+     "trainable কারা (প্রশ্ন ১) আগে ঠিক করো।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "CPT — Input ও Target"
+   ],
+   "practice": {
+    "scenario": "নথিকে টুকরো করে (ক্রম বজায় রেখে) token-এর পর token শেখানো।",
+    "typical": [
+     "নথি পরিষ্কার না করলে সূচিপত্র, footer, ডুপ্লিকেটও শেখা হয়।"
+    ],
+    "pitfalls": [
+     "বড় learning rate: সাধারণ ক্ষমতা ভুলে যাওয়া।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Domain Adaptation — ঘাটতি চিনে পদ্ধতি বাছা"
+   ],
+   "practice": {
+    "scenario": "base model-কে নিজের ২০টা প্রশ্ন দিয়ে ধরে দেখো কোথায় ভুল: শব্দ, ধরন, তথ্য, নাকি যুক্তি।",
+    "facts": [
+     {
+      "t": "Don't Stop Pretraining: domain-adaptive ও task-adaptive pretraining আলাদা আলাদা উন্নতি দিয়েছে।",
+      "s": "Don't Stop Pretraining paper (Gururangan et al.), ২০২০",
+      "u": "https://arxiv.org/abs/2004.10964"
+     }
+    ],
+    "typical": [
+     "ঘাটতি 'তথ্য' হলে retrieval আগে ভাবো; 'ধরন' হলে SFT।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Data Mixture — multi-task ও multilingual"
+   ],
+   "practice": {
+    "scenario": "একই model-এ বাংলা ও ইংরেজি, বা ৩টা কাজ: ছোট dataset-এর ভাগ বাড়াতে α কমিয়ে দেখো।",
+    "typical": [
+     "কাজ বা ভাষা ধরে আলাদা validation রাখো।"
+    ],
+    "pitfalls": [
+     "গড় ফল দেখা: ছোট কাজের পিছিয়ে পড়া লুকিয়ে যায়।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Correction Dataset ও Hard Examples"
+   ],
+   "practice": {
+    "scenario": "ছবি থেকে 'বই' → 'বউ' পড়ার ভুল: ভুল output আর যাচাই-করা সঠিক উত্তর জোড়া, তারপর শেখানো।",
+    "typical": [
+     "সঠিক উত্তর নির্ভরযোগ্য উৎসে যাচাই; model-এর নিজের ভুল উত্তর target নয়।"
+    ],
+    "pitfalls": [
+     "কঠিন উদাহরণ বেশি হলে সহজ ক্ষেত্র ভুলে যাওয়া।",
+     "correction test-এ মিশে যাওয়া।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Leakage"
+   ],
+   "practice": {
+    "scenario": "একই গ্রাহকের কথোপকথন train ও test দুজায়গায় থাকলে test ফল ভুয়া ভালো।",
+    "typical": [
+     "ভাগ করার আগে ডুপ্লিকেট ও প্রায়-ডুপ্লিকেট সাফ; গ্রাহক/নথি ধরে ভাগ।"
+    ],
+    "pitfalls": [
+     "হুবহু মেলালেই হলো ভাবা: প্রায়-একই কপিও leakage।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Memorization"
+   ],
+   "practice": {
+    "scenario": "model ব্যক্তিগত তথ্য হুবহু ফিরিয়ে দিলে সেটা ক্ষতি: training-এর আগেই সাফ করা দরকার।",
+    "typical": [
+     "training-data থেকে কিছু অংশের শুরু দিয়ে model-কে চালিয়ে দেখো হুবহু মেলে কি না।"
+    ],
+    "pitfalls": [
+     "বেশি epoch: মুখস্থ বাড়ে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Adaptation experiment — Base, CPT, SFT, Retrieval"
+   ],
+   "practice": {
+    "scenario": "একই test-এ ৪টা চালাও: base, base+retrieval, SFT, SFT+retrieval। ফল ভাগ ধরে পড়ো।",
+    "typical": [
+     "প্রতিটায় একই budget ও prompt ছাঁচ; একাধিক seed।"
+    ],
+    "pitfalls": [
+     "ছোট test থেকে বড় সিদ্ধান্ত।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Input — আগের model ও নতুন data"
+   ],
+   "practice": {
+    "scenario": "কাজ শুরুর আগে তিনটা জিনিস হাতে আছে কি মিলিয়ে নাও: checkpoint (সঙ্গে tokenizer ও config), নতুন data, আর সেটিং।",
+    "typical": [
+     "তিনটাকে একটা ছোট কনফিগ ফাইলে লিখে রাখো, যাতে পরে হুবহু পুনরায় চালানো যায়।"
+    ],
+    "pitfalls": [
+     "checkpoint একটা, tokenizer আরেকটা।"
+    ],
+    "outside": "এই তিন-ভাগ করা আমার সাজানো কাঠামো; module আলাদা করে এভাবে বলেনি।"
+   }
+  },
+  {
+   "names": [
+    "আগের model — checkpoint, tokenizer, config"
+   ],
+   "practice": {
+    "scenario": "ডাউনলোড-করা model-এ নিজের data দিয়ে শেখানোর সময় প্রথম কাজ: model, tokenizer আর config একই উৎস থেকে নেওয়া।",
+    "typical": [
+     "model-এর নাম ও version কনফিগে লিখে রাখো; পরে মিলিয়ে দেখা যায়।",
+     "আকার GPU-র সঙ্গে মেলাও (QLoRA হলে বড় model-ও আঁটে)।",
+     "ভাষা: বাংলা বা কম-পাওয়া ভাষায় base-এর ভাষা-সমর্থন আগে পরীক্ষা করো।"
+    ],
+    "pitfalls": [
+     "অন্য model-এর tokenizer ব্যবহার: token id-র মানেই বদলে যায়।",
+     "licence না দেখা; tokenizer অন্য checkpoint-এর ব্যবহার।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "নতুন data ও শেখার সংকেত"
+   ],
+   "practice": {
+    "scenario": "তুমি কী ধরনের data পাচ্ছ তা সংকেত ঠিক করে: প্রশ্ন-উত্তর থাকলে SFT, শুধু নথি থাকলে CPT, তুলনা থাকলে preference।",
+    "facts": [
+     {
+      "t": "InstructGPT: demonstration-এ SFT, তুলনার data-য় reward model, তারপর RL।",
+      "s": "InstructGPT paper (Ouyang et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2203.02155"
+     },
+     {
+      "t": "DPO: তুলনার data থেকে সরল classification loss দিয়ে RLHF-এর সমস্যা সমাধান।",
+      "s": "DPO paper (Rafailov et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.18290"
+     },
+     {
+      "t": "৯ হাজার-নমুনার OASST1 ৪.৫ লাখ-নমুনার (subsampled) FLAN v2-কে chatbot ফলে ছাড়িয়েছে: মান আকারের চেয়ে জরুরি।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     }
+    ],
+    "typical": [
+     "হাতের data অনুযায়ী পদ্ধতি বাছো; উল্টোটা (পদ্ধতি আগে, data পরে) প্রায়ই ঠকায়।",
+     "ভাগ করার আগে ডুপ্লিকেট সাফ: নইলে একই কথা train ও test দুজায়গায় থাকে।"
+    ],
+    "pitfalls": [
+     "ব্যক্তিগত তথ্য training-এ ঢুকে যাওয়া।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "সেটিং — কোন parameter বদলাবে, hyperparameter"
+   ],
+   "practice": {
+    "scenario": "একটা ছোট সেটিং-তালিকা রাখো: trainable কারা, learning rate, epoch, batch, LoRA হলে r, α, target।",
+    "typical": [
+     "প্রতিটা run-এর সঙ্গে সেটিং সংরক্ষণ; পরে তুলনার জন্য অপরিহার্য।",
+     "SFT-এ epoch সাধারণত ১–৩।",
+     "warmup ছোট, তারপর constant বা কমতি schedule (QLoRA constant ব্যবহার করেছিল)।"
+    ],
+    "pitfalls": [
+     "সেটিং মনে রেখে, লিখে না রাখা।",
+     "learning rate আর α একসঙ্গে বদলানো: কারণ আলাদা করা যায় না।",
+     "hyperparameter test দিয়ে বাছা।"
+    ],
+    "facts": [
+     {
+      "t": "QLoRA paper: 7B ও 13B model-এ learning rate 2e-4, batch 16; 33B ও 65B-তে learning rate অর্ধেক আর batch দ্বিগুণ।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     },
+     {
+      "t": "LoRA paper: Adam-এ α টিউন করা প্রায় learning rate টিউনের সমান।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Output — নতুন model ও রিপোর্ট"
+   ],
+   "practice": {
+    "scenario": "deploy-এর আগে তিনটাই হাতে রাখো: model, log, রিপোর্ট। রিপোর্ট ছাড়া model-কে 'ভালো' বলা যায় না।",
+    "typical": [
+     "রিপোর্টে একই test-এ base ও tuned-এর সংখ্যা পাশাপাশি।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "নতুন model — পূর্ণ weight বা adapter"
+   ],
+   "practice": {
+    "scenario": "adapter সংরক্ষণ করলে ছোট file; কিন্তু চালাতে একই base লাগে।",
+    "facts": [
+     {
+      "t": "LoRA paper: W = W0 + BA আগেই হিসাব করে রাখলে inference সাধারণভাবে চলে; কাজ বদলাতে BA বিয়োগ করে নতুন B′A′ যোগ করা যায়।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     }
+    ],
+    "pitfalls": [
+     "adapter-এর সঙ্গে base-এর নাম/version না রাখা।",
+     "adapter-কে অন্য base-এর সঙ্গে চালানো।"
+    ],
+    "typical": [
+     "version নাম: base + data-তারিখ + সেটিং-এর ছোট কোড।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Training log ও মাপের রিপোর্ট"
+   ],
+   "practice": {
+    "scenario": "কোন run কোন সেটিং-এ কত পেল তা একটা সারণিতে: সেটিং, সেরা validation loss, test মাপ।",
+    "typical": [
+     "অন্তত তিনটা সংখ্যা: base, tuned, আর পুরোনো-ক্ষমতার test।",
+     "শুধু গড় নয়, ভাগ ধরে (সহজ/কঠিন, ভাষা) দেখো।"
+    ],
+    "facts": [
+     {
+      "t": "InstructGPT paper: RLHF-এর পর কিছু public NLP কাজে মান কমে (regression); pretraining distribution-এর update মিশিয়ে (PPO-ptx) এই regression অনেক কমানো গেছে।",
+      "s": "InstructGPT paper (Ouyang et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2203.02155"
+     },
+     {
+      "t": "QLoRA paper: GPT-4 দিয়ে মূল্যায়ন মানুষের চেয়ে সস্তা ও যুক্তিসংগত বিকল্প।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     }
+    ],
+    "pitfalls": [
+     "একটাই seed দিয়ে সিদ্ধান্ত।",
+     "test বারবার দেখে hyperparameter বাছা।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Model শেখা (Fine-tuning-এ)"
+   ],
+   "practice": {
+    "scenario": "code-এর চেহারা সাধারণ training loop-এর মতোই: checkpoint load, কিছু parameter frozen, তারপর সাধারণ চক্র।",
+    "typical": [
+     "loop শুরুর আগে trainable parameter সংখ্যা ছাপো।",
+     "আগে গোনা-হিসাব (মান + gradient + optimizer), তারপর ছোট run-এ আসল peak মাপো।"
+    ],
+    "pitfalls": [
+     "frozen করতে ভুলে যাওয়া: ইচ্ছার চেয়ে বেশি বদলে যায়।",
+     "activation-এর memory ভুলে যাওয়া: batch বা sequence বাড়ালে হঠাৎ আঁটে না।"
+    ],
+    "facts": [
+     {
+      "t": "QLoRA ৬৫B model একটা ৪৮ GB GPU-তে fine-tune করতে পারে বলে paper জানায়।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     },
+     {
+      "t": "LoRA GPT-3 175B-তে GPU memory ৩ গুণ কমাতে পারে (Adam-এর fine-tuning-এর তুলনায়)।",
+      "s": "LoRA paper (Hu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2106.09685"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Prediction — checkpoint-এর মান থেকে শুরু"
+   ],
+   "practice": {
+    "scenario": "tuning শুরুর আগে base model-কে নিজের test-এ চালিয়ে দেখো: সেটাই শুরুর prediction-এর মান।",
+    "typical": [
+     "এই 'শুরুর মান' সংরক্ষণ করো; পরে উন্নতি মাপার কাজে লাগবে।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Loss — সংকেত অনুযায়ী"
+   ],
+   "practice": {
+    "scenario": "SFT-এ loss শুধু উত্তরের token-এ গুনতে mask ঠিক আছে কি না ছোট উদাহরণে হাতে মিলিয়ে নাও।",
+    "typical": [
+     "এক-দুটো সারি নিয়ে loss হাতে বের করে code-এর সঙ্গে মেলাও।"
+    ],
+    "pitfalls": [
+     "mask উল্টো: প্রশ্নে loss, উত্তরে নয়।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Update — শুধু trainable-এ"
+   ],
+   "practice": {
+    "scenario": "একটা step চালিয়ে trainable আর frozen-এর মান আগে-পরে তুলনা করো: frozen-এর মান একই থাকা উচিত।",
+    "typical": [
+     "ছোট sanity test: এক step পরে frozen weight হুবহু একই কি না।",
+     "loss দেখার সঙ্গে ৫–১০টা উত্তর নিজে পড়ো: সংখ্যা ভালো, উত্তর বিদ্ঘুটে হতে পারে।"
+    ],
+    "facts": [
+     {
+      "t": "QLoRA paper: একই দৈর্ঘ্যের উদাহরণ এক batch-এ গুচ্ছ করা (group-by-length) loss curve-কে দোদুল্যমান করে। তাই দোলা দেখেই ঘাবড়ে যেয়ো না।",
+      "s": "QLoRA paper (Dettmers et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.14314"
+     }
+    ],
+    "pitfalls": [
+     "শুধু train loss দেখা।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "Learning Setting-এর সঙ্গে মিল"
+   ],
+   "practice": {
+    "scenario": "নিজের কাজের সংকেত দেখে কোন setting-এ পড়ছে তা বলতে পারলে সঠিক loss ও data বাছা সহজ।",
+    "typical": [
+     "'Supervised Fine-tuning' শুনলে ভাবো: সংকেত = Supervised, শুরু = checkpoint।"
+    ],
+    "outside": "এই মিলের তালিকা আমার সাজানো সারাংশ; module-এ আলাদা তালিকা নেই।"
+   }
+  },
+  {
+   "names": [
+    "মানচিত্রের অন্য শাখার সঙ্গে যোগ"
+   ],
+   "practice": {
+    "scenario": "Fine-tuning-এ আটকে গেলে প্রায়ই সমস্যা অন্য শাখার ধারণায়: loss, learning rate, overfitting, split। ওখানে ফিরে যাও।",
+    "typical": [
+     "loss না নামলে Training শাখা, মান ভালো দেখালেও আসলে খারাপ হলে Evaluation শাখা।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "State Space Model (SSM) পরিবার"
+   ],
+   "practice": {
+    "scenario": "OCR-এ উচ্চ-resolution নথির ছবি মানে অনেক patch বা লম্বা ক্রম। attention-এর বর্গ-খরচ সেখানে ভারী, তাই রৈখিক খরচের model (SSM) আকর্ষণীয়। (এটা আমার সংযোগ-অনুমান, নির্দিষ্ট OCR-ফলের দাবি নয়।)",
+    "facts": [
+     {
+      "t": "S4 paper: RNN, CNN ও Transformer-এর বিশেষ রূপও ১০,০০০ বা বেশি ধাপের ক্রমে হিমশিম খায়; S4 সেই সমস্যা সমাধানের চেষ্টা।",
+      "s": "S4 paper (Gu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2111.00396"
+     }
+    ],
+    "typical": [
+     "নতুন architecture-কে নিজের কাজে (OCR, লম্বা লেখা) মাপার আগে Transformer baseline-এর সঙ্গে একই শর্তে তুলনা করো।"
+    ],
+    "pitfalls": [
+     "paper-এর benchmark নিজের কাজের সমান ধরে নেওয়া।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "SSM-এর ভিত্তি — state, recurrence, convolution"
+   ],
+   "practice": {
+    "scenario": "নিজে হাতে ছোট একটা scalar SSM চালিয়ে দেখো (Ā=0.5, input [1,0,0]): recurrence আর convolution একই ফল দেয়, এটা দেখলেই ধারণা বসে যায়।",
+    "facts": [
+     {
+      "t": "S4 paper: SSM-এর continuous রূপ x′(t) = Ax(t) + Bu(t), y(t) = Cx(t) + Du(t)।",
+      "s": "S4 paper (Gu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2111.00396"
+     },
+     {
+      "t": "Mamba paper: training-এ convolution রূপ (সমান্তরাল), inference-এ recurrent রূপ; সময়-স্থির (LTI) হলেই এই দুই রূপ সমান।",
+      "s": "Mamba paper (Gu & Dao), ২০২৩",
+      "u": "https://arxiv.org/abs/2312.00752"
+     }
+    ],
+    "typical": [
+     "নিজের code-এ দুই রূপের ফল মিলিয়ে sanity check।"
+    ],
+    "pitfalls": [
+     "selection (input-নির্ভর parameter) এলে convolution রূপ আর সমান থাকে না।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "HiPPO — স্মৃতি ধরে রাখার গাণিতিক ভিত্তি"
+   ],
+   "practice": {
+    "scenario": "নিজে এটা implement না করে বোঝো: 'A matrix কোনো এলোমেলো মান নয়, ইতিহাস ধরে রাখার জন্য নির্বাচিত'।",
+    "facts": [
+     {
+      "t": "HiPPO paper: ক্রমাগত সংকেত বা ক্রমকে polynomial basis-এ প্রক্ষেপ করে অনলাইনে সংকুচিত করার সাধারণ কাঠামো; গেটিং (GRU)-কে এর বিশেষ ক্ষেত্র হিসেবে সাধারণীকরণ করে।",
+      "s": "HiPPO paper (Gu et al.), ২০২০",
+      "u": "https://arxiv.org/abs/2008.07669"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "S4 — Structured State Space"
+   ],
+   "practice": {
+    "scenario": "লম্বা ক্রমের (Path-X, ১৬,৩৮৪ ধাপ) কাজে আগের model ব্যর্থ, S4 সমাধান করে।",
+    "facts": [
+     {
+      "t": "S4 paper: A-কে বিশেষ গঠনে পরিণত করে হিসাবকে Cauchy kernel-এর হিসাবে নামিয়ে আনা হয়েছে; খরচ প্রায় রৈখিক (Õ(N + L)), আর Path-X-এ ৮৮% accuracy।",
+      "s": "S4 paper (Gu et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2111.00396"
+     }
+    ],
+    "pitfalls": [
+     "S4 সময়-স্থির: ভাষার মতো 'কোন token জরুরি' বাছাইয়ে দুর্বল, তাই Mamba।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Mamba — Selective State Space"
+   ],
+   "practice": {
+    "scenario": "১ লাখ token-এর context-এ Transformer-এর KV cache বিশাল; Mamba-র state স্থির আকারের।",
+    "facts": [
+     {
+      "t": "Mamba paper: inference-এ Transformer-এর চেয়ে ৫ গুণ বেশি throughput, ক্রমের দৈর্ঘ্যে রৈখিক scaling, ১ মিলিয়ন দৈর্ঘ্য পর্যন্ত আসল data-য় উন্নতি।",
+      "s": "Mamba paper (Gu & Dao), ২০২৩",
+      "u": "https://arxiv.org/abs/2312.00752"
+     },
+     {
+      "t": "Mamba-3B একই আকারের Transformer-কে ছাড়ায় এবং দ্বিগুণ আকারের Transformer-এর সমান (paper-এর দাবি, ভাষা-মডেলিংয়ে)।",
+      "s": "Mamba paper (Gu & Dao), ২০২৩",
+      "u": "https://arxiv.org/abs/2312.00752"
+     },
+     {
+      "t": "autoregressive inference-এ প্রতি ধাপে constant সময়, কারণ আগের উপাদানের cache লাগে না।",
+      "s": "Mamba paper (Gu & Dao), ২০২৩",
+      "u": "https://arxiv.org/abs/2312.00752"
+     }
+    ],
+    "typical": [
+     "Mamba-জাতীয় model-এর library (kernel) আলাদা; সবার GPU বা framework-এ সহজে চলে না।",
+     "ছোট context-এ Transformer-এর সঙ্গে সুবিধা কম হতে পারে; লম্বা context-এই আসল লাভ।"
+    ],
+    "pitfalls": [
+     "'Mamba Transformer-কে সরিয়েছে' ধরে নেওয়া: paper নিজেই ছোট-মাঝারি scale-এর কথা বলে।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Selection mechanism — B, C, Δ input-নির্ভর"
+   ],
+   "practice": {
+    "scenario": "selective copy: মাঝে মাঝে ফাঁকা token, শুধু কাজেরগুলো মনে রাখতে হবে। সময়-স্থির model পারে না।",
+    "facts": [
+     {
+      "t": "Mamba paper: Δ বর্তমান input-কে কতটা গুরুত্ব দেবে তা নিয়ন্ত্রণ করে; বড় Δ state রিসেট করে, ছোট Δ state ধরে রাখে; এটা RNN-এর gate-কে সাধারণীকরণ করে।",
+      "s": "Mamba paper (Gu & Dao), ২০২৩",
+      "u": "https://arxiv.org/abs/2312.00752"
+     }
+    ],
+    "pitfalls": [
+     "selection-এর ফলে convolution রূপ হারিয়ে যায়, তাই নতুন হিসাব-পদ্ধতি লাগে।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Hardware-aware scan"
+   ],
+   "practice": {
+    "scenario": "গতির উৎস গণনা কম হওয়া নয়, GPU-র ধীর memory-তে ওঠানামা কম হওয়া।",
+    "facts": [
+     {
+      "t": "Mamba paper: (Δ, A, B, C) ধীর HBM থেকে দ্রুত SRAM-এ এনে discretization ও recurrence সেখানে করা হয়, শুধু চূড়ান্ত output HBM-এ ফেরে; expanded state HBM-এ বানানো হয় না।",
+      "s": "Mamba paper (Gu & Dao), ২০২৩",
+      "u": "https://arxiv.org/abs/2312.00752"
+     },
+     {
+      "t": "তিনটা পরিচিত কৌশল: kernel fusion, parallel scan, recomputation।",
+      "s": "Mamba paper (Gu & Dao), ২০২৩",
+      "u": "https://arxiv.org/abs/2312.00752"
+     }
+    ],
+    "typical": [
+     "এই ধরনের 'IO-aware' ভাবনা FlashAttention-এও দেখা যায়: দুটো এক পরিবারের চিন্তা।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Mamba-2 ও State Space Duality (SSD)"
+   ],
+   "practice": {
+    "scenario": "Mamba-2 পড়লে আসল প্রশ্ন: SSM আর attention কি আলাদা দুনিয়া? paper বলে, তারা একই structured matrix পরিবারের দুই রূপ।",
+    "facts": [
+     {
+      "t": "SSD দিয়ে তৈরি Mamba-2-এর মূল layer Mamba-র selective SSM-এর চেয়ে ২–৮ গুণ দ্রুত, ভাষা-মডেলিংয়ে Transformer-এর সঙ্গে প্রতিযোগিতামূলক।",
+      "s": "Mamba-2 / SSD paper (Dao & Gu), ২০২৪",
+      "u": "https://arxiv.org/abs/2405.21060"
+     },
+     {
+      "t": "Mamba-র সঙ্গে দুটো পার্থক্য: A-এর গঠন diagonal থেকে scalar × identity, আর head dimension বড় (সাধারণত 64 বা 128)।",
+      "s": "Mamba-2 / SSD paper (Dao & Gu), ২০২৪",
+      "u": "https://arxiv.org/abs/2405.21060"
+     }
+    ],
+    "pitfalls": [
+     "Mamba আর Mamba-2-কে একই ধরে নেওয়া: layer-এর গঠন ও গতি আলাদা।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Vision Mamba (Vim)"
+   ],
+   "practice": {
+    "scenario": "ছবির patch-এর ক্রমে দুই দিক থেকে SSM; document বা OCR-এর বড় ছবির জন্য সম্ভাবনাময় (আমার অনুমান, নির্দিষ্ট OCR-ফল নয়)।",
+    "facts": [
+     {
+      "t": "Vim ImageNet classification, COCO detection ও ADE20k segmentation-এ DeiT-এর চেয়ে ভালো ফল দেয় এবং DeiT-এর চেয়ে ২.৮ গুণ দ্রুত (paper-এর দাবি)।",
+      "s": "Vision Mamba paper (Zhu et al.), ২০২৪",
+      "u": "https://arxiv.org/abs/2401.09417"
+     }
+    ],
+    "pitfalls": [
+     "ছবির ক্রম (কোন patch আগে) নির্ধারণ model-এর ফলে প্রভাব ফেলতে পারে: paper দুই দিক থেকে চালিয়ে এটা সামলায়।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Hybrid — Transformer + Mamba (Jamba)"
+   ],
+   "practice": {
+    "scenario": "একই model-এ কিছু layer attention, কিছু Mamba: লম্বা context-এ সস্তা, ভাষায় শক্ত।",
+    "facts": [
+     {
+      "t": "Jamba: Transformer ও Mamba layer পাশাপাশি, কিছু layer-এ MoE; একটা ৮০ GB GPU-তে আঁটে, ২৫৬K token context পর্যন্ত শক্ত ফল (paper-এর দাবি)।",
+      "s": "Jamba paper (Lieber et al.), ২০২৪",
+      "u": "https://arxiv.org/abs/2403.19887"
+     }
+    ],
+    "pitfalls": [
+     "কোন layer কোন ক্রমে মেশাবে সেটা ফলে বড় প্রভাব ফেলে: paper নিজে এই নকশা-সিদ্ধান্তগুলো পরীক্ষা করেছে।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Transformer-এর বিকল্প — রৈখিক হিসাবের পরিবার"
+   ],
+   "practice": {
+    "scenario": "লম্বা ক্রমে Transformer-এর বিকল্পের তালিকা: linear attention, RWKV, RetNet, SSM। সবার লক্ষ্য একই: রৈখিক খরচ।",
+    "typical": [
+     "যে পরিবারই বাছো, নিজের কাজে একই শর্তে Transformer-এর সঙ্গে মাপো।"
+    ],
+    "pitfalls": [
+     "paper-এর 'Transformer-এর সমান' দাবি সব কাজে খাটবে ধরে নেওয়া।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Linear Attention — Transformers are RNNs"
+   ],
+   "practice": {
+    "scenario": "autoregressive generation-এ খুব লম্বা ক্রমে বিপুল গতি।",
+    "facts": [
+     {
+      "t": "খরচ O(N²) থেকে O(N), আর autoregressive prediction-এ খুব লম্বা ক্রমে ৪০০০ গুণ পর্যন্ত দ্রুত, সমান মানে (paper-এর দাবি)।",
+      "s": "Linear Attention paper (Katharopoulos et al.), ২০২০",
+      "u": "https://arxiv.org/abs/2006.16236"
+     }
+    ],
+    "pitfalls": [
+     "অনেক কাজে softmax-attention-এর মান পুরো মেলে না ধরে নেওয়া উচিত নয়: নিজের কাজে মাপো।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "RWKV"
+   ],
+   "practice": {
+    "scenario": "RNN-এর মতো inference, Transformer-এর মতো training: ছোট GPU-তে চালানোর আকর্ষণীয় পথ।",
+    "facts": [
+     {
+      "t": "RWKV ১৪B parameter পর্যন্ত বড় করা হয়েছে (paper-এর ভাষ্যে এখন পর্যন্ত সবচেয়ে বড় dense RNN) এবং সমান আকারের Transformer-এর সঙ্গে তুলনীয় ফল।",
+      "s": "RWKV paper (Peng et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.13048"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "RetNet — Retention"
+   ],
+   "practice": {
+    "scenario": "একই model তিন রূপে চালানো যায়, প্রয়োজন বুঝে।",
+    "facts": [
+     {
+      "t": "RetNet-এর retention-এ parallel, recurrent (O(1) inference) ও chunkwise recurrent রূপ।",
+      "s": "RetNet paper (Sun et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2307.08621"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Transformer-কে দ্রুত ও লম্বা-context-সক্ষম করা"
+   ],
+   "practice": {
+    "scenario": "বাস্তবে এই কৌশলগুলো আলাদা আলাদা নয়, একসঙ্গে ব্যবহার হয়: FlashAttention + GQA + RoPE + KV cache একই model-এ।",
+    "typical": [
+     "কোন কৌশল কোন সমস্যার ওষুধ তা মনে রাখো: গতি (FlashAttention), memory (GQA, KV cache), অবস্থান ও দৈর্ঘ্য (RoPE, ALiBi)।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "FlashAttention — IO-aware attention"
+   ],
+   "practice": {
+    "scenario": "লম্বা sequence-এ memory ও গতি দুটোই বাঁচে, ফল হুবহু একই (approximation নয়)।",
+    "facts": [
+     {
+      "t": "FlashAttention tiling দিয়ে HBM ও SRAM-এর মধ্যে পড়া-লেখা কমায়; standard attention-এর চেয়ে কম HBM access লাগে; BERT-large-এ ১৫% end-to-end গতি বৃদ্ধি (paper-এর দাবি)।",
+      "s": "FlashAttention paper (Dao et al.), ২০২২",
+      "u": "https://arxiv.org/abs/2205.14135"
+     },
+     {
+      "t": "FlashAttention-2: মূল FlashAttention তাত্ত্বিক সর্বোচ্চ গতির মাত্র ২৫–৪০% ছুঁত; কাজ-ভাগ ভালো করে আরও দ্রুত।",
+      "s": "FlashAttention-2 paper (Dao), ২০২৩",
+      "u": "https://arxiv.org/abs/2307.08691"
+     }
+    ],
+    "typical": [
+     "library-তে এটা সাধারণত একটা flag বা ডিফল্ট; GPU-র ধরন মিলিয়ে নাও।"
+    ],
+    "pitfalls": [
+     "সব GPU-তে সমান সুবিধা পাওয়া যায় না।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "KV Cache"
+   ],
+   "practice": {
+    "scenario": "চ্যাট-বট লম্বা কথোপকথনে ধীর হয়, কারণ cache বাড়ে এবং প্রতি ধাপে তা পড়তে হয়।",
+    "facts": [
+     {
+      "t": "Multi-Query Attention paper: incremental inference ধীর, কারণ প্রতিবার বড় key/value tensor বারবার memory থেকে লোড করতে হয় (memory-bandwidth খরচ)।",
+      "s": "Multi-Query Attention paper (Shazeer), ২০১৯",
+      "u": "https://arxiv.org/abs/1911.02150"
+     },
+     {
+      "t": "Mamba paper: Transformer-এর inference-এ পুরো context (KV cache) সংরক্ষণ করতে হয়, যা ধীর inference-এর কারণ; SSM-এ cache লাগে না।",
+      "s": "Mamba paper (Gu & Dao), ২০২৩",
+      "u": "https://arxiv.org/abs/2312.00752"
+     }
+    ],
+    "typical": [
+     "serving-এ batch আর context বাড়ালে KV cache-ই memory-র বড় অংশ হতে পারে (অভিজ্ঞতা)।"
+    ],
+    "pitfalls": [
+     "GPU memory হিসাবে শুধু weight ধরা, KV cache ভুলে যাওয়া।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Multi-Query ও Grouped-Query Attention"
+   ],
+   "practice": {
+    "scenario": "আধুনিক open model-এর অনেকটাই KV cache ছোট রাখতে GQA ব্যবহার করে (অভিজ্ঞতা; নির্দিষ্ট model যাচাই করিনি)।",
+    "facts": [
+     {
+      "t": "MQA: সব head একই key/value ভাগ করে, decoding-এ memory bandwidth অনেক কমে, মান সামান্য কমে।",
+      "s": "Multi-Query Attention paper (Shazeer), ২০১৯",
+      "u": "https://arxiv.org/abs/1911.02150"
+     },
+     {
+      "t": "GQA: মাঝামাঝি সংখ্যক key/value head; পুরোনো multi-head checkpoint-কে মূল pretraining-এর ৫% compute-এ GQA-তে uptrain করা যায়; মান multi-head-এর কাছাকাছি, গতি MQA-র কাছাকাছি।",
+      "s": "GQA paper (Ainslie et al.), ২০২৩",
+      "u": "https://arxiv.org/abs/2305.13245"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "RoPE — Rotary Position Embedding"
+   ],
+   "practice": {
+    "scenario": "নতুন কোনো LLM-এর config-এ rope সেটিং দেখলে এটাই।",
+    "facts": [
+     {
+      "t": "RoPE absolute অবস্থানকে rotation matrix দিয়ে ঢোকায় এবং self-attention-এ স্পষ্ট আপেক্ষিক-অবস্থান নির্ভরতা আনে; দৈর্ঘ্যে নমনীয়তা, দূরত্ব বাড়লে নির্ভরতা কমা।",
+      "s": "RoFormer / RoPE paper (Su et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2104.09864"
+     }
+    ],
+    "pitfalls": [
+     "training-দৈর্ঘ্যের চেয়ে অনেক লম্বা context-এ সরাসরি চালালে মান নামতে পারে: দৈর্ঘ্য বাড়াতে আলাদা কৌশল লাগে (সাধারণ অভিজ্ঞতা)।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "ALiBi — Attention with Linear Biases"
+   ],
+   "practice": {
+    "scenario": "ছোট দৈর্ঘ্যে training সস্তা, ব্যবহারে লম্বা দৈর্ঘ্য চাই।",
+    "facts": [
+     {
+      "t": "১.৩B model ১০২৪ দৈর্ঘ্যে training করে ২০৪৮ দৈর্ঘ্যে sinusoidal model-এর (২০৪৮-এ training) সমান perplexity, ১১% দ্রুত ও ১১% কম memory-তে।",
+      "s": "ALiBi paper (Press et al.), ২০২১",
+      "u": "https://arxiv.org/abs/2108.12409"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Sliding-window (local) Attention"
+   ],
+   "practice": {
+    "scenario": "লম্বা নথি (হাজার token) বিশ্লেষণে বর্গ-খরচ এড়াতে।",
+    "facts": [
+     {
+      "t": "Longformer: local windowed attention + কাজ-ভিত্তিক global attention, ক্রমের দৈর্ঘ্যে রৈখিক খরচ; RoBERTa-কে লম্বা নথির কাজে ছাড়িয়েছে।",
+      "s": "Longformer paper (Beltagy et al.), ২০২০",
+      "u": "https://arxiv.org/abs/2004.05150"
+     }
+    ],
+    "pitfalls": [
+     "জানালার বাইরের দূরের তথ্য সরাসরি পাওয়া যায় না: তাই global token বা layer-এর ধাপে ধাপে ছড়ানো।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper থেকে।"
+   }
+  },
+  {
+   "names": [
+    "সংকেত — data-র নিজের গঠন"
+   ],
+   "practice": {
+    "scenario": "গ্রাহকের কেনাকাটার লগ থেকে 'কোন গ্রাহকরা একই রকম' দল বের করা: কোনো লেবেল ছাড়া।",
+    "typical": [
+     "ফলাফল নিজে পড়ে দেখো: দল অর্থপূর্ণ কি না মানুষ বিচার করে।"
+    ],
+    "pitfalls": [
+     "লেবেল না থাকলে 'ঠিক' মাপা কঠিন: মাপকাঠি আগে ঠিক করো।"
+    ],
+    "outside": "এই সংকেত-শিরোনামটা আমার সাজানো কাঠামো; কোর্সে আলাদা করে বলা নেই।"
+   }
+  },
+  {
+   "names": [
+    "Model শেখা (Unsupervised-এ)"
+   ],
+   "practice": {
+    "scenario": "K-Means চালালে প্রতি ধাপে কেন্দ্র সরে, দূরত্বের বর্গের যোগ কমে: এটাই এখানকার 'loss'।",
+    "typical": [
+     "একাধিকবার ভিন্ন শুরু থেকে চালাও; সবচেয়ে ভালোটা নাও।"
+    ],
+    "pitfalls": [
+     "শুধু একবার চালিয়ে ফল চূড়ান্ত ধরা।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "সংকেত — data-র একটা অংশই লেবেল"
+   ],
+   "practice": {
+    "scenario": "লম্বা লেখা থেকে পরের শব্দ অনুমানের কাজ বানানো: লেখক লেবেল দেয়নি, লেখাই দিয়েছে।",
+    "typical": [
+     "data যত পরিষ্কার, এই সংকেত তত ভালো; ডুপ্লিকেট ও আবর্জনা সাফ করো।"
+    ],
+    "pitfalls": [
+     "নিজে-বানানো target ভুল হলে (ভাঙা লেখা) model ভুলই শেখে।"
+    ],
+    "outside": "এই শিরোনাম আমার সাজানো কাঠামো।"
+   }
+  },
+  {
+   "names": [
+    "Model শেখা (Self-supervised-এ)"
+   ],
+   "practice": {
+    "scenario": "Pretraining-এর প্রতিটা ধাপ এখানে: পরের token অনুমান, cross-entropy loss, update।",
+    "typical": [
+     "loss কমা মানেই ভালো ক্ষমতা নয়: পরে নিজের কাজে মাপতে হয়।"
+    ]
+   }
+  },
+  {
+   "names": [
+    "সংকেত — অল্প লেবেল + অনেক লেবেলহীন"
+   ],
+   "practice": {
+    "scenario": "১০০০ লেবেল-ওয়ালা ছবি আর ১ লাখ লেবেলহীন ছবি: দুটো মিলিয়ে ভালো model।",
+    "typical": [
+     "লেবেলওয়ালা অংশের মান খুব গুরুত্বপূর্ণ; ভুল লেবেল সব জায়গায় ছড়ায়।"
+    ],
+    "pitfalls": [
+     "লেবেলহীন অংশ থেকে ভুল pseudo-label জমে confirmation bias।"
+    ],
+    "outside": "এই শিরোনাম আমার সাজানো কাঠামো।"
+   }
+  },
+  {
+   "names": [
+    "Model শেখা (Semi-supervised-এ)"
+   ],
+   "practice": {
+    "scenario": "প্রতি batch-এ কিছু লেবেলওয়ালা, কিছু লেবেলহীন; দুই loss যোগ করে একটাই update।",
+    "typical": [
+     "দুই loss-এর ওজন (কোনটা কতটা) validation দিয়ে ঠিক করো।"
+    ]
+   }
+  }
+ ]
+}

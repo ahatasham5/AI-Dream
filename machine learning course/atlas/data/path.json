@@ -1,0 +1,107 @@
+{
+ "chapters": [
+  {
+   "title": "১. প্রথম পরিচয়",
+   "intro": "ML-এর গল্প শুরুর আগে ছোট কয়েকটা শব্দ।",
+   "steps": [
+    "Machine Learning (ML)",
+    "Data",
+    "Model",
+    "Weight",
+    "Bias",
+    "Prediction / Inference"
+   ]
+  },
+  {
+   "title": "২. কোন কাজ করাব",
+   "intro": "ML-এর কাজগুলো মোটামুটি পাঁচ ধরনে পড়ে।",
+   "steps": [
+    "Regression",
+    "Classification",
+    "Clustering",
+    "Generation",
+    "Sequential Decision-making"
+   ]
+  },
+  {
+   "title": "৩. কীভাবে শেখে",
+   "intro": "কী ধরনের উত্তর হাতে আছে, তার উপর শেখার ধরন নির্ভর করে।",
+   "steps": [
+    "Supervised Learning",
+    "Unsupervised Learning",
+    "Self-supervised Learning",
+    "Semi-supervised Learning",
+    "Reinforcement Learning (RL)"
+   ]
+  },
+  {
+   "title": "৪. প্রথম model-গুলো",
+   "intro": "সরল model দিয়ে শুরু করলে পরের জটিল model বোঝা সহজ হয়।",
+   "steps": [
+    "Linear Regression",
+    "Logistic Regression",
+    "Decision Tree",
+    "Tree Ensemble",
+    "k-Nearest Neighbors (k-NN)",
+    "Support Vector Machine (SVM)",
+    "Naive Bayes",
+    "K-Means"
+   ]
+  },
+  {
+   "title": "৫. ভুল মাপা আর শেখা",
+   "intro": "প্রায় সব model-ই এই একই চক্রে শেখে।",
+   "steps": [
+    "Loss",
+    "Gradient",
+    "Gradient Descent",
+    "Learning Rate",
+    "Optimizer"
+   ]
+  },
+  {
+   "title": "৬. Neural Network",
+   "intro": "সরল model-এর সীমা পেরোতে অনেক ছোট হিসাব জুড়ে network।",
+   "steps": [
+    "Neural Network",
+    "Activation",
+    "Multilayer Perceptron (MLP)",
+    "Convolutional Neural Network (CNN)",
+    "Recurrent Neural Network (RNN)",
+    "Attention",
+    "Transformer"
+   ]
+  },
+  {
+   "title": "৭. আগে শিখে নতুন কাজে (Fine-tuning)",
+   "intro": "প্রতিবার শূন্য থেকে শেখা ব্যয়বহুল, তাই আগের শেখা কাজে লাগানো। দুটো আলাদা প্রশ্ন: কোন parameter বদলাবে, আর কী থেকে শিখবে।",
+   "steps": [
+    "Pretraining",
+    "Checkpoint",
+    "Fine-tuning",
+    "প্রশ্ন ১ — কোন parameter বদলাবে?",
+    "Parameter-efficient Fine-tuning (PEFT)",
+    "LoRA — low-rank update",
+    "Merge ও Unmerge",
+    "QLoRA",
+    "প্রশ্ন ২ — কী থেকে শিখবে?",
+    "Supervised Fine-tuning (SFT)",
+    "Continued Pretraining (CPT)",
+    "Forgetting ও evaluation"
+   ]
+  },
+  {
+   "title": "৮. কতটা ভালো শিখল",
+   "intro": "training-এর ফল ভালো দেখালেই কাজ শেষ নয়; নতুন data-তে যাচাই দরকার।",
+   "steps": [
+    "Train Data",
+    "Validation Data",
+    "Test Data",
+    "Overfitting",
+    "Underfitting",
+    "Generalization",
+    "Metrics"
+   ]
+  }
+ ]
+}

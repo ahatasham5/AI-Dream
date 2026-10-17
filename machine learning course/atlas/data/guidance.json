@@ -1,0 +1,745 @@
+{
+ "_নিয়ম": "কেন বাছবে (why), দাম বা কখন এড়াবে (tradeoff), ঐচ্ছিক when, ঐচ্ছিক how (কীভাবে চালু করবে, সূত্রসহ)। কোনো node-এর id-র শেষে -sc থাকলে (শূন্য-থেকে-train-এর নকল) আসল id-র তথ্য নেয়। দাবি পেপার/README/docs-এ মেলানো, নইলে 'অভিজ্ঞতা' লেবেলে।",
+ "entries": {
+  "mode-finetune": {
+   "why": "কম data, কম সময়, কম খরচে ভালো শুরু; শুরুতেই checkpoint-এর শেখা জ্ঞান থাকে (Module 13)।",
+   "tradeoff": "checkpoint-এর ভাষা, ধরন ও licence-এর সীমা মেনে চলতে হয়।"
+  },
+  "mode-scratch": {
+   "why": "tokenizer, architecture আর data-র ওপর পুরো নিয়ন্ত্রণ।",
+   "tradeoff": "সবচেয়ে বেশি data, GPU-সময় ও খরচ; ভুল সিদ্ধান্তে পুরো run নষ্ট হতে পারে।"
+  },
+  "opt-sc-pretrained-exists": {
+   "why": "আগে-শেখা model থেকে শুরু করলে loss শুরুতেই অনেক কম থাকে (Module 13), খরচ কম।",
+   "tradeoff": "checkpoint-এর tokenizer ও licence মানতে হয়।"
+  },
+  "opt-sc-no-pretrained": {
+   "why": "model-এর সবটা নিজের নিয়ন্ত্রণে: ভাষা, tokenizer, architecture।",
+   "tradeoff": "প্রচুর data ও GPU-সময় লাগে; মানানসই checkpoint সত্যিই নেই কি না আগে যাচাই করো।"
+  },
+  "opt-sc-learning": {
+   "why": "ধারণা হাতে-কলমে বোঝা যায়, খরচ খুব কম।",
+   "tradeoff": "ফল উৎপাদনের মানের হবে না; শুধু শেখার জন্য।"
+  },
+  "opt-accuracy": {
+   "why": "সবচেয়ে সরল, এক সংখ্যায় বোঝা যায়।",
+   "tradeoff": "দল অসম হলে বিভ্রান্তিকর: ৯৫% উদাহরণ 'না' হলে সবসময় 'না' বললেই ৯৫% (Module 06)।"
+  },
+  "opt-precision": {
+   "why": "ভুল 'হ্যাঁ' কমানো জরুরি হলে সরাসরি সেটাই মাপে।",
+   "tradeoff": "ধরা-না-পড়া 'হ্যাঁ' দেখে না; threshold বাড়ালে বাড়ে, কিন্তু Recall কমে।"
+  },
+  "opt-recall": {
+   "why": "কিছু ধরতে না পারা ক্ষতিকর হলে সেটাই মাপে।",
+   "tradeoff": "ভুল 'হ্যাঁ' বাড়তে দেয়: সবকিছুকে 'হ্যাঁ' বললে Recall ১০০%।"
+  },
+  "opt-f1": {
+   "why": "Precision ও Recall-এর ভারসাম্য এক সংখ্যায়।",
+   "tradeoff": "কোনটা কতটা জরুরি তা লুকিয়ে ফেলে; সঠিক 'না' (TN) গোনে না।"
+  },
+  "opt-cer-wer": {
+   "why": "OCR ও speech-এ সরাসরি ভুলের পরিমাণ (সম্পাদনা-দূরত্ব) দেয়।",
+   "tradeoff": "বাংলায় 'অক্ষর' বলতে code point না grapheme তা আগে ঠিক করা দরকার; WER-এ শব্দের একটা অক্ষর ভুল হলে পুরো শব্দ ভুল গোনা হয়।"
+  },
+  "tool-jiwer": {
+   "why": "WER ও CER-এর তৈরি ফাংশন, ছোট ও সরল।",
+   "tradeoff": "কোন লেখাকে 'সমান' ধরবে (যতিচিহ্ন, বড়-ছোট হাতের অক্ষর, Unicode রূপ) তা মাপার আগে নিজে ঠিক করা দরকার।"
+  },
+  "opt-baseline-prompt": {
+   "why": "সবচেয়ে সস্তা তুলনা-বিন্দু: training ছাড়াই base model কত পায়।",
+   "tradeoff": "ভালো prompt লেখাও একটা কাজ; খারাপ prompt-এ baseline অযথা দুর্বল দেখায়।"
+  },
+  "opt-baseline-fewshot": {
+   "why": "কয়েকটা সঠিক উদাহরণ জুড়ে দিলে ধরন ও ফরম্যাট প্রায়ই ধরে ফেলে।",
+   "tradeoff": "উদাহরণ prompt-এর দৈর্ঘ্য খায়; প্রতিবার ব্যবহারে খরচ বাড়ে।"
+  },
+  "opt-baseline-prev": {
+   "why": "উন্নতি আগের version-এর তুলনায় সরাসরি মাপা যায়।",
+   "tradeoff": "প্রথম চক্রে আগের version থাকে না।"
+  },
+  "opt-base-text": {
+   "why": "লেখা-কাজের জন্য checkpoint প্রচুর, ইকোসিস্টেম পরিণত।",
+   "tradeoff": "ছবি বোঝে না।"
+  },
+  "tool-llama31-8b": {
+   "why": "প্রচলিত ৮B আকারের base model; এক GPU-তে quantized রূপে আঁটে।",
+   "tradeoff": "gated (অনুমতি লাগে) ও licence-শর্তসাপেক্ষ; ব্যবহারের আগে শর্ত নিজে পড়ে নাও।",
+   "when": "শুধু লেখার কাজ, ৮B আকার যথেষ্ট"
+  },
+  "opt-base-vlm": {
+   "why": "ছবি ও নির্দেশ একসঙ্গে বোঝে, তাই OCR ও অন্য ছবি-কাজ একই model-এ করা যায়।",
+   "tradeoff": "বড় ও বেশি memory-ক্ষুধার্ত; prompt বদলালে আচরণও বদলে যেতে পারে।"
+  },
+  "tool-qwen25-vl": {
+   "why": "Apache-2.0 licence, ছবি-লেখা (image-text-to-text) model।",
+   "tradeoff": "৭B: bf16-তে শুধু weight-ই প্রায় ১৪ GB (Module 13), তাই fine-tuning-এ QLoRA বা বড় GPU লাগে।",
+   "when": "ছবি-থেকে-লেখার VLM, খোলা licence চাই"
+  },
+  "tool-surya-ocr2": {
+   "why": "আপনার course-এর OCR project-এর recognition base (Module 14), সরাসরি মেলে।",
+   "tradeoff": "OpenRAIL licence-এর ব্যবহার-শর্ত নিজে পড়ে নাও।",
+   "when": "Module 14-এর OCR project নিয়ে কাজ করছ"
+  },
+  "opt-base-ocr": {
+   "why": "শুধু OCR-এর জন্য বিশেষভাবে গড়া: ছোট ও দ্রুত।",
+   "tradeoff": "নির্দেশ-নির্ভর নয়: কাজ বদলানো (যেমন কাঠামো বের করা) কঠিন।"
+  },
+  "tool-trocr": {
+   "why": "ছাপা লেখা পড়ার জন্য তৈরি encoder-decoder; ছোট model।",
+   "tradeoff": "HF API-তে licence tag নেই (model card পড়ো); ছাপা লেখা-কেন্দ্রিক।",
+   "when": "ছাপা লেখার ছোট ও দ্রুত OCR"
+  },
+  "tool-donut": {
+   "why": "ছবি থেকে সরাসরি লেখা বা কাঠামো (OCR-মুক্ত ধরন)।",
+   "tradeoff": "MIT licence, কিন্তু checkpoint শেষ বদলেছে ২০২২-০৮: পুরোনো।",
+   "when": "নথি-ছবি থেকে সরাসরি কাঠামো পড়তে"
+  },
+  "tool-hf-hub": {
+   "why": "সবচেয়ে বড় model-সংগ্রহ; লাইব্রেরির সঙ্গে সহজে মেলে।",
+   "tradeoff": "এটা সেবা (সাইট), tool নয়: সেখানকার model-এর licence আলাদা; নেটওয়ার্ক লাগে।"
+  },
+  "opt-src-local": {
+   "why": "আপনার আগের run-এর ফলই সরাসরি, নেটওয়ার্ক ছাড়া।",
+   "tradeoff": "checkpoint-এর সঙ্গে তার tokenizer ও config একই উৎসের কি না নিজে নিশ্চিত করতে হয়।"
+  },
+  "tool-modelscope": {
+   "why": "Hugging Face-এর বাইরের আরেকটা model-সংগ্রহ; একক-উৎস-নির্ভরতা কমে।",
+   "tradeoff": "সব model দুই জায়গায় থাকে না; নিজের ভাষা/model আছে কি না আগে দেখো।"
+  },
+  "supervised-fine-tuning-sft": {
+   "why": "উত্তর দেওয়ার আচরণ সরাসরি শেখায়; অল্প যত্নে-বাছা উদাহরণই যথেষ্ট হতে পারে (LIMA: ১,০০০টা)।",
+   "tradeoff": "ভালো জোড়া বানানোর খরচ; ভুল উদাহরণ model ভুলই শেখে।"
+  },
+  "continued-pretraining": {
+   "why": "label ছাড়া domain-নথিও কাজে লাগে; ভাষা ও শব্দে পরিচিতি বাড়ে (Gururangan et al.)।",
+   "tradeoff": "উত্তর দেওয়ার আচরণ শেখায় না (SFT লাগে); সাধারণ ক্ষমতা ভোলার ঝুঁকি।"
+  },
+  "preference-optimization": {
+   "why": "'ভালো উত্তর লেখা'র চেয়ে 'দুটোর কোনটা ভালো' বলা সহজ; DPO-তে সরল classification loss (paper)।",
+   "tradeoff": "তুলনা-data-র মান ও লেবেলারদের মতভেদ; আলাদা reference model লাগে (Module 16)।"
+  },
+  "rl-based-tuning": {
+   "why": "একক সঠিক উত্তর না থাকলেও, শুধু ফলের score থাকলে শেখা যায়।",
+   "tradeoff": "জটিল ও অস্থির হতে পারে; reward ফাঁকির ঝুঁকি; reward model বা যাচাই-নিয়ম লাগে।"
+  },
+  "knowledge-distillation": {
+   "why": "বড় model-এর জ্ঞান ছোট, সস্তা model-এ।",
+   "tradeoff": "teacher-এর ভুলও student শেখে; teacher-এর output জোগাড়ের খরচ।"
+  },
+  "opt-fmt-qa": {
+   "why": "সবচেয়ে সরল ফরম্যাট: প্রতি সারিতে নির্দেশ ও উত্তর।",
+   "tradeoff": "বহু-পালার কথোপকথন ধরে না।"
+  },
+  "opt-fmt-chat": {
+   "why": "বহু-পালা ও system-নির্দেশ ধরে।",
+   "tradeoff": "model-এর নিজস্ব chat template না মিললে আচরণ ভাঙে।"
+  },
+  "opt-fmt-image-text": {
+   "why": "OCR-এর সরাসরি রূপ: crop আর তার সঠিক লেখা।",
+   "tradeoff": "সঠিক লেখা যাচাই-করা হতে হবে; crop-এর মান ফলের ওপর প্রভাব ফেলে।"
+  },
+  "opt-fmt-text": {
+   "why": "label লাগে না: নথিই data।",
+   "tradeoff": "আচরণ (উত্তর দেওয়া) শেখায় না।"
+  },
+  "opt-fmt-pref": {
+   "why": "preference tuning-এর জন্য আবশ্যক ফরম্যাট।",
+   "tradeoff": "chosen/rejected-এর মান মানুষ-নির্ভর ও ব্যয়বহুল।"
+  },
+  "tool-hf-datasets": {
+   "why": "বড় dataset পড়া, ভাগ ও রূপান্তরের জন্য দক্ষ সরঞ্জাম (README-র ভাষ্য)।",
+   "tradeoff": "Hugging Face-এর ফরম্যাট ও কাঠামো শিখতে হয়; ছোট কাজে সাধারণ ফাইলই যথেষ্ট।"
+  },
+  "tool-label-studio": {
+   "why": "ছবি, লেখা, অডিও: নানা ধরনের data-র annotation এক জায়গায়।",
+   "tradeoff": "সেটআপ ও দলের সময় লাগে।"
+  },
+  "opt-human-sample": {
+   "why": "স্বয়ংক্রিয় বা synthetic data-র ভুল ধরা পড়ে।",
+   "tradeoff": "সময় লাগে; নমুনা ছোট হলে সব ভুল ধরা পড়ে না।"
+  },
+  "synthetic-data": {
+   "why": "মানুষ-লেখা উদাহরণ কম হলে বাড়ানো যায় (Self-Instruct)।",
+   "tradeoff": "generator model-এর ভুল ও পক্ষপাত শেখা হয়; ফিল্টার লাগে; test-এ ঢুকে যাওয়ার ঝুঁকি।"
+  },
+  "opt-split-random": {
+   "why": "সরল ও সবচেয়ে প্রচলিত।",
+   "tradeoff": "একই উৎসের উদাহরণ দুই ভাগে পড়লে leakage (Module 05)।"
+  },
+  "opt-split-group": {
+   "why": "একই উৎস (গ্রাহক, নথি, সময়) এক ভাগে রাখে: leakage ঠেকায়।",
+   "tradeoff": "ভাগের আকার অসম হতে পারে।"
+  },
+  "full-fine-tuning": {
+   "why": "সব weight বদলায়: সবচেয়ে নমনীয়।",
+   "tradeoff": "সবার gradient ও optimizer state memory-তে থাকে; প্রতি কাজের পূর্ণ কপি; ভুলে-যাওয়ার ঝুঁকি বেশি (Module 13)।"
+  },
+  "selective-fine-tuning": {
+   "why": "কম অংশ বদলে কম খরচ।",
+   "tradeoff": "কোন layer বা অংশ খুলবে তা নিজে বাছতে হয় (validation দিয়ে)।"
+  },
+  "head-only-fine-tuning": {
+   "why": "সবচেয়ে সস্তা ও নিরাপদ: আগের জ্ঞান অক্ষত।",
+   "tradeoff": "নতুন কাজ মূল model থেকে অনেক আলাদা হলে ক্ষমতা যথেষ্ট না-ও হতে পারে।"
+  },
+  "bias-only-bitfit": {
+   "why": "অতি কম সংখ্যা বদলে মানায়; paper-এ ছোট-মাঝারি data-য় BERT-এ full-এর সঙ্গে তুলনীয়।",
+   "tradeoff": "BERT-ধরনের model-এ প্রমাণিত; বড় LLM-এ LoRA বেশি প্রচলিত।"
+  },
+  "parameter-efficient-fine-tuning-peft": {
+   "why": "অল্প parameter শেখে; একই base-এ অনেক ছোট adapter।",
+   "tradeoff": "full-এর সমান মানের নিশ্চয়তা নেই; নিজের কাজে মাপতে হয়।"
+  },
+  "lora-low-rank-update": {
+   "why": "মূল weight স্থির, শুধু ছোট A, B শেখা: memory কম, adapter ছোট; merge করলে বাড়তি inference খরচ নেই (paper)।",
+   "tradeoff": "r, α আর কোথায় বসাবে তা বাছতে হয়; শুধু q, v-তে বসালে বড় model-এ full-এর সমান ফল নাও আসতে পারে (QLoRA paper)।",
+   "how": [
+    {
+     "t": "PEFT README: LoraConfig(r=…, lora_alpha=…, target_modules=[…], lora_dropout=…) আর get_peft_model(model, config)",
+     "u": "https://github.com/huggingface/peft#readme"
+    }
+   ]
+  },
+  "opt-lora-qv": {
+   "why": "মূল paper-এর পথ: সবচেয়ে কম trainable parameter।",
+   "tradeoff": "QLoRA paper-এ বড় model-এ শুধু query ও value-তে বসিয়ে full-এর সমান ফল আনা যায়নি।"
+  },
+  "opt-lora-all-linear": {
+   "why": "QLoRA paper-এ full-এর মান ধরতে সব linear layer-এ বসানো জরুরি ছিল।",
+   "tradeoff": "trainable parameter ও memory বেশি; কিছু কাজে এত লাগে না।"
+  },
+  "opt-lora-small": {
+   "why": "সস্তা প্রথম পরীক্ষা, দ্রুত ঘোরে।",
+   "tradeoff": "মান কম হলে বাড়াতে হবে; paper-এ খুব ছোট r-ও প্রতিযোগিতামূলক ছিল, তাই কোন r ভালো তা কাজে নির্ভর।"
+  },
+  "qlora": {
+   "why": "৬৫B model-ও একটা ৪৮ GB GPU-তে fine-tune করা যায় (paper-এর দাবি)।",
+   "tradeoff": "base 4-bit-এ তাই কিছুটা quantization-ক্ষতি আর dequantize-এর বাড়তি সময়; ক্ষতি নিজে মেপে নাও।"
+  },
+  "tool-bnb": {
+   "why": "4-bit NF4 ও 8-bit quantization-এর library, QLoRA-র ভিত্তি।",
+   "tradeoff": "আলাদা নির্ভরতা: আপনার GPU ও OS-এর সমর্থন docs-এ দেখে নাও।",
+   "how": [
+    {
+     "t": "README: bitsandbytes.nn.Linear4bit ও Linear8bitLt, আর 8-bit optimizer",
+     "u": "https://github.com/bitsandbytes-foundation/bitsandbytes#readme"
+    }
+   ]
+  },
+  "rslora": {
+   "why": "rank বাড়ালে α/r ছোট হয়ে সংশোধন দুর্বল হয়; α/√r তা সামলায় (paper)।",
+   "tradeoff": "নতুন; সাধারণ LoRA-র সঙ্গে একই α-তে তুলনা ন্যায্য নয়।"
+  },
+  "adalora": {
+   "why": "সব module-এ সমান rank না দিয়ে গুরুত্ব অনুযায়ী ভাগ করে (paper)।",
+   "tradeoff": "বাড়তি জটিলতার লাভ নিজের কাজে মাপতে হয়।"
+  },
+  "dora": {
+   "why": "magnitude ও direction আলাদা শেখে; paper-এ LoRA-র চেয়ে ভালো, বাড়তি inference খরচ ছাড়া।",
+   "tradeoff": "নতুন; সব কাজে ভালো হবে ধরে নেওয়া যায় না।"
+  },
+  "pissa": {
+   "why": "শুরুর মানে প্রধান singular মান-ভেক্টর: LoRA-র 'Noise & Zero' শুরুর ধীর অভিসরণ কমাতে চায় (paper)।",
+   "tradeoff": "নিজের কাজে ও model-এ দ্রুত অভিসরণ নিশ্চিত নয়।"
+  },
+  "loftq": {
+   "why": "quantization-এর ক্ষতি পূরণ করে QLoRA-কে full fine-tuning-এর কাছে আনতে চায় (paper)।",
+   "tradeoff": "শুরুতে অতিরিক্ত প্রস্তুতি-খরচ; সব model-এ লাভ ধরে নেওয়া যায় না।"
+  },
+  "adapter-layer": {
+   "why": "প্রতি কাজে অল্প parameter (BERT-এ ৩.৬%), পুরোনো কাজ না ছুঁয়ে নতুন যোগ (Houlsby et al.)।",
+   "tradeoff": "বাড়তি inference latency (LoRA paper); nonlinear বলে merge হয় না।"
+  },
+  "soft-prompt-prefix": {
+   "why": "model-এর ভেতরে হাত দেয় না: শুধু শেখা vector জোড়া (Prefix-tuning paper)।",
+   "tradeoff": "vector sequence-এর কিছুটা দৈর্ঘ্য খায়; merge হয় না।"
+  },
+  "ia3": {
+   "why": "অতি অল্প parameter, ছোট data-য় শক্ত ফল (T-Few paper)।",
+   "tradeoff": "নির্দিষ্ট benchmark ও model-এর ফল; অন্য কাজে আলাদা হতে পারে।"
+  },
+  "opt-loss-answer": {
+   "why": "প্রশ্ন মানুষ লিখে দেয়, model-কে তা বানাতে শেখানো দরকার নেই (Module 15)।",
+   "tradeoff": "mask ভুল বসালে (উল্টো) উত্তরের loss গোনাই হয় না।"
+  },
+  "opt-loss-all": {
+   "why": "mask লাগে না, সরল।",
+   "tradeoff": "প্রশ্ন বা নির্দেশের ভঙ্গিও শিখতে থাকে: নির্দেশ-ভঙ্গিতে অতি-মানিয়ে যেতে পারে।"
+  },
+  "opt-adamw": {
+   "why": "weight decay আলাদা করে ঠিকমতো কাজ করে; বড় model-এ প্রচলিত।",
+   "tradeoff": "প্রতি parameter-এ দুটো বাড়তি সংখ্যা (memory)।"
+  },
+  "opt-adam": {
+   "why": "প্রতি parameter-এর ধাপ নিজে ঠিক করে।",
+   "tradeoff": "weight decay gradient-এর সঙ্গে মিশে যায় (AdamW এটা ঠিক করে); দুটো বাড়তি সংখ্যা।"
+  },
+  "opt-sgd": {
+   "why": "সরল, কম memory।",
+   "tradeoff": "learning rate-সংবেদী, ধীর অভিসরণ।"
+  },
+  "opt-paged": {
+   "why": "optimizer state-এর memory কম; QLoRA paper-এ memory-র হঠাৎ-উচ্চতা সামলাতে ব্যবহৃত।",
+   "tradeoff": "বাড়তি library; মান নিজে মেপে নাও।"
+  },
+  "tool-bnb-optim": {
+   "why": "8-bit optimizer block-wise quantization দিয়ে 32-bit-এর কাছাকাছি মান রাখে (README-র দাবি)।",
+   "tradeoff": "আলাদা নির্ভরতা; আপনার পরিবেশে সমর্থন দেখে নাও।",
+   "when": "optimizer state-এর memory কমাতে"
+  },
+  "opt-warmup": {
+   "why": "শুরুতে ছিটকে যাওয়া ঠেকায়।",
+   "tradeoff": "কত ধাপ warmup তা বাছতে হয়।"
+  },
+  "opt-lr-decay": {
+   "why": "শেষে ছোট ধাপে ঠিক জায়গায় বসে।",
+   "tradeoff": "কখন কতটা কমবে তা বাছতে হয়।"
+  },
+  "opt-lr-const": {
+   "why": "সরলতম; QLoRA paper constant schedule ব্যবহার করেছিল।",
+   "tradeoff": "শেষে ঘুরঘুর করতে পারে।"
+  },
+  "opt-lr-lora": {
+   "why": "paper-এ কাজ-করা শুরুর বিন্দু (7B/13B: 2e-4, batch 16)।",
+   "tradeoff": "model বড় হলে অর্ধেক করতে হয়েছিল (33B/65B: batch দ্বিগুণ); নিজের কাজে মাপো।"
+  },
+  "opt-lr-full": {
+   "why": "paper-এর খোঁজা পরিসর (1e-6 থেকে 5e-5): আগের জ্ঞান কম নষ্ট হয়।",
+   "tradeoff": "paper বলে full fine-tuning-এর ডিফল্ট প্রায়ই ঠিকমতো tune করা নয়, তাই নিজেও খুঁজতে হবে।"
+  },
+  "opt-lr-search": {
+   "why": "আপনার কাজ আর model-এর জন্য সঠিক মান।",
+   "tradeoff": "কয়েকটা ছোট run-এর খরচ।"
+  },
+  "opt-stop-val": {
+   "why": "মুখস্থ শুরু হওয়ার আগেই থামে।",
+   "tradeoff": "validation data আলাদা রাখতে হয়; নজর রাখতে হয়।"
+  },
+  "opt-stop-epoch": {
+   "why": "সরল; SFT-এ ১–৩ প্রচলিত (অভিজ্ঞতা)।",
+   "tradeoff": "বেশি হলে মুখস্থ; কম হলে অপরিণত।"
+  },
+  "opt-amp": {
+   "why": "কম bit-এ হিসাব: কম memory ও দ্রুত। fp16-তে পূর্ণ-precision weight-কপি accuracy রাখে (Mixed Precision paper)।",
+   "tradeoff": "fp16-এর পরিসর ছোট, তাই loss scaling (GradScaler) লাগে; bf16-তে লাগে না, কিন্তু bf16 সব GPU-তে সমর্থিত নয়।",
+   "how": [
+    {
+     "t": "Hugging Face Trainer: TrainingArguments(bf16=True) — docs: 'সাধারণত FP16-এর চেয়ে পছন্দের: ভালো সংখ্যা-স্থিতি, loss scaling লাগে না'",
+     "u": "https://huggingface.co/docs/transformers/main_classes/trainer"
+    },
+    {
+     "t": "PyTorch: torch.autocast; fp16-তে সাধারণত torch.amp.GradScaler-এর সঙ্গে একসঙ্গে",
+     "u": "https://pytorch.org/docs/stable/amp.html"
+    }
+   ]
+  },
+  "opt-grad-ckpt": {
+   "why": "activation-এর memory অনেক কমে (n layer-এ O(√n), Chen et al.)।",
+   "tradeoff": "প্রতি batch-এ একটা বাড়তি forward pass: HF docs-এ প্রায় ২০% ধীর training।",
+   "how": [
+    {
+     "t": "Hugging Face Trainer: TrainingArguments(gradient_checkpointing=True)",
+     "u": "https://huggingface.co/docs/transformers/main_classes/trainer"
+    },
+    {
+     "t": "PyTorch: torch.utils.checkpoint.checkpoint — 'compute-কে memory-র বিনিময়ে'",
+     "u": "https://pytorch.org/docs/stable/checkpoint.html"
+    }
+   ]
+  },
+  "opt-grad-accum": {
+   "why": "ছোট batch-এ বড় batch-এর প্রভাব, বাড়তি memory ছাড়া।",
+   "tradeoff": "প্রতি update-এ বেশি সময়; effective batch = ডিভাইসপ্রতি batch × device-সংখ্যা × accumulation ধাপ।",
+   "how": [
+    {
+     "t": "Hugging Face Trainer: TrainingArguments(gradient_accumulation_steps=N)",
+     "u": "https://huggingface.co/docs/transformers/main_classes/trainer"
+    }
+   ]
+  },
+  "opt-flash": {
+   "why": "ফল হুবহু একই (approximation নয়), কম memory ও দ্রুত (paper)।",
+   "tradeoff": "GPU ও library-সমর্থন লাগে; কাজ শুধু GPU-র memory-পড়া-লেখা কমায়, model বদলায় না।"
+  },
+  "tool-flash-attn": {
+   "why": "FlashAttention ও FlashAttention-2-এর অফিসিয়াল implementation।",
+   "tradeoff": "আলাদা library: আপনার GPU-র সমর্থন README-তে দেখে নাও।",
+   "how": [
+    {
+     "t": "README: FlashAttention ও FlashAttention-2 implementation",
+     "u": "https://github.com/Dao-AILab/flash-attention#readme"
+    }
+   ]
+  },
+  "opt-sdpa": {
+   "why": "অতিরিক্ত library ছাড়াই PyTorch নিজে optimized kernel ডাকে।",
+   "tradeoff": "কোন kernel (FlashAttention-2, memory-efficient বা সাধারণ C++) চলবে তা PyTorch পরিবেশ দেখে ঠিক করে; আলাদা করে ঠিক করা সহজ নয়।",
+   "how": [
+    {
+     "t": "PyTorch docs: torch.nn.functional.scaled_dot_product_attention — তিনটা implementation: FlashAttention-2, Memory-Efficient, C++ math",
+     "u": "https://pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html"
+    }
+   ]
+  },
+  "opt-single-gpu": {
+   "why": "সবচেয়ে সরল: ভাগাভাগির ভুল নেই।",
+   "tradeoff": "model, optimizer state ও batch এক GPU-র memory-র মধ্যে থাকতে হবে।"
+  },
+  "opt-ddp": {
+   "why": "গতি বাড়ে: প্রতি GPU-তে একই model, data ভাগ, gradient মেলানো।",
+   "tradeoff": "প্রতি GPU-তে model-এর পূর্ণ কপি: model বড় হলে আঁটে না।",
+   "how": [
+    {
+     "t": "PyTorch: torch.nn.parallel.DistributedDataParallel",
+     "u": "https://pytorch.org/docs/stable/notes/ddp.html"
+    }
+   ]
+  },
+  "opt-fsdp": {
+   "why": "parameter, gradient ও optimizer state বহু GPU-তে ভাগ: এক GPU-তে না-আঁটা model-ও চলে।",
+   "tradeoff": "PyTorch docs: memory-সাশ্রয় আর যোগাযোগ-খরচের লেনদেন (sharding_strategy); সেটআপ জটিল।",
+   "how": [
+    {
+     "t": "PyTorch: FullyShardedDataParallel (sharding_strategy, cpu_offload)",
+     "u": "https://pytorch.org/docs/stable/fsdp.html"
+    }
+   ]
+  },
+  "opt-zero": {
+   "why": "FSDP-র মতো ভাগাভাগি, DeepSpeed-এর কাঠামোয়।",
+   "tradeoff": "আলাদা কনফিগ ও কাঠামো শিখতে হয়।"
+  },
+  "tool-deepspeed": {
+   "why": "বড় model-এর distributed training ও inference-এর optimization library।",
+   "tradeoff": "আলাদা কাঠামো ও কনফিগ; ছোট কাজে ভারী।",
+   "when": "DeepSpeed-ভিত্তিক সেটআপ আছে বা চাও"
+  },
+  "tool-accelerate": {
+   "why": "একই script এক বা বহু device-এ, কয়েক লাইন জুড়ে (README)।",
+   "tradeoff": "Hugging Face-এর আরেকটা স্তর।"
+  },
+  "tool-megatron": {
+   "why": "বড় মাপে transformer training-এর গবেষণা-framework।",
+   "tradeoff": "licence GitHub-এ স্পষ্ট নয় (LICENSE ফাইল পড়ো); NVIDIA GPU-ক্লাস্টার-কেন্দ্রিক; শেখার খরচ বেশি।",
+   "when": "NVIDIA GPU-ক্লাস্টারে বড় training"
+  },
+  "tool-torchtitan": {
+   "why": "PyTorch-native generative AI training platform।",
+   "tradeoff": "তুলনামূলক কম ব্যবহৃত; দ্রুত বদলায় (শেষ push ২০২৬-১০-১৭)।",
+   "when": "PyTorch-native বড় training"
+  },
+  "tool-gpt-neox": {
+   "why": "model-parallel autoregressive transformer-এর implementation (Megatron ও DeepSpeed-ভিত্তিক)।",
+   "tradeoff": "সেই দুই library-র কাঠামো মানতে হয়; ছোট কাজে ভারী।",
+   "when": "Megatron/DeepSpeed-ধরনের সেটআপে"
+  },
+  "tool-nanotron": {
+   "why": "ন্যূনতম LLM 3D-parallelism training framework।",
+   "tradeoff": "তুলনামূলক ছোট প্রকল্প: ফিচার ও কমিউনিটি কম।",
+   "when": "ন্যূনতম, পড়ে-বোঝা বড়-training কোড চাইলে"
+  },
+  "tool-unsloth": {
+   "why": "একটা GPU-তে দ্রুত fine-tuning: LoRA, QLoRA, full, pretraining, RL একসঙ্গে (README)।",
+   "tradeoff": "সব-একসঙ্গে tool: ভেতরের ধাপ কম দেখা যায়; আপনার model সমর্থিত কি না দেখো।"
+  },
+  "tool-axolotl": {
+   "why": "কনফিগ-ফাইলে পুরো run বর্ণনা: পুনরায় চালানো সহজ; distributed (FSDP, DeepSpeed) সমর্থন (README)।",
+   "tradeoff": "কনফিগের নিয়ম শিখতে হয়; কনফিগে না-থাকা কিছু করতে কোড পড়তে হয়।"
+  },
+  "tool-llamafactory": {
+   "why": "১০০+ LLM ও VLM-এর একীভূত fine-tuning; LoRA, QLoRA, full, freeze-tuning (README)।",
+   "tradeoff": "বহু অপশনের ভিড়; সঠিক সেটিং বাছা কঠিন।"
+  },
+  "tool-torchtune": {
+   "why": "PyTorch-native, কম abstraction: LoRA/QLoRA recipe-সহ (README)।",
+   "tradeoff": "recipe-ভিত্তিক; নিজের কাজে বদলাতে কনফিগ/recipe বুঝতে হয়।"
+  },
+  "tool-transformers": {
+   "why": "সাধারণ training loop-এর জন্য Trainer, বহু সেটিং (bf16, accumulation, checkpointing)।",
+   "tradeoff": "Hugging Face model-এর বাইরে কম নমনীয়; কাস্টম loss-এ subclass লাগে।",
+   "how": [
+    {
+     "t": "Trainer ও TrainingArguments",
+     "u": "https://huggingface.co/docs/transformers/main_classes/trainer"
+    }
+   ]
+  },
+  "tool-trl": {
+   "why": "SFTTrainer, GRPOTrainer ইত্যাদি fine-tuning ও RL-ভিত্তিক trainer (README)।",
+   "tradeoff": "Transformers-এর ওপর গড়া: সেই কাঠামো মানতে হয়।",
+   "how": [
+    {
+     "t": "SFTTrainer docs",
+     "u": "https://huggingface.co/docs/trl/sft_trainer"
+    }
+   ]
+  },
+  "tool-peft": {
+   "why": "LoRA ইত্যাদি PEFT পদ্ধতির library (LoraConfig, get_peft_model); docs-এ merge_and_unload আছে।",
+   "tradeoff": "শুধু পদ্ধতি দেয়; training loop আলাদা লাগে (Trainer বা নিজের)।",
+   "how": [
+    {
+     "t": "LoraConfig ও get_peft_model",
+     "u": "https://github.com/huggingface/peft#readme"
+    }
+   ]
+  },
+  "tool-lightning": {
+   "why": "training loop-এর বয়লারপ্লেট কমে; এক থেকে বহু GPU।",
+   "tradeoff": "নিজের কাঠামোর (LightningModule) নিয়ম শিখতে হয়।",
+   "when": "নিজের model, পরিষ্কার loop-কাঠামো চাই"
+  },
+  "opt-plain-pytorch": {
+   "why": "পুরো নিয়ন্ত্রণ, বোঝা সহজ।",
+   "tradeoff": "checkpoint, logging, distributed সব নিজে লিখতে হয়।"
+  },
+  "tool-wandb": {
+   "why": "সহজ dashboard: সেটিং ও ফল একসঙ্গে জমে।",
+   "tradeoff": "সেবা-ভিত্তিক platform: আপনার data কোথায় যাচ্ছে ভেবে নাও।",
+   "when": "দলে সেটিং-ফল তুলনা করতে"
+  },
+  "tool-tensorboard": {
+   "why": "লোকালি চলে, loss-curve সহজে দেখা।",
+   "tradeoff": "সেটিং ও ফল তুলনার সুবিধা সীমিত।",
+   "when": "সরল loss-curve দেখতে"
+  },
+  "tool-mlflow": {
+   "why": "experiment ও model-এর lifecycle একসঙ্গে।",
+   "tradeoff": "সার্ভার চালানো বা সেটআপের ঝামেলা থাকতে পারে।",
+   "when": "experiment ও model-সংস্করণ দুটোই রাখতে"
+  },
+  "opt-ckpt-best": {
+   "why": "শেষ ধাপই সবসময় সেরা নয়: সেরা validation-এরটা রাখে।",
+   "tradeoff": "validation বেশি ব্যবহারে validation-এই মানিয়ে যাওয়ার ঝুঁকি।"
+  },
+  "opt-ckpt-resume": {
+   "why": "থেমে গেলে আবার চালানো যায়।",
+   "tradeoff": "optimizer state-সহ রাখলে ফাইল বড়।"
+  },
+  "opt-sc-val-loss": {
+   "why": "সবচেয়ে সস্তা; প্রতি ধাপে মাপা যায়, মুখস্থ ধরার প্রথম সূচক।",
+   "tradeoff": "কাজের আসল মান (CER, উত্তরের মান) না-ও দেখাতে পারে।"
+  },
+  "opt-sc-heldout": {
+   "why": "চূড়ান্ত, নিরপেক্ষ মাপ।",
+   "tradeoff": "বারবার দেখলে নিরপেক্ষতা যায়: শেষে একবারই।"
+  },
+  "tool-lm-eval": {
+   "why": "অনেক প্রচলিত benchmark একসঙ্গে, few-shot মূল্যায়ন framework।",
+   "tradeoff": "আপনার কাজের মাপ নয়; QLoRA paper-ও বলে বর্তমান chatbot benchmark পুরো ভরসাযোগ্য নয়।"
+  },
+  "tool-lighteval": {
+   "why": "একাধিক backend-এ LLM মূল্যায়নের toolkit।",
+   "tradeoff": "আরেকটা framework শিখতে হয়।",
+   "when": "Hugging Face-ভিত্তিক মূল্যায়ন চালানো"
+  },
+  "tool-evaluate": {
+   "why": "প্রচলিত metric-এর library।",
+   "tradeoff": "Hugging Face-এর কাঠামোয় বাঁধা।",
+   "when": "প্রচলিত metric দ্রুত চালাতে"
+  },
+  "opt-eval-jiwer": {
+   "why": "OCR/speech-এ CER ও WER সরাসরি।",
+   "tradeoff": "text-কে আগে একই ছাঁচে (যতিচিহ্ন, Unicode) আনতে হয়।"
+  },
+  "llm-as-judge": {
+   "why": "খোলা-ধরনের উত্তর মাপা যায়, মানুষের চেয়ে সস্তা (QLoRA paper-এর পর্যবেক্ষণ)।",
+   "tradeoff": "পক্ষপাত: অবস্থান, দৈর্ঘ্য, নিজের উত্তরে ঝোঁক (LLM-as-a-judge paper); মানুষের নমুনার সঙ্গে মিলিয়ে নিতে হয়।"
+  },
+  "opt-human-read": {
+   "why": "সংখ্যা যা ধরে না তা পড়লে ধরা পড়ে।",
+   "tradeoff": "সময় লাগে; নমুনা ছোট।"
+  },
+  "opt-regress-set": {
+   "why": "tuning-এ আগের ক্ষমতা হারাল কি না ধরা পড়ে।",
+   "tradeoff": "আগে থেকে সেট বানিয়ে রাখতে হয়।"
+  },
+  "opt-deploy-merge": {
+   "why": "আলাদা LoRA পথ লাগে না: সরল ও দ্রুত।",
+   "tradeoff": "পূর্ণ model-এর সমান ফাইল; quantized base-এ merge-এ দ্বিতীয় rounding-এ output সামান্য সরতে পারে।"
+  },
+  "tool-peft-merge": {
+   "why": "এক লাইনে merge; docs-এ PEFT-এর বাড়তি খরচ সরাতে merge-এর সুপারিশ আছে।",
+   "tradeoff": "merge-এর পর কয়েকটা test input-এ ফল মিলিয়ে দেখো।",
+   "when": "LoRA merge করে deploy করতে",
+   "how": [
+    {
+     "t": "PEFT docs: model.merge_and_unload()",
+     "u": "https://huggingface.co/docs/peft/developer_guides/lora"
+    }
+   ]
+  },
+  "opt-deploy-adapter": {
+   "why": "একই base-এ অনেক ছোট adapter: সংরক্ষণ ও বদল সস্তা।",
+   "tradeoff": "চালাতে সঠিক base ও তার version মেলাতে হয়।"
+  },
+  "tool-vllm": {
+   "why": "উচ্চ throughput (PagedAttention), multi-LoRA সমর্থন (README)।",
+   "tradeoff": "নিজের GPU-সার্ভার ও তার পরিচালনা লাগে।",
+   "how": [
+    {
+     "t": "vLLM LoRA docs",
+     "u": "https://docs.vllm.ai/en/latest/features/lora/"
+    }
+   ]
+  },
+  "tool-llamacpp": {
+   "why": "CPU ও ছোট device-এ চলে; ১.৫ থেকে ৮ bit পূর্ণসংখ্যা quantization (README)।",
+   "tradeoff": "GPU-সার্ভারের বড় throughput-এর লক্ষ্য ভিন্ন।"
+  },
+  "tool-ollama": {
+   "why": "এক কমান্ডে লোকালি model চালানো।",
+   "tradeoff": "সহজ কিন্তু নিয়ন্ত্রণ কম।"
+  },
+  "tool-onnxrt": {
+   "why": "cross-platform inference accelerator।",
+   "tradeoff": "model-কে ONNX-এ রূপান্তরের আলাদা ধাপ লাগে।",
+   "when": "অনেক platform-এ চালাতে"
+  },
+  "tool-tgi": {
+   "why": "একসময় প্রচলিত serving tool।",
+   "tradeoff": "GitHub-এ archived (২০২৬-০৩-২১): আর আপডেট নেই, নতুন কাজে এড়াও।",
+   "when": "আগের সেটআপ চালু রাখতে হলে"
+  },
+  "opt-gguf": {
+   "why": "llama.cpp ও Ollama-র quantized model ফরম্যাট।",
+   "tradeoff": "সেই দুই পরিবেশে আটকে; অন্য engine-এ সরাসরি চলে না।"
+  },
+  "tool-autogptq": {
+   "why": "GPTQ quantization-এর পরিচিত package।",
+   "tradeoff": "GitHub-এ archived (২০২৫-০৪-১১): নতুন কাজে বিকল্প খুঁজে নাও।",
+   "when": "আগের GPTQ-model চালাতে হলে"
+  },
+  "tool-autoawq": {
+   "why": "AWQ-তে 4-bit quantization।",
+   "tradeoff": "GitHub-এ archived (২০২৫-০৫-১১): নতুন কাজে বিকল্প খুঁজে নাও।",
+   "when": "আগের AWQ-model চালাতে হলে"
+  },
+  "correction-dataset": {
+   "why": "আসল ভুল থেকে শেখা: সবচেয়ে কাজের data।",
+   "tradeoff": "সঠিক উত্তর যাচাইয়ের খরচ; test-এ ঢুকে যাওয়ার ঝুঁকি (Module 15)।"
+  },
+  "opt-weekly-review": {
+   "why": "ভুলের ধরন চেনা যায়।",
+   "tradeoff": "মানুষের সময়।"
+  },
+  "opt-sc-mlp": {
+   "why": "সবচেয়ে সরল; ছকের data-য় ভালো baseline।",
+   "tradeoff": "ছবির স্থানীয় নকশা বা ক্রম নিজে বোঝে না।"
+  },
+  "opt-sc-cnn": {
+   "why": "একই filter ছবির সব জায়গায়: কম parameter, স্থানীয় নকশা ধরে।",
+   "tradeoff": "দূরের সম্পর্ক ধরতে অনেক layer লাগে; ক্রমিক লেখায় কম প্রচলিত।"
+  },
+  "opt-sc-rnn": {
+   "why": "ক্রম ধাপে ধাপে চলে, সরল; inference-এ constant memory।",
+   "tradeoff": "সমান্তরালে শেখানো যায় না; লম্বা ক্রমে ভুলে যায় (LSTM/GRU কিছু সামলায়)।"
+  },
+  "opt-sc-transformer": {
+   "why": "যেকোনো দুই অংশের সরাসরি সম্পর্ক, সমান্তরালে শেখা; সবচেয়ে বেশি tool ও checkpoint।",
+   "tradeoff": "attention-এর খরচ ক্রমের দৈর্ঘ্যের বর্গ; generation-এ KV cache বাড়ে।"
+  },
+  "tool-transformers-sc": {
+   "why": "প্রচলিত architecture-এর তৈরি model-definition।",
+   "tradeoff": "Hugging Face-এর কাঠামোয় বাঁধা; একদম নতুন architecture-এ কাস্টম কোড।",
+   "when": "প্রচলিত architecture-এর পাওয়া কোড চাইলে"
+  },
+  "tool-nanogpt": {
+   "why": "খুব ছোট, পড়ে বোঝা যায়: শেখার জন্য আদর্শ।",
+   "tradeoff": "বহু-node বা বহু model-এর সুবিধা নেই; শেষ push ২০২৫-১১-১২।"
+  },
+  "tool-litgpt": {
+   "why": "২০+ LLM-এর pretrain, finetune, deploy-এর recipe একসঙ্গে।",
+   "tradeoff": "recipe-র বাইরে বড় বদল করতে কোড পড়ে বুঝতে হয়।"
+  },
+  "opt-sc-ssm": {
+   "why": "লম্বা ক্রমে সরল খরচ, inference-এ constant memory (Mamba paper)।",
+   "tradeoff": "নতুন: tooling ও pretrained checkpoint কম; ছোট-মাঝারি scale-এর প্রমাণ বেশি (Mamba-2 paper)।"
+  },
+  "tool-mamba": {
+   "why": "Mamba layer-এর মূল repository, নিজে layer জোড়ার জন্য।",
+   "tradeoff": "পাওয়া model চালাতে চাইলে আগে সেটা কোন framework-এ সমর্থিত তা দেখো।"
+  },
+  "opt-sc-layernorm": {
+   "why": "batch-আকার-নিরপেক্ষ, Transformer-এ প্রচলিত।",
+   "tradeoff": "RMSNorm-এর চেয়ে সামান্য বেশি হিসাব (গড় বাদ দেওয়া)।"
+  },
+  "opt-sc-rmsnorm": {
+   "why": "গড় না বাদ দিয়ে শুধু মাপ দিয়ে ভাগ: সস্তা।",
+   "tradeoff": "LayerNorm-এর সঙ্গে আচরণ কিছুটা ভিন্ন; নিজের কাজে মাপো।"
+  },
+  "opt-sc-batchnorm": {
+   "why": "CNN-এ প্রচলিত; শেখা দ্রুত ও স্থির করে।",
+   "tradeoff": "ছোট বা অস্থির batch-এ খারাপ; inference-এ training-এর জমা গড় ব্যবহার হয়।"
+  },
+  "opt-sc-rope": {
+   "why": "আপেক্ষিক দূরত্ব সরাসরি ঢোকায় (RoFormer); আধুনিক LLM-এ প্রচলিত।",
+   "tradeoff": "training-দৈর্ঘ্যের অনেক বাইরে মান নামতে পারে।"
+  },
+  "opt-sc-alibi": {
+   "why": "ছোট দৈর্ঘ্যে training করে লম্বায় চালানো: ১০২৪-এ training করে ২০৪৮-এ একই perplexity, ১১% দ্রুত (paper)।",
+   "tradeoff": "recency-র দিকে ঝোঁক (paper)।"
+  },
+  "opt-sc-flash": {
+   "why": "ফল হুবহু একই, কম memory ও দ্রুত (paper)।",
+   "tradeoff": "GPU ও library-সমর্থন লাগে।"
+  },
+  "opt-sc-gqa": {
+   "why": "KV cache ছোট, generation দ্রুত।",
+   "tradeoff": "MQA-য় মান কিছু কমে; GQA মাঝামাঝি (paper)।"
+  },
+  "opt-sc-window": {
+   "why": "খরচ ক্রমের দৈর্ঘ্যে রৈখিক।",
+   "tradeoff": "জানালার বাইরের দূরের তথ্য সরাসরি দেখে না।"
+  },
+  "opt-sc-bpe": {
+   "why": "অজানা শব্দও টুকরো করে সামলায়।",
+   "tradeoff": "বিরল ভাষায় (যেমন বাংলা) বেশি টুকরো হয়: ক্রম লম্বা, খরচ বেশি।"
+  },
+  "tool-hf-tokenizers": {
+   "why": "দ্রুত tokenizer-এর library: নিজের tokenizer শেখানো ও ব্যবহার।",
+   "tradeoff": "tokenizer একবার ঠিক হলে বদলানো মানে model-এর শেখা অর্থ হারানো।",
+   "when": "নিজের tokenizer শেখাতে"
+  },
+  "tool-sentencepiece": {
+   "why": "লেখাকে সরাসরি শেখে, শব্দ-ভাগ ছাড়া: ভাষা-নিরপেক্ষ।",
+   "tradeoff": "নিজের data থেকে বানাতে হয়; pretrained model-এর নিজেরটাই মানতে হবে।",
+   "when": "শব্দ-সীমা ছাড়া লিপির ভাষায়"
+  },
+  "opt-sc-byte": {
+   "why": "কোনো অজানা token নেই, সব লিপি সমান।",
+   "tradeoff": "ক্রম অনেক লম্বা, খরচ বাড়ে।"
+  },
+  "opt-sc-dedup": {
+   "why": "মুখস্থ ও leakage কমে।",
+   "tradeoff": "বড় data-য় প্রায়-ডুপ্লিকেট ধরা কঠিন ও ধীর।"
+  },
+  "opt-sc-filter": {
+   "why": "আবর্জনা কম, শেখা ভালো।",
+   "tradeoff": "বেশি ছাঁটলে বৈচিত্র্য হারায়, পক্ষপাত ঢোকে।"
+  },
+  "opt-sc-init-random": {
+   "why": "প্রতিটা unit আলাদা হয়ে শিখতে পারে।",
+   "tradeoff": "মাপ ভুল হলে সংকেত ফুলে বা মরে যেতে পারে।"
+  },
+  "opt-sc-lr-small-first": {
+   "why": "বড় run-এর খরচ বাঁচায়।",
+   "tradeoff": "ছোট model-এর সেরা মান বড়-তে সরাসরি না-ও খাটতে পারে।"
+  },
+  "opt-sc-plain": {
+   "why": "পুরো নিয়ন্ত্রণ, বোঝা সহজ।",
+   "tradeoff": "checkpoint, logging, distributed সব নিজে লিখতে হয়।"
+  },
+  "tool-trainer-sc": {
+   "why": "সাধারণ training loop-এর জন্য Trainer, বহু সেটিং (bf16, accumulation, checkpointing)।",
+   "tradeoff": "Hugging Face model-এর বাইরে কম নমনীয়; কাস্টম loss-এ subclass লাগে।",
+   "when": "Hugging Face model-এর সাধারণ training loop",
+   "how": [
+    {
+     "t": "Trainer ও TrainingArguments",
+     "u": "https://huggingface.co/docs/transformers/main_classes/trainer"
+    }
+   ]
+  }
+ }
+}
