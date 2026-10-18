@@ -19,23 +19,27 @@ __CSS__
 <a class="skip" href="#tree">মানচিত্রে যাও</a>
 <header>
   <div class="title">
-    <span class="eyebrow">LEARNING ATLAS / 01</span>
+    <span class="eyebrow">LEARNING ATLAS</span>
     <h1>ML · শেখার মানচিত্র</h1>
-    <p>শাখা বেছে নাও → নামে ক্লিক করলে সংজ্ঞা, হিসাব আর কোর্সের পাঠ</p>
+    <p>শাখা বেছে নাও, নামে ক্লিক করলে সংজ্ঞা, হিসাব আর কোর্সের পাঠ</p>
   </div>
   <div class="controls">
-    <input id="search" type="search" placeholder="Term খুঁজো…  ( / চাপলে এখানে আসবে )" aria-label="Term খুঁজো">
-    <button class="control" id="expand">সব খোলো</button>
-    <button class="control" id="collapse">গুটিয়ে নাও</button>
-    <button class="control" id="theme" aria-label="theme বদলাও">☾ dark</button>
-    <button class="control strong" id="plan-toggle" aria-controls="plan" aria-expanded="false">আমার পথ <span id="plan-count">০</span></button>
+    <input id="search" type="search" placeholder="Term খুঁজো…  ( / )" aria-label="Term খুঁজো">
+    <div class="btn-group" role="group" aria-label="গাছের নিয়ন্ত্রণ">
+      <button class="btn icon" id="expand" type="button" aria-label="সব শাখা খোলো" title="সব খোলো"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/><path d="M4 2.5l4 4 4-4" opacity=".45"/></svg></button>
+      <button class="btn icon" id="collapse" type="button" aria-label="সব শাখা গুটিয়ে নাও" title="গুটিয়ে নাও"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/><path d="M4 13.5l4-4 4 4" opacity=".45"/></svg></button>
+      <button class="btn icon" id="theme" type="button" aria-label="theme বদলাও" title="theme">☾</button>
+    </div>
+    <button class="btn primary" id="plan-toggle" type="button" aria-controls="plan" aria-expanded="false">আমার পথ <span class="badge" id="plan-count">০</span></button>
   </div>
 </header>
-<div id="views" role="tablist" aria-label="দেখার ধরন">
-  <button type="button" role="tab" id="view-tree" aria-selected="true">গাছ</button>
-  <button type="button" role="tab" id="view-path" aria-selected="false">গল্পের পথ <span id="path-count"></span></button>
+<div class="subbar">
+  <div id="views" class="seg" role="tablist" aria-label="দেখার ধরন">
+    <button type="button" role="tab" id="view-tree" aria-selected="true">গাছ</button>
+    <button type="button" role="tab" id="view-path" aria-selected="false">গল্পের পথ <span id="path-count"></span></button>
+  </div>
+  <nav id="jump" aria-label="শাখায় যাও"></nav>
 </div>
-<nav id="jump" aria-label="শাখায় যাও"></nav>
 <main>
   <div class="layout">
     <div class="content">

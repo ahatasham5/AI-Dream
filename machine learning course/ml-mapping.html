@@ -12,130 +12,195 @@
 <meta name="theme-color" content="#151a17">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2215%22%20fill%3D%22%2317251d%22%2F%3E%3Cpath%20d%3D%22M32%2017v14M15%2043V31h34v12M32%2031v12%22%20fill%3D%22none%22%20stroke%3D%22%23a2dfbc%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2216%22%20r%3D%227%22%20fill%3D%22%23e4eddf%22%2F%3E%3Cg%20fill%3D%22%23a2dfbc%22%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%2246%22%20r%3D%226%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2246%22%20r%3D%226%22%2F%3E%3Ccircle%20cx%3D%2249%22%20cy%3D%2246%22%20r%3D%226%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
 <style>
-/* Theme: light (default), dark। JS data-theme বসায়; JS না চললে OS-এর পছন্দ মানে। */
+/* ML Learning Atlas — design system.
+   Theme: light (default), dark। JS data-theme বসায়; JS না চললে OS-এর পছন্দ মানে।
+   নিয়ম: একটাই accent, নরম shadow, ৪/৮px ছন্দ, বোতাম মাত্র কয়েক ধরনের (.btn + primary/ghost/icon/sm)। */
 :root{
   color-scheme:light;
-  --ink:#173a36;--muted:#586a63;--line:#d3ddd3;--paper:#fbfcf7;--accent:#1e6a5d;
-  --card:#ffffff;--chip:#eef4eb;--toggle:#f1f6ee;--hover:#e9f2e7;--hover-line:#cfe0cc;
-  --root-bg:#173a36;--root-ink:#ffffff;--dlg:#ffffff;--code-bg:#eef6ef;--code-ink:#173a36;--code-line:#c4d9c8;
-  --link:#17559a;--input:#ffffff;--btn:#ffffff;--btn-hover:#eef4eb;--btn-line:#c9d6c9;--focus:#d89a1f;
-  --shadow:0 12px 45px #173a3610;--backdrop:#173a3680;--reading-size:19px;
+  --ink:#16302c;--muted:#5f6f69;--line:#e2e8e0;--paper:#f6f8f3;--accent:#1e6a5d;--on-accent:#ffffff;
+  --card:#ffffff;--chip:#eef3ea;--toggle:#f1f5ee;--hover:#e8f0e6;--hover-line:#d3e1d0;--soft:#e6f1ec;
+  --root-bg:#173a36;--root-ink:#ffffff;--dlg:#ffffff;--code-bg:#f1f6f1;--code-ink:#173a36;--code-line:#d4e2d6;
+  --link:#17559a;--input:#ffffff;--btn:#ffffff;--btn-hover:#eef3ea;--btn-line:#d5ded3;--focus:#d89a1f;
+  --danger:#b3412f;--amber:#9a6a0a;
+  --shadow:0 1px 2px #173a3608,0 8px 30px #173a3610;--shadow-pop:0 10px 40px #173a3626;--backdrop:#173a3680;--reading-size:19px;
 }
 :root[data-theme=dark]{
   color-scheme:dark;
-  --ink:#e3e5df;--muted:#b2b9b2;--line:#3a453e;--paper:#151a17;--accent:#b4d4bd;
-  --card:#1c231e;--chip:#263c2e;--toggle:#24372b;--hover:#2b4032;--hover-line:#4e7059;
-  --root-bg:#a2dfbc;--root-ink:#10291b;--dlg:#222b25;--code-bg:#14251b;--code-ink:#d4f1dc;--code-line:#49634e;
-  --link:#a5d9ff;--input:#202e25;--btn:#2c3930;--btn-hover:#3b4d40;--btn-line:#596d5e;--focus:#e2ad46;
-  --shadow:0 12px 45px #00000025;--backdrop:#0b100de0;
+  --ink:#e6e9e3;--muted:#a6afa8;--line:#29332d;--paper:#101512;--accent:#8fd0ae;--on-accent:#0d1f16;
+  --card:#171d19;--chip:#1f2b24;--toggle:#1f2b24;--hover:#26362c;--hover-line:#3c5744;--soft:#1d2e25;
+  --root-bg:#8fd0ae;--root-ink:#0d1f16;--dlg:#1c241f;--code-bg:#121a15;--code-ink:#d4f1dc;--code-line:#2e4234;
+  --link:#a5d9ff;--input:#1a221d;--btn:#1f2823;--btn-hover:#2a372f;--btn-line:#38453d;--focus:#e2ad46;
+  --danger:#f0a090;--amber:#e2ad46;
+  --shadow:0 1px 2px #00000030,0 8px 30px #00000030;--shadow-pop:0 10px 40px #00000070;--backdrop:#0b100de0;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme]){
     color-scheme:dark;
-    --ink:#e3e5df;--muted:#b2b9b2;--line:#3a453e;--paper:#151a17;--accent:#b4d4bd;
-    --card:#1c231e;--chip:#263c2e;--toggle:#24372b;--hover:#2b4032;--hover-line:#4e7059;
-    --root-bg:#a2dfbc;--root-ink:#10291b;--dlg:#222b25;--code-bg:#14251b;--code-ink:#d4f1dc;--code-line:#49634e;
-    --link:#a5d9ff;--input:#202e25;--btn:#2c3930;--btn-hover:#3b4d40;--btn-line:#596d5e;--focus:#e2ad46;
-    --shadow:0 12px 45px #00000025;--backdrop:#0b100de0;
+    --ink:#e6e9e3;--muted:#a6afa8;--line:#29332d;--paper:#101512;--accent:#8fd0ae;--on-accent:#0d1f16;
+    --card:#171d19;--chip:#1f2b24;--toggle:#1f2b24;--hover:#26362c;--hover-line:#3c5744;--soft:#1d2e25;
+    --root-bg:#8fd0ae;--root-ink:#0d1f16;--dlg:#1c241f;--code-bg:#121a15;--code-ink:#d4f1dc;--code-line:#2e4234;
+    --link:#a5d9ff;--input:#1a221d;--btn:#1f2823;--btn-hover:#2a372f;--btn-line:#38453d;--focus:#e2ad46;
+    --danger:#f0a090;--amber:#e2ad46;
+    --shadow:0 1px 2px #00000030,0 8px 30px #00000030;--shadow-pop:0 10px 40px #00000070;--backdrop:#0b100de0;
   }
 }
 
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:"Noto Sans Bengali","Nirmala UI",system-ui,sans-serif;font-size:16px}
-.skip{position:absolute;left:-999px;top:8px;background:var(--root-bg);color:var(--root-ink);padding:8px 12px;border-radius:8px;z-index:10}
+.skip{position:absolute;left:-999px;top:8px;background:var(--root-bg);color:var(--root-ink);padding:8px 12px;border-radius:8px;z-index:50}
 .skip:focus{left:8px}
 button,input{font:inherit}button{cursor:pointer}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
-header{max-width:1500px;margin:0 auto;padding:42px 24px 14px;display:flex;justify-content:space-between;gap:20px;align-items:center;flex-wrap:wrap}
-h1{font-size:clamp(24px,4vw,36px);margin:5px 0;font-weight:650}
-.eyebrow{font:11px system-ui;letter-spacing:3px;color:var(--accent)}
-header p{color:var(--muted);font-size:14px;margin:8px 0}
-.controls{display:flex;flex-wrap:wrap;gap:8px}
-input{background:var(--input);border:1px solid var(--btn-line);border-radius:10px;padding:10px 13px;width:260px;max-width:100%;color:var(--ink)}
-input::placeholder{color:var(--muted)}
-.control{border:1px solid var(--btn-line);background:var(--btn);border-radius:10px;padding:9px 12px;color:var(--ink);font-size:13px}
-.control:hover{background:var(--btn-hover)}
+/* ---------- বোতাম: একটাই পরিবার ---------- */
+.btn,.control{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 13px;border:1px solid var(--btn-line);background:var(--btn);color:var(--ink);border-radius:10px;font-size:13px;font-weight:550;line-height:1;white-space:nowrap;text-decoration:none;transition:background .12s,border-color .12s}
+.btn:hover,.control:hover{background:var(--btn-hover)}
+.btn.primary,.control.strong{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:650}
+.btn.primary:hover,.control.strong:hover{background:var(--accent);filter:brightness(1.07)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{background:var(--hover);color:var(--ink)}
+.btn.icon{width:34px;padding:0}
+.btn.sm{height:28px;padding:0 10px;font-size:12px;border-radius:8px}
+.btn.icon.sm{width:28px;padding:0}
+.btn.danger{color:var(--danger)}
+.btn.danger.armed{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+.btn svg{width:16px;height:16px;flex:none}
+.btn-group{display:inline-flex;border:1px solid var(--btn-line);border-radius:10px;background:var(--btn);overflow:hidden}
+.btn-group .btn{border:0;border-radius:0;background:transparent;height:32px}
+.btn-group .btn+.btn{border-inline-start:1px solid var(--btn-line)}
+.btn-group .btn:hover{background:var(--btn-hover)}
+.badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;font:650 11px system-ui;background:var(--soft);color:var(--accent)}
+.btn.primary .badge{background:var(--on-accent);color:var(--accent)}
+.seg{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:12px;background:var(--chip)}
+.seg button{border:0;background:transparent;color:var(--muted);height:30px;padding:0 14px;border-radius:9px;font-size:13px;font-weight:600}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-selected=true],.seg button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px #0000001c}
 
-/* শাখায় লাফানোর সারি */
-#jump{max-width:1500px;margin:0 auto;padding:0 24px 14px;display:flex;flex-wrap:wrap;gap:8px}
-#jump button{border:1px solid var(--btn-line);background:var(--chip);color:var(--ink);border-radius:999px;padding:6px 13px;font-size:13px}
-#jump button:hover{background:var(--hover)}
+/* ---------- header ও উপরের সারি ---------- */
+header{max-width:1500px;margin:0 auto;padding:30px 24px 12px;display:flex;justify-content:space-between;gap:16px 24px;align-items:flex-end;flex-wrap:wrap}
+h1{font-size:clamp(22px,3.4vw,30px);margin:4px 0 0;font-weight:700;letter-spacing:-.01em}
+.eyebrow{font:600 10.5px system-ui;letter-spacing:.22em;color:var(--accent)}
+header p{color:var(--muted);font-size:13.5px;margin:6px 0 0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input[type=search]{background:var(--input);border:1px solid var(--btn-line);border-radius:10px;height:34px;padding:0 13px;width:250px;max-width:100%;color:var(--ink);font-size:13.5px}
+input[type=search]::placeholder{color:var(--muted)}
+input[type=search]:focus{border-color:var(--accent);outline:0;box-shadow:0 0 0 3px var(--soft)}
+.subbar{max-width:1500px;margin:0 auto;padding:0 24px 14px;display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap}
+#views{flex:none}
+#path-count{font:12px system-ui;opacity:.7;margin-inline-start:4px}
+#jump{display:flex;gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}
+#jump::-webkit-scrollbar{display:none}
+#jump button{flex:none;border:0;background:transparent;color:var(--muted);border-radius:8px;padding:6px 10px;font-size:13px;white-space:nowrap}
+#jump button:hover{background:var(--hover);color:var(--ink)}
+body.path-mode .map,body.path-mode #jump{display:none}
 
 main{max-width:1500px;margin:0 auto;padding:0 24px 30px}
 .layout{display:block}
 .content{min-width:0;max-width:1100px;margin:0 auto}
-body.plan-open .layout{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:18px;align-items:start}
+body.plan-open .layout{display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:20px;align-items:start}
 body.plan-open .content{margin:0;max-width:none}
-.map{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow)}
-footer{max-width:1100px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:13px}
+.map{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 20px;box-shadow:var(--shadow)}
+footer{max-width:1100px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:12.5px}
 
+/* ---------- গাছ ---------- */
 ul{list-style:none;padding-left:26px;margin:0}
-li{position:relative;padding:5px 0}
+li{position:relative;padding:3px 0}
 li:before{content:"";position:absolute;left:-15px;top:0;bottom:0;border-left:1px solid var(--line)}
-li:after{content:"";position:absolute;left:-15px;top:27px;width:14px;border-top:1px solid var(--line)}
-li:last-child:before{bottom:calc(100% - 27px)}
+li:after{content:"";position:absolute;left:-15px;top:24px;width:14px;border-top:1px solid var(--line)}
+li:last-child:before{bottom:calc(100% - 24px)}
 .root{padding-left:0}.root>li:before,.root>li:after{display:none}
-.row{display:flex;align-items:center;gap:6px;min-height:48px}
-.toggle{flex:0 0 29px;width:29px;height:29px;border-radius:50%;border:1px solid var(--line);background:var(--toggle);color:var(--accent);font-size:19px;line-height:1}
+.row{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-height:44px}
+.toggle{flex:0 0 26px;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:var(--toggle);color:var(--accent);font-size:17px;line-height:1}
 .toggle:hover{background:var(--hover)}
-.dot{width:29px;flex:0 0 29px;text-align:center;color:var(--muted)}
-.term{border:1px solid transparent;background:transparent;text-align:start;border-radius:9px;padding:9px 12px;color:var(--ink);font-size:17px;line-height:1.7;overflow-wrap:anywhere}
-.term:hover{background:var(--hover);border-color:var(--hover-line)}
-.term:focus-visible,.toggle:focus-visible,button:focus-visible,summary:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
-.level-0>.row>.term{font-size:22px;background:var(--root-bg);color:var(--root-ink);font-weight:650}
-.level-1>.row>.term{background:var(--chip);font-weight:600}
-.count{font:11px system-ui;color:var(--muted);padding-inline-start:7px}
+.dot{width:26px;flex:0 0 26px;text-align:center;color:var(--muted)}
+.term{border:1px solid transparent;background:transparent;text-align:start;border-radius:9px;padding:7px 11px;color:var(--ink);font-size:16px;line-height:1.65;overflow-wrap:anywhere}
+.term:hover{background:var(--hover)}
+.level-0>.row>.term{font-size:20px;background:var(--root-bg);color:var(--root-ink);font-weight:700;padding:8px 16px}
+.level-1>.row>.term{font-weight:650;font-size:16.5px}
+.count{font:11px system-ui;color:var(--muted);padding-inline-start:7px;opacity:.8}
 .level-0>.row>.term .count{color:inherit;opacity:.7}
 .where{display:none;font-size:12px;color:var(--muted);padding-inline-start:10px;font-weight:400}
 body.searching .where{display:inline}
 .pulse>.row>.term{animation:pulse 1.6s ease-out 1}
 @keyframes pulse{0%{box-shadow:0 0 0 0 var(--focus)}100%{box-shadow:0 0 0 14px #0000}}
-[hidden]{display:none!important}
 #empty{padding:24px;color:var(--muted)}
+li.picked>.row>.term{background:var(--soft);border-color:var(--hover-line)}
+.seq{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;margin-inline-end:8px;border-radius:99px;background:var(--soft);color:var(--accent);font:650 12px system-ui;vertical-align:1px}
+.level-0>.row>.term .seq{background:var(--root-ink);color:var(--root-bg)}
+.seq.big{font-size:13px;height:26px;padding:0 10px;margin-inline-end:6px;vertical-align:4px}
 
-/* dialog */
-dialog{border:1px solid var(--line);border-radius:20px;padding:20px 38px 38px;max-width:740px;width:calc(100% - 32px);max-height:85dvh;overflow-y:auto;overscroll-behavior:contain;color:var(--ink);background:var(--dlg);box-shadow:0 20px 100px #00000060;scrollbar-gutter:stable}
+/* node-এর ছোট লেবেল: শান্ত, বোতামের মতো নয় */
+.kchip{display:inline-block;font:600 10.5px system-ui;padding:2px 8px;border-radius:99px;margin-inline-start:8px;vertical-align:2px;background:var(--chip);color:var(--muted);white-space:nowrap;letter-spacing:.02em}
+.kchip.one{background:var(--soft);color:var(--accent)}
+.kchip.many{background:transparent;color:var(--link);box-shadow:inset 0 0 0 1px currentColor}
+.kchip.tool{color:var(--ink)}
+.kchip.basis{margin:0}
+.kchip.basis.paper{color:var(--link)}
+.kchip.basis.experience{box-shadow:inset 0 0 0 1px var(--btn-line);background:transparent}
+.kchip.mode{background:var(--accent);color:var(--on-accent)}
+.kchip.info{margin-inline-start:8px;background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+/* tree-র "বাছো": হালকা pill, বাছা হলে নরম সবুজ */
+.selbtn{margin-inline-start:auto;height:28px;padding:0 13px;border:1px solid var(--btn-line);background:transparent;color:var(--muted);border-radius:99px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.selbtn:hover{border-color:var(--accent);color:var(--accent);background:var(--soft)}
+.selbtn[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.selbtn.go{border-style:dashed}
+
+/* ---------- dialog ---------- */
+dialog{border:1px solid var(--line);border-radius:20px;padding:18px 38px 38px;max-width:740px;width:calc(100% - 32px);max-height:85dvh;overflow-y:auto;overscroll-behavior:contain;color:var(--ink);background:var(--dlg);box-shadow:0 20px 100px #00000060;scrollbar-gutter:stable}
 dialog::backdrop{background:var(--backdrop);backdrop-filter:blur(2px)}
-.dlg-bar{position:sticky;top:-20px;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;background:var(--dlg)}
-.reading-tools{display:flex;align-items:center;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:13px}
-.reading-tools button,.close{border:1px solid var(--btn-line);border-radius:8px;background:var(--btn);color:var(--ink);min-width:42px;min-height:40px;font-size:17px}
+.dlg-bar{position:sticky;top:-18px;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;background:var(--dlg)}
+.reading-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:12.5px}
+.reading-tools button,.close{border:1px solid var(--btn-line);border-radius:9px;background:var(--btn);color:var(--ink);min-width:36px;height:34px;font-size:14px}
 .reading-tools button:hover,.close:hover{background:var(--btn-hover)}
 .reading-tools button:disabled{opacity:.4;cursor:default}
-.reading-tools .textbtn{font-size:13px;padding:0 12px}
-.reading-tools output{min-width:38px;text-align:center;font:13px system-ui}
-#crumb{font-size:13px;line-height:1.8;padding-top:14px;color:var(--muted);display:flex;flex-wrap:wrap;align-items:center;gap:2px 4px}
+.reading-tools .textbtn{font-size:12.5px;padding:0 12px}
+.reading-tools output{min-width:38px;text-align:center;font:12.5px system-ui}
+#crumb{font-size:13px;line-height:1.8;padding-top:12px;color:var(--muted);display:flex;flex-wrap:wrap;align-items:center;gap:2px 4px}
 #crumb button{background:none;border:0;padding:2px 4px;color:var(--link);font-size:13px;border-radius:5px}
 #crumb button:hover{background:var(--hover)}
 #crumb .sep{opacity:.6}
-dialog h2{font-size:27px;line-height:1.55;margin:12px 0 18px}
+dialog h2{font-size:26px;line-height:1.5;margin:10px 0 16px;letter-spacing:-.01em}
 dialog #def-text,dialog .profile-section p{font-size:var(--reading-size);line-height:2;max-width:60ch;font-weight:400;text-align:start;margin:0}
 dialog .profile-section,#lessons .profile-section,#related .profile-section{border-top:1px solid var(--line);margin-top:26px;padding-top:22px}
 dialog .profile-section p+p{margin-top:18px}
-dialog h3{font-size:17px;line-height:1.7;color:var(--accent);margin:0 0 12px;font-weight:600}
-dialog .source-note{font-size:14px;line-height:1.9;margin-top:28px;color:var(--muted)}
+dialog h3{font-size:16px;line-height:1.7;color:var(--accent);margin:0 0 10px;font-weight:650}
+dialog .source-note{font-size:13.5px;line-height:1.9;margin-top:26px;color:var(--muted)}
 dialog summary{cursor:pointer;color:var(--accent);font-size:15px;line-height:1.8}
 #more>details{margin-top:26px;border-top:1px solid var(--line);padding-top:18px}
 dialog a{color:var(--link);overflow-wrap:anywhere}
 dialog a{display:block;font-size:15px;line-height:1.8;padding-top:10px}
 .math-formula{font-family:ui-monospace,monospace;font-size:18px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere;padding:18px;background:var(--code-bg);color:var(--code-ink);border:1px solid var(--code-line);border-radius:12px;margin-top:22px}
 
+/* বাছার বার (dialog-এর ওপরে) */
+.pickbox{margin:6px 0 14px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.pickbox .when{flex-basis:100%;margin:2px 0 0;color:var(--muted);font-size:15px;line-height:1.7}
+.pickbox a.src{display:inline;padding:0;font-size:13px}
+/* কখন/কেন/দাম/কীভাবে: নরম একটা card, ভেতরে ছোট লেবেল + লেখা */
+.guide{flex-basis:100%;border-radius:14px;padding:4px 16px;background:var(--chip)}
+.grow{display:grid;grid-template-columns:120px 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line);line-height:1.75;font-size:15.5px}
+.grow:first-child{border-top:0}
+.grow .gk{font-weight:650;color:var(--accent);font-size:13px;padding-top:2px}
+.grow.cost .gk{color:var(--danger)}
+.grow .gv a{display:inline-block;margin:1px 0;padding:0;font-size:inherit}
+.toolinfo{flex-basis:100%;border-radius:14px;padding:8px 16px;background:var(--chip)}
+.toolinfo .lbl{font-size:12.5px;font-weight:650;color:var(--accent);padding:6px 0}
+.trow{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:6px 0;font-size:14.5px;line-height:1.65;border-top:1px solid var(--line)}
+.trow:first-of-type{border-top:0}.trow .k{color:var(--muted)}.trow .v,.trow a{overflow-wrap:anywhere}
+.trow a{display:inline;padding:0;font-size:inherit}
+.infonote{flex-basis:100%;border-radius:12px;padding:10px 14px;line-height:1.7;color:var(--muted);font-size:14.5px;background:var(--chip)}
+
 /* পাঠ ও ঘোরাঘুরির তালিকা */
 .lesson-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .lesson-list li{padding:0}.lesson-list li:before,.lesson-list li:after{display:none}
-.lesson{display:flex;gap:10px;align-items:baseline;font-size:16px;line-height:1.7;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--chip);color:var(--ink);text-decoration:none}
-a.lesson:hover{background:var(--hover);border-color:var(--hover-line)}
+.lesson{display:flex;gap:10px;align-items:baseline;font-size:16px;line-height:1.7;padding:8px 12px;border-radius:10px;background:var(--chip);color:var(--ink);text-decoration:none}
+a.lesson:hover{background:var(--hover)}
 .lesson .k{font:12px system-ui;color:var(--accent);white-space:nowrap}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chips button{border:1px solid var(--btn-line);background:var(--chip);color:var(--ink);border-radius:999px;padding:6px 13px;font-size:15px;line-height:1.5;text-align:start}
+.chips button{border:1px solid var(--btn-line);background:var(--chip);color:var(--ink);border-radius:99px;padding:6px 13px;font-size:15px;line-height:1.5;text-align:start}
 .chips button:hover{background:var(--hover)}
 .chips .at{display:block;font-size:12px;color:var(--muted)}
-
-@media(max-width:650px){
-  header{padding-top:28px}dialog{padding:14px 20px 28px;max-height:90dvh}dialog h2{font-size:24px}.term{font-size:16px}
-  .reading-tools{gap:7px}ul{padding-left:18px}.map{padding:14px}.level-0>.row>.term{font-size:19px}
-}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important}}
-@media print{header .controls,#jump,.skip,footer{display:none}body{background:#fff;color:#000}.map{box-shadow:none;border:0}}
 
 /* গল্প: তিন ধাপ */
 .story .steps{display:grid;gap:18px}
@@ -147,181 +212,172 @@ a.lesson:hover{background:var(--hover);border-color:var(--hover-line)}
 .nexts{display:grid;gap:8px;margin-top:6px}
 .next{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;font-size:16px;line-height:1.7}
 .next .why{color:var(--muted)}
-.pick{border:1px solid var(--btn-line);background:var(--chip);color:var(--ink);border-radius:999px;padding:5px 13px;font-size:15px;line-height:1.5;text-align:start}
+.pick{border:1px solid var(--btn-line);background:var(--chip);color:var(--ink);border-radius:99px;padding:5px 13px;font-size:15px;line-height:1.5;text-align:start}
 button.pick:hover{background:var(--hover);border-color:var(--hover-line)}
 .pick.plain{background:transparent;border-style:dashed}
-.history{margin-top:22px;padding-top:16px;border-top:1px dashed var(--line);display:grid;gap:12px}
+.history{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);display:grid;gap:12px}
 .history .lbl{font-size:14px;font-weight:650;color:var(--accent)}
 .hrow{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:16px;line-height:1.8}
-.hrow .y{font:650 14px system-ui;color:var(--root-ink);background:var(--root-bg);border-radius:8px;padding:2px 9px;height:fit-content;white-space:nowrap}
+.hrow .y{font:650 13px system-ui;color:var(--root-ink);background:var(--root-bg);border-radius:8px;padding:2px 9px;height:fit-content;white-space:nowrap}
 .hrow .src{grid-column:2;font-size:13px;color:var(--link)}
-/* কোন ক্ষেত্রে কোনটা */
 .choices{display:grid;gap:10px}
-.choice{display:grid;grid-template-columns:1fr auto auto;gap:4px 10px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--chip)}
+.choice{display:grid;grid-template-columns:1fr auto auto;gap:4px 10px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--chip)}
 .choice .when{font-size:16px;line-height:1.7}
 .choice .arrow{color:var(--muted)}
 .choice .why{grid-column:1/-1;font-size:14px;color:var(--muted);line-height:1.6}
-/* আরও জানতে */
-details.more{margin-top:30px;border:1px dashed var(--line);border-radius:12px;padding:6px 16px}
+details.more{margin-top:30px;border:1px solid var(--line);border-radius:12px;padding:6px 16px}
 details.more>summary{cursor:pointer;color:var(--accent);font-size:15px;line-height:1.8;padding:8px 0}
 details.more .profile-section:first-child{border-top:0;margin-top:6px}
-@media(max-width:650px){.choice{grid-template-columns:1fr}.choice .arrow{display:none}.step{grid-template-columns:30px 1fr;gap:10px}.step .n{width:30px;height:30px}.step:not(:last-child):before{left:14px}}
-
-/* দেখার ধরন: গাছ | গল্পের পথ */
-#views{max-width:1500px;margin:0 auto;padding:0 24px 12px;display:flex;gap:6px}
-#views button{border:1px solid var(--btn-line);background:var(--btn);color:var(--ink);border-radius:10px;padding:8px 16px;font-size:14px}
-#views button[aria-selected=true]{background:var(--root-bg);color:var(--root-ink);border-color:var(--root-bg)}
-#path-count{font-size:12px;opacity:.85;margin-left:4px}
-body.path-mode .map,body.path-mode #jump{display:none}
-#pathview{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow)}
-#pathview[hidden]{display:none}
-.path-head{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:6px}
-.path-head p{margin:0;color:var(--muted);font-size:15px;max-width:640px;line-height:1.7}
-.progress{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted);margin:8px 0 18px}
-.progress .bar{flex:1;height:10px;border-radius:99px;background:var(--chip);overflow:hidden;border:1px solid var(--line)}
-.progress .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
-.chapter{margin:22px 0 6px}
-.chapter h3{margin:0;font-size:19px}
-.chapter .intro{margin:3px 0 10px;color:var(--muted);font-size:14.5px}
-.pstep{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin:8px 0;background:var(--paper)}
-.pstep.done{background:var(--chip)}
-.pstep .num{width:30px;height:30px;border-radius:50%;background:var(--root-bg);color:var(--root-ink);display:grid;place-items:center;font-size:13px;font-weight:650}
-.pstep.done .num{background:var(--accent);color:var(--paper)}
-.pstep button.open{all:unset;cursor:pointer;display:block;text-align:start}
-.pstep button.open:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:6px}
-.pstep .ttl{font-weight:650;font-size:17px}
-.pstep .sub{color:var(--muted);font-size:14.5px;line-height:1.6;margin-top:2px}
-.tick{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none;white-space:nowrap}
-.tick input{width:18px;height:18px;padding:0;accent-color:var(--accent)}
-.pathbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0 12px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--chip);font-size:14px}
-.pathbar .pos{color:var(--muted);flex:1;min-width:140px}
-.pathbar button{border:1px solid var(--btn-line);background:var(--btn);color:var(--ink);border-radius:9px;padding:6px 12px;font-size:14px}
-.pathbar button:hover:not(:disabled){background:var(--btn-hover)}
-.pathbar button:disabled{opacity:.4;cursor:default}
-.pathbar button.on{background:var(--accent);color:var(--paper);border-color:var(--accent)}
-.reset{border:1px solid var(--btn-line);background:var(--btn);color:var(--ink);border-radius:9px;padding:6px 12px;font-size:13px}
-.reset.warn{border-color:#b3412f;color:#b3412f}
-@media(max-width:650px){#views,#jump{padding-left:16px;padding-right:16px}#pathview{padding:14px}.pstep{grid-template-columns:auto 1fr}.pstep .tick{grid-column:2}}
-@media print{#views,#pathbar{display:none}}
 
 /* বাস্তবে কী হয় */
 .practice .scn{margin:4px 0 12px;line-height:1.8}
-.pblock{margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+.pblock{margin:12px 0;padding:10px 14px;border-radius:12px;background:var(--chip)}
 .pblock .lbl{font-size:13px;font-weight:650;color:var(--accent);margin-bottom:6px}
 .pblock ul{margin:0;padding-left:20px;list-style:disc}
 .pblock li{padding:2px 0;line-height:1.7}.pblock li:before,.pblock li:after{display:none}
-.pblock.exp{border-style:dashed}
-.pblock.pit .lbl{color:#b3412f}
-:root[data-theme=dark] .pblock.pit .lbl{color:#f0a090}
-.fact{display:flex;flex-wrap:wrap;gap:4px 10px;padding:5px 0;border-top:1px dashed var(--line);line-height:1.7}
+.pblock.pit .lbl{color:var(--danger)}
+.fact{display:flex;flex-wrap:wrap;gap:4px 10px;padding:5px 0;border-top:1px solid var(--line);line-height:1.7}
 .fact:first-of-type{border-top:0}
 .fact .src{font-size:13px;color:var(--link)}
 .practice .outside{font-size:14px;color:var(--muted);margin:8px 0 0}
-@media print{.pblock{break-inside:avoid}}
 
-/* ক্রমিক ধাপ-নম্বর */
-.seq{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;margin-inline-end:9px;border-radius:99px;background:var(--accent);color:var(--paper);font:600 13px system-ui;vertical-align:1px}
-.level-0>.row>.term .seq{background:var(--root-ink);color:var(--root-bg)}
-.seq.big{font-size:13px;height:26px;padding:0 10px;margin-inline-end:6px;vertical-align:4px}
+/* গল্পের পথ view */
+#pathview{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+.path-head{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:6px}
+.path-head p{margin:0;color:var(--muted);font-size:14.5px;max-width:640px;line-height:1.7}
+.progress{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin:8px 0 18px}
+.progress .bar,.bar.thin{flex:1;height:6px;border-radius:99px;background:var(--chip);overflow:hidden}
+.progress .bar i,.bar.thin i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s;border-radius:99px}
+.chapter{margin:22px 0 6px}
+.chapter h3{margin:0;font-size:18px}
+.chapter .intro{margin:3px 0 10px;color:var(--muted);font-size:14.5px}
+.pstep{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin:8px 0;background:var(--card)}
+.pstep.done{background:var(--chip)}
+.pstep .num{width:28px;height:28px;border-radius:50%;background:var(--soft);color:var(--accent);display:grid;place-items:center;font-size:12.5px;font-weight:650}
+.pstep.done .num{background:var(--accent);color:var(--on-accent)}
+.pstep button.open{all:unset;cursor:pointer;display:block;text-align:start}
+.pstep button.open:focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:6px}
+.pstep .ttl{font-weight:650;font-size:16.5px}
+.pstep .sub{color:var(--muted);font-size:14.5px;line-height:1.6;margin-top:2px}
+.tick{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none;white-space:nowrap}
+.tick input{width:18px;height:18px;padding:0;accent-color:var(--accent)}
+.pathbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0 12px;padding:8px 10px;border-radius:12px;background:var(--chip);font-size:13.5px}
+.pathbar .pos{color:var(--muted);flex:1;min-width:140px}
+.pathbar button{height:30px;border:1px solid var(--btn-line);background:var(--btn);color:var(--ink);border-radius:8px;padding:0 12px;font-size:13px}
+.pathbar button:hover:not(:disabled){background:var(--btn-hover)}
+.pathbar button:disabled{opacity:.4;cursor:default}
+.pathbar button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.reset{height:30px;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:8px;padding:0 12px;font-size:12.5px}
+.reset:hover{background:var(--hover);color:var(--ink)}
+.reset.warn{background:var(--danger);color:#fff}
 
-/* বাছাই ও আমার পথ */
-.control.strong{background:var(--accent);color:var(--paper);border-color:var(--accent);font-weight:600}
-.control.strong:hover{filter:brightness(1.08);background:var(--accent)}
-#plan-count{margin-left:6px;background:var(--paper);color:var(--accent);border-radius:99px;padding:0 8px;font-size:12px}
-.kchip{display:inline-block;font:600 11px system-ui;padding:2px 9px;border-radius:99px;margin-inline-start:9px;vertical-align:2px;border:1px solid var(--btn-line);background:var(--paper);color:var(--muted);white-space:nowrap}
-.kchip.one{color:var(--accent);border-color:var(--accent)}
-.kchip.many{color:var(--link);border-color:var(--link)}
-.kchip.tool{color:var(--ink);background:var(--chip)}
-.kchip.basis{margin:0;color:var(--muted)}
-.kchip.basis.paper{color:var(--link);border-color:var(--link)}
-.kchip.basis.experience{border-style:dashed}
-.selbtn{margin-inline-start:auto;border:1px solid var(--accent);background:var(--paper);color:var(--accent);border-radius:99px;padding:5px 14px;font-size:13px;font-weight:600;white-space:nowrap}
-.selbtn:hover{background:var(--chip)}
-.selbtn[aria-pressed=true]{background:var(--accent);color:var(--paper)}
-li.picked>.row>.term{background:var(--hover);border-color:var(--hover-line)}
-.row{flex-wrap:wrap}
-#plan{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
-#plan[hidden]{display:none}
-.plan-head{display:flex;align-items:center;gap:10px}
-.plan-head h2{margin:0;font-size:20px}
-.plan-n{color:var(--muted);font-size:13px;flex:1}
-.plan-close,.pi-x{border:1px solid var(--btn-line);background:var(--btn);color:var(--ink);border-radius:8px;width:30px;height:30px;line-height:1}
-.plan-empty{color:var(--muted);line-height:1.8;font-size:15px}
-.plan-acts{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
-.plan-step h3{margin:14px 0 6px;font-size:14px;color:var(--accent)}
-.plan-item{display:flex;gap:8px;align-items:flex-start;padding:7px 9px;border:1px solid var(--line);border-radius:11px;margin:6px 0;background:var(--paper)}
-.plan-item.warn{border-color:#b3412f}
+/* ---------- পথ শুরুর বার ---------- */
+#startbar{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow);display:grid;gap:10px}
+.sb-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.sb-label{font:650 11px system-ui;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.modes{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:12px;background:var(--chip)}
+.modebtn{border:0;background:transparent;color:var(--muted);height:32px;padding:0 14px;border-radius:9px;font-size:13.5px;font-weight:650}
+.modebtn:hover{color:var(--ink)}
+.modebtn.on{background:var(--accent);color:var(--on-accent)}
+.stepchips{display:flex;flex-wrap:wrap;gap:2px 4px}
+.stepchip{display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;color:var(--ink);border-radius:8px;padding:4px 10px 4px 4px;font-size:13px}
+.stepchip:hover{background:var(--hover)}
+.stepchip .sn{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:50%;background:var(--chip);color:var(--muted);font:650 11.5px system-ui}
+.stepchip.done .sn{background:var(--accent);color:var(--on-accent)}
+.stepchip .sc{color:var(--muted);font-size:11.5px}
+.restore{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:8px 12px;border-radius:12px;background:var(--soft);font-size:13.5px}
+.restore span{flex:1;min-width:180px}
+
+/* ---------- আমার পথ panel ---------- */
+#plan{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);position:sticky;top:12px;max-height:calc(100vh - 24px);display:flex;flex-direction:column;overflow:hidden}
+.plan-top{padding:14px 16px 0;display:grid;gap:10px;border-bottom:1px solid var(--line)}
+.plan-head{display:flex;align-items:center;gap:8px}
+.plan-head h2{margin:0;font-size:18px;letter-spacing:-.01em}
+.plan-n{color:var(--muted);font-size:12.5px;flex:1}
+.plan-meta{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted)}
+.plan-meta b{color:var(--ink);font-weight:650}
+.plan-meta .bar{flex:1}
+.plan-bar{display:flex;gap:8px;align-items:center}
+.plan-bar .menu{margin-inline-start:auto}
+.tabs{display:flex;gap:2px;margin-top:2px}
+.tabs button{position:relative;border:0;background:transparent;color:var(--muted);height:36px;padding:0 12px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;border-radius:8px 8px 0 0}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected=true]{color:var(--accent)}
+.tabs button[aria-selected=true]:after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;border-radius:2px;background:var(--accent)}
+.tabs .badge.warn{background:#c28a1b26;color:var(--amber)}
+.plan-body{flex:1;min-height:0;overflow-y:auto;padding:6px 16px 16px;overscroll-behavior:contain}
+.plan-foot{padding:8px 16px;border-top:1px solid var(--line);display:flex;justify-content:flex-end}
+.plan-empty{color:var(--muted);line-height:1.8;font-size:14.5px;margin:6px 0}
+.plan-steps{margin:2px 0 0}
+.plan-step{margin-top:14px}
+.plan-step h3{margin:0 0 4px;font-size:12px;letter-spacing:.04em;color:var(--muted);font-weight:650;display:flex;justify-content:space-between;gap:8px}
+.plan-item{display:flex;gap:6px;align-items:flex-start;padding:7px 8px;border-radius:10px;margin:0 -8px}
+.plan-item:hover{background:var(--chip)}
+.plan-item.warn .pi-name{color:var(--danger)}
 .pi-body{flex:1;min-width:0}
-.pi-path{font-size:12px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
-.pi-name{all:unset;cursor:pointer;font-weight:650;font-size:15px;line-height:1.5;overflow-wrap:anywhere}
-.pi-name:hover{text-decoration:underline}.pi-name:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
-.pi-meta{font-size:12px;color:var(--muted);overflow-wrap:anywhere;margin-top:2px}
-.plan-pending{margin-top:14px}.plan-pending h3{font-size:14px;margin:0 0 6px}
-.pending{border:1px dashed var(--btn-line);background:transparent;color:var(--ink);border-radius:99px;padding:4px 11px;font-size:13px;margin:3px 4px 3px 0}
+.pi-path{font-size:11.5px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
+.pi-name{all:unset;cursor:pointer;font-weight:650;font-size:14.5px;line-height:1.5;overflow-wrap:anywhere}
+.pi-name:hover{text-decoration:underline}.pi-name:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+.pi-meta{font-size:11.5px;color:var(--muted);overflow-wrap:anywhere;margin-top:2px}
+.pi-x{flex:none;border:0;background:transparent;color:var(--muted);border-radius:7px;width:26px;height:26px;line-height:1;opacity:.5}
+.plan-item:hover .pi-x,.pi-x:focus-visible{opacity:1}
+.pi-x:hover{background:var(--hover);color:var(--danger)}
+details.pend{margin:2px 0 0}
+details.pend>summary{cursor:pointer;list-style:none;font-size:12.5px;color:var(--muted);padding:4px 0;display:flex;align-items:center;gap:6px}
+details.pend>summary::-webkit-details-marker{display:none}
+details.pend>summary:before{content:"▸";font-size:10px;transition:transform .12s}
+details.pend[open]>summary:before{transform:rotate(90deg)}
+details.pend>summary:hover{color:var(--ink)}
+.pend-list{display:grid;gap:1px;padding-bottom:4px}
+.pending{display:block;width:100%;text-align:start;border:0;background:transparent;color:var(--ink);border-radius:8px;padding:5px 10px;font-size:13px}
 .pending:hover{background:var(--chip)}
-#plan .reset{margin-top:14px;width:100%}
-.pickbox{margin:8px 0 12px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
-.pickbox .when{flex-basis:100%;margin:2px 0 0;color:var(--muted);font-size:15px;line-height:1.7}
-.toolinfo{flex-basis:100%;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--paper)}
-.toolinfo .lbl{font-size:13px;font-weight:650;color:var(--accent);margin-bottom:6px}
-.trow{display:grid;grid-template-columns:110px 1fr;gap:8px;padding:3px 0;font-size:14.5px;line-height:1.6;border-top:1px dashed var(--line)}
-.trow:first-of-type{border-top:0}.trow .k{color:var(--muted)}.trow .v,.trow a{overflow-wrap:anywhere}
+.plan-note{font-size:12.5px;line-height:1.65;color:var(--muted);border-radius:10px;padding:9px 12px;margin:14px 0 0;background:var(--chip)}
+/* কপি menu */
+.menu{position:relative}
+.menu>summary{list-style:none}
+.menu>summary::-webkit-details-marker{display:none}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:20;min-width:210px;padding:5px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:var(--shadow-pop);display:grid;gap:1px}
+.menu-item{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:start;border:0;background:transparent;color:var(--ink);border-radius:8px;padding:7px 10px;font-size:13px;font-weight:600}
+.menu-item small{font-size:11.5px;color:var(--muted);font-weight:400}
+.menu-item:hover,.menu-item:focus-visible{background:var(--hover)}
+/* Pseudo-code */
+.code-wrap{margin-top:8px;border-radius:12px;background:var(--code-bg);border:1px solid var(--code-line);overflow:hidden}
+.pseudo-pre{margin:0;padding:12px 14px;font:12.5px/1.75 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--code-ink);tab-size:2}
+.pseudo-pre .pc{color:var(--muted)}
+.pseudo-pre .ph{display:inline-block;margin-top:6px;color:var(--accent);font-weight:700}
+.pseudo-pre .pq{color:var(--amber);background:#c28a1b1f;border-radius:4px;padding:0 3px}
+/* সতর্কতা ও বিরোধ */
+.issue{border-radius:12px;padding:10px 12px 10px 14px;margin:8px 0;background:var(--chip);border-inline-start:3px solid var(--btn-line)}
+.issue p{margin:4px 0 8px;font-size:13.5px;line-height:1.65}
+.issue .ik{font:650 11.5px system-ui;letter-spacing:.03em}
+.issue.conflict{border-inline-start-color:var(--danger)}.issue.conflict .ik{color:var(--danger)}
+.issue.requires{border-inline-start-color:var(--amber)}.issue.requires .ik{color:var(--amber)}
+.issue.warn .ik{color:var(--muted)}
+.inodes{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.inodes .pending{display:inline-block;width:auto;border:1px solid var(--btn-line);padding:3px 10px;font-size:12px;border-radius:99px}
+.isrc{font-size:11.5px;color:var(--muted);margin-inline-start:4px}
+/* ছোট বার্তা */
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:var(--root-bg);color:var(--root-ink);padding:9px 16px;border-radius:99px;font-size:13px;font-weight:600;box-shadow:var(--shadow-pop)}
+
 @media(max-width:900px){
   body.plan-open .layout{display:block}
-  #plan{position:fixed;left:8px;right:8px;bottom:8px;top:auto;max-height:68vh;z-index:30;box-shadow:0 -10px 40px #00000040}
-  .trow{grid-template-columns:90px 1fr}
+  #plan{position:fixed;left:8px;right:8px;bottom:8px;top:auto;max-height:72vh;z-index:30;box-shadow:0 -10px 40px #00000040}
 }
-@media print{#plan,.selbtn,#plan-toggle{display:none!important}}
-
-/* পথের ধরন ও ধাপ-চিপ */
-#startbar{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:12px}
-.modes{display:flex;flex-wrap:wrap;gap:8px}
-.modebtn{border:1px solid var(--accent);background:var(--paper);color:var(--accent);border-radius:12px;padding:9px 16px;font-size:15px;font-weight:650}
-.modebtn:hover{background:var(--chip)}
-.modebtn.on{background:var(--accent);color:var(--paper)}
-.stepchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.stepchip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--btn-line);background:var(--paper);color:var(--ink);border-radius:99px;padding:5px 12px 5px 6px;font-size:13px}
-.stepchip:hover{background:var(--chip)}
-.stepchip .sn{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:50%;background:var(--root-bg);color:var(--root-ink);font:600 12px system-ui}
-.stepchip.done{border-color:var(--accent)}
-.stepchip.done .sn{background:var(--accent);color:var(--paper)}
-.stepchip .sc{color:var(--muted);font-size:12px}
-.kchip.mode{color:var(--paper);background:var(--accent);border-color:var(--accent)}
-.selbtn.go{background:transparent}
-.plan-steps{margin:10px 0 4px}
-.plan-steps .modes{flex-direction:column}
-.plan-steps .modebtn{text-align:start}
-@media print{#startbar{display:none}}
-
-/* বাছার কারণ: কখন, কেন, দাম, কীভাবে */
-.guide{flex-basis:100%;border:1px solid var(--line);border-radius:12px;padding:6px 12px;background:var(--paper)}
-.grow{display:grid;grid-template-columns:128px 1fr;gap:10px;padding:7px 0;border-top:1px dashed var(--line);line-height:1.7;font-size:15.5px}
-.grow:first-child{border-top:0}
-.grow .gk{font-weight:650;color:var(--accent);font-size:14px}
-.grow.cost .gk{color:#b3412f}:root[data-theme=dark] .grow.cost .gk{color:#f0a090}
-.grow .gv a{display:inline-block;margin:1px 0}
-.infonote{flex-basis:100%;border:1px dashed var(--btn-line);border-radius:12px;padding:10px 12px;line-height:1.7;color:var(--muted);font-size:15px}
-.kchip.info{color:var(--muted);border-style:dotted;margin-inline-start:8px}
-.plan-note{font-size:13px;line-height:1.6;color:var(--muted);border:1px dashed var(--btn-line);border-radius:10px;padding:8px 10px;margin:10px 0}
-@media(max-width:650px){.grow{grid-template-columns:1fr;gap:2px}}
-
-/* Pseudo-code */
-details.pseudo{margin:10px 0;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
-details.pseudo summary{cursor:pointer;padding:8px 12px;font-weight:650;font-size:14px;color:var(--accent)}
-.pseudo-pre{margin:0;padding:10px 12px;font:12.5px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:46vh;overflow:auto;border-top:1px dashed var(--line);color:var(--ink)}
-@media print{details.pseudo{break-inside:avoid}}
-
-/* সতর্কতা ও বিরোধ */
-.issues{margin:12px 0}.issues h3{font-size:14px;margin:0 0 6px}
-.issue{border:1px solid var(--btn-line);border-radius:12px;padding:8px 11px;margin:6px 0;background:var(--paper)}
-.issue p{margin:3px 0 6px;font-size:14px;line-height:1.65}
-.issue .ik{font:650 12px system-ui}
-.issue.conflict{border-color:#b3412f}.issue.conflict .ik{color:#b3412f}
-.issue.requires{border-color:#c28a1b}.issue.requires .ik{color:#9a6a0a}
-.issue.warn{border-style:dashed}.issue.warn .ik{color:var(--muted)}
-:root[data-theme=dark] .issue.conflict .ik{color:#f0a090}:root[data-theme=dark] .issue.requires .ik{color:#e2ad46}
-.inodes{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.isrc{font-size:12px;color:var(--muted);margin-inline-start:4px}
-@media print{.issues{break-inside:avoid}}
+@media(max-width:650px){
+  header{padding-top:22px}.subbar,main{padding-left:14px;padding-right:14px}
+  header{padding-left:16px;padding-right:16px}
+  .controls{width:100%}input[type=search]{flex:1 1 100%;width:100%}
+  dialog{padding:12px 20px 28px;max-height:90dvh}dialog h2{font-size:23px}.term{font-size:15.5px}
+  .reading-tools{gap:6px}ul{padding-left:18px}.map{padding:12px}.level-0>.row>.term{font-size:18px}
+  .choice{grid-template-columns:1fr}.choice .arrow{display:none}.step{grid-template-columns:30px 1fr;gap:10px}.step .n{width:30px;height:30px}.step:not(:last-child):before{left:14px}
+  #pathview{padding:14px}.pstep{grid-template-columns:auto 1fr}.pstep .tick{grid-column:2}
+  .grow{grid-template-columns:1fr;gap:2px}.trow{grid-template-columns:90px 1fr}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+@media print{
+  header .controls,.subbar,.skip,footer,#plan,.selbtn,#plan-toggle,#startbar,#pathbar{display:none!important}
+  body{background:#fff;color:#000}.map{box-shadow:none;border:0}.pblock,.issue{break-inside:avoid}
+}
 
 </style>
 </head>
@@ -329,23 +385,27 @@ details.pseudo summary{cursor:pointer;padding:8px 12px;font-weight:650;font-size
 <a class="skip" href="#tree">মানচিত্রে যাও</a>
 <header>
   <div class="title">
-    <span class="eyebrow">LEARNING ATLAS / 01</span>
+    <span class="eyebrow">LEARNING ATLAS</span>
     <h1>ML · শেখার মানচিত্র</h1>
-    <p>শাখা বেছে নাও → নামে ক্লিক করলে সংজ্ঞা, হিসাব আর কোর্সের পাঠ</p>
+    <p>শাখা বেছে নাও, নামে ক্লিক করলে সংজ্ঞা, হিসাব আর কোর্সের পাঠ</p>
   </div>
   <div class="controls">
-    <input id="search" type="search" placeholder="Term খুঁজো…  ( / চাপলে এখানে আসবে )" aria-label="Term খুঁজো">
-    <button class="control" id="expand">সব খোলো</button>
-    <button class="control" id="collapse">গুটিয়ে নাও</button>
-    <button class="control" id="theme" aria-label="theme বদলাও">☾ dark</button>
-    <button class="control strong" id="plan-toggle" aria-controls="plan" aria-expanded="false">আমার পথ <span id="plan-count">০</span></button>
+    <input id="search" type="search" placeholder="Term খুঁজো…  ( / )" aria-label="Term খুঁজো">
+    <div class="btn-group" role="group" aria-label="গাছের নিয়ন্ত্রণ">
+      <button class="btn icon" id="expand" type="button" aria-label="সব শাখা খোলো" title="সব খোলো"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/><path d="M4 2.5l4 4 4-4" opacity=".45"/></svg></button>
+      <button class="btn icon" id="collapse" type="button" aria-label="সব শাখা গুটিয়ে নাও" title="গুটিয়ে নাও"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/><path d="M4 13.5l4-4 4 4" opacity=".45"/></svg></button>
+      <button class="btn icon" id="theme" type="button" aria-label="theme বদলাও" title="theme">☾</button>
+    </div>
+    <button class="btn primary" id="plan-toggle" type="button" aria-controls="plan" aria-expanded="false">আমার পথ <span class="badge" id="plan-count">০</span></button>
   </div>
 </header>
-<div id="views" role="tablist" aria-label="দেখার ধরন">
-  <button type="button" role="tab" id="view-tree" aria-selected="true">গাছ</button>
-  <button type="button" role="tab" id="view-path" aria-selected="false">গল্পের পথ <span id="path-count"></span></button>
+<div class="subbar">
+  <div id="views" class="seg" role="tablist" aria-label="দেখার ধরন">
+    <button type="button" role="tab" id="view-tree" aria-selected="true">গাছ</button>
+    <button type="button" role="tab" id="view-path" aria-selected="false">গল্পের পথ <span id="path-count"></span></button>
+  </div>
+  <nav id="jump" aria-label="শাখায় যাও"></nav>
 </div>
-<nav id="jump" aria-label="শাখায় যাও"></nav>
 <main>
   <div class="layout">
     <div class="content">
@@ -962,7 +1022,7 @@ modal.addEventListener('close', () => {
   if (location.hash) setHash('');
 });
 window.addEventListener('hashchange', () => {
-  if (location.hash.startsWith('#plan=')) { setSelFrom(location.hash.slice(6).split(',').filter(Boolean).map(resolveId)); saveSel(); refreshSel(); openPlan(true); return; }
+  if (location.hash.startsWith('#plan=')) { restored = false; setSelFrom(location.hash.slice(6).split(',').filter(Boolean).map(resolveId)); saveSel(); refreshSel(); openPlan(true); return; }
   const id = resolveId(decodeURIComponent(location.hash.slice(1)));
   if (id && byId.has(id)) openNode(id, { hash: false });
   else if (!id && modal.open) modal.close();
@@ -1042,7 +1102,8 @@ applyReadingSize();
 const themeBtn = $('#theme');
 function applyTheme(t) {
   document.documentElement.dataset.theme = t;
-  themeBtn.textContent = t === 'dark' ? '☀ light' : '☾ dark';
+  themeBtn.textContent = t === 'dark' ? '☀' : '☾';
+  themeBtn.title = t === 'dark' ? 'light theme' : 'dark theme';
   themeBtn.setAttribute('aria-label', t === 'dark' ? 'light theme-এ যাও' : 'dark theme-এ যাও');
   const meta = document.querySelector('meta[name=theme-color]');
   if (meta) meta.content = t === 'dark' ? '#151a17' : '#fbfcf7';
@@ -1160,6 +1221,7 @@ const planPlain = () => plan.plain(new Date().toISOString().slice(0, 10), cfg.ru
 const planJSON = () => plan.json(new Date().toISOString());
 const planLink = () => plan.link(location.href);
 const planPseudo = () => plan.pseudo(cfg.pseudo, cfg.rules);
+let restored = false, clearArmed = false, planTab = 'path';   // restored: আগের পথ localStorage থেকে ফিরেছে
 const BASIS = { course: 'কোর্সে আছে', paper: 'paper থেকে মেলানো', experience: 'অভিজ্ঞতা-ভিত্তিক, নিয়ম নয়', 'tool-doc': 'tool-এর docs বা README থেকে' };
 function decorateKind(r, row, button) {
   const n = r.node;
@@ -1201,15 +1263,27 @@ function setBranchOpen(r) {
 function renderSteps(box, compact) {
   const mode = activeMode();
   box.replaceChildren();
-  const row = el('div', 'modes');
+  if (compact && restored && selected.size) {
+    const rs = el('div', 'restore');
+    rs.append(el('span', '', 'আগের পথ ফিরে এসেছে: ' + selected.size.toLocaleString('bn-BD') + 'টা বাছা আছে।'));
+    const see = el('button', 'btn sm', 'পথ দেখো'); see.type = 'button'; see.onclick = () => openPlan(true);
+    const fresh = el('button', 'btn sm danger' + (clearArmed ? ' armed' : ''), clearArmed ? 'সব ' + selected.size.toLocaleString('bn-BD') + 'টা মুছবে: নিশ্চিত?' : 'নতুন করে শুরু'); fresh.type = 'button'; fresh.onclick = clearPlan;
+    const x = el('button', 'btn ghost icon sm', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'এই বার্তা সরাও'); x.onclick = () => { restored = false; refreshSel(); };
+    rs.append(see, fresh, x);
+    box.append(rs);
+  }
+  const row = el('div', 'sb-row');
+  if (compact) row.append(el('span', 'sb-label', 'পথের ধরন'));
+  const modes = el('div', 'modes');
   for (const id of ['mode-finetune', 'mode-scratch']) {
     const r = byId.get(id); if (!r) continue;
     const on = selected.has(id);
     const b = el('button', 'modebtn' + (on ? ' on' : ''), (on ? '✓ ' : '') + r.node.name);
     b.type = 'button'; b.setAttribute('aria-pressed', String(on));
     b.onclick = () => toggleSel(id);
-    row.append(b);
+    modes.append(b);
   }
+  row.append(modes);
   box.append(row);
   if (!mode) { if (!compact) box.append(el('p', 'plan-empty', 'আগে বাছো: Fine-tune করবে, না শূন্য থেকে Train? তারপর ধাপগুলো এখানে আসবে।')); return; }
   const lst = el('div', 'stepchips');
@@ -1227,6 +1301,7 @@ function renderSteps(box, compact) {
 function toggleSel(id) {
   const res = plan.toggle(id);
   if (!res.ok) return;
+  restored = false;
   if (res.on) {
     const r = res.record;
     if (r.children.length) setOpen(r, true);
@@ -1237,9 +1312,14 @@ function toggleSel(id) {
 }
 function setSelFrom(ids) { plan.setFrom(ids); }
 function saveSel() { store('ml-atlas-plan', JSON.stringify([...selected])); }
-function copyText(text, btn) {
-  const old = btn.textContent;
-  const done = (ok) => { btn.textContent = ok ? 'কপি হয়েছে ✓' : 'কপি হয়নি'; setTimeout(() => (btn.textContent = old), 1600); };
+function toast(msg) {
+  let t = $('#toast');
+  if (!t) { t = el('div'); t.id = 'toast'; t.setAttribute('role', 'status'); document.body.append(t); }
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(t._h); t._h = setTimeout(() => { t.hidden = true; }, 1800);
+}
+function copyText(text) {
+  const done = (ok) => toast(ok ? 'কপি হয়েছে ✓' : 'কপি হয়নি');
   const fallback = () => {
     const t = el('textarea'); t.value = text; t.style.cssText = 'position:fixed;left:-999px;top:0';
     document.body.append(t); t.select(); let ok = false;
@@ -1248,76 +1328,133 @@ function copyText(text, btn) {
   };
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => done(true), fallback); else fallback();
 }
-let clearArmed = false;
+const COPY_FORMATS = [
+  ['Pseudo-code', 'কোডের মতো রূপ', planPseudo],
+  ['Markdown', 'নোট বা README-এর জন্য', planMarkdown],
+  ['সাধারণ লেখা', 'chat বা email-এ', planPlain],
+  ['JSON', 'অন্য tool-এর জন্য', planJSON],
+  ['শেয়ার-link', 'এই পথ খুলবে', planLink],
+];
+function clearPlan() {
+  if (!clearArmed) { clearArmed = true; refreshSel(); setTimeout(() => { if (clearArmed) { clearArmed = false; refreshSel(); } }, 5000); return; }
+  clearArmed = false; restored = false; selected.clear(); saveSel(); refreshSel();
+}
+// pseudo-code: মন্তব্য ম্লান, ধাপের শিরোনাম গাঢ়, না-বাছা ‹? …› হলুদ
+function renderCode(pre, text) {
+  const code = (str) => str.split(/(‹\?[^›]*›)/).forEach((part, i) => { if (part) pre.append(i % 2 ? el('span', 'pq', part) : part); });
+  text.split('\n').forEach((ln, i) => {
+    if (i) pre.append('\n');
+    const m = /^(\s*)(#.*)$/.exec(ln);
+    if (m) { pre.append(m[1], el('span', /^#\s*(ধাপ|=====)/.test(m[2]) ? 'ph' : 'pc', m[2])); return; }
+    const k = ln.search(/\s#\s/);
+    code(k < 0 ? ln : ln.slice(0, k));
+    if (k >= 0) pre.append(el('span', 'pc', ln.slice(k)));
+  });
+}
+function pendList(items) {
+  const det = el('details', 'pend');
+  det.append(el('summary', '', 'বাকি সিদ্ধান্ত (' + items.length.toLocaleString('bn-BD') + ')'));
+  const list = el('div', 'pend-list');
+  for (const r of items) { const b = el('button', 'pending', short(r.node.name)); b.type = 'button'; b.onclick = () => { reveal(r); setOpen(r, true); }; list.append(b); }
+  det.append(list);
+  return det;
+}
 function renderPlan() {
   const box = $('#plan');
+  const old = box.querySelector('.plan-body'), scroll = old ? old.scrollTop : 0;
   box.replaceChildren();
+  const iss = selected.size ? plan.issues(cfg.rules) : [];
+  if (planTab === 'warn' && !iss.length) planTab = 'path';
+  const top = el('div', 'plan-top');
   const head = el('div', 'plan-head');
-  head.append(el('h2', '', 'আমার পথ'), el('span', 'plan-n', selected.size + 'টা বাছা'));
-  const close = el('button', 'plan-close', '✕'); close.type = 'button'; close.setAttribute('aria-label', 'তালিকা বন্ধ করো'); close.onclick = () => openPlan(false);
+  head.append(el('h2', '', 'আমার পথ'), el('span', 'plan-n', selected.size ? selected.size.toLocaleString('bn-BD') + 'টা বাছা' : ''));
+  const close = el('button', 'btn ghost icon sm', '✕'); close.type = 'button'; close.setAttribute('aria-label', 'তালিকা বন্ধ করো'); close.onclick = () => openPlan(false);
   head.append(close);
-  box.append(head);
-  const sb = el('div', 'plan-steps'); renderSteps(sb, false); box.append(sb);
+  top.append(head);
+  const body = el('div', 'plan-body');
+  box.append(top, body);
   if (!selected.size) {
-    box.append(el('p', 'plan-empty', 'গাছে নামতে নামতে "বাছো" চাপো: ধাপ ধরে বিকল্প, তারপর tool। বাছাই এখানে জমবে, আর এখান থেকে কপি করা যাবে।'));
+    const sb = el('div', 'plan-steps'); renderSteps(sb, false); body.append(sb);
+    body.append(el('p', 'plan-empty', 'গাছে নামতে নামতে "বাছো" চাপো: ধাপ ধরে বিকল্প, তারপর tool। বাছাই এখানে জমবে, আর এখান থেকে কপি করা যাবে।'));
     return;
   }
-  const acts = el('div', 'plan-acts');
-  const mk = (label, fn) => { const b = el('button', 'control', label); b.type = 'button'; b.onclick = () => copyText(fn(), b); acts.append(b); };
-  mk('Pseudo-code কপি', planPseudo); mk('Markdown কপি', planMarkdown); mk('JSON কপি', planJSON); mk('লেখা কপি', planPlain); mk('লিংক কপি', planLink);
-  box.append(acts);
-  const iss = plan.issues(cfg.rules);
-  if (iss.length) {
-    const sec = el('section', 'issues');
-    sec.append(el('h3', '', 'সতর্কতা ও বিরোধ (' + iss.length.toLocaleString('bn-BD') + ')'));
+  const mode = activeMode();
+  if (mode) {
+    const total = mode.node.steps.length, got = mode.node.steps.filter((sid) => stepStat(sid)).length;
+    const meta = el('div', 'plan-meta'), bar = el('div', 'bar thin'), fill = el('i');
+    fill.style.width = Math.round(got / total * 100) + '%'; bar.append(fill);
+    meta.append(el('b', '', mode.node.name.split(' (')[0]), el('span', '', 'ধাপ ' + got.toLocaleString('bn-BD') + '/' + total.toLocaleString('bn-BD')), bar);
+    top.append(meta);
+  }
+  const acts = el('div', 'plan-bar');
+  const menu = el('details', 'menu');
+  const sum = el('summary', 'btn primary', 'কপি ▾'); sum.setAttribute('aria-haspopup', 'menu');
+  const pop = el('div', 'menu-pop'); pop.setAttribute('role', 'menu');
+  for (const [label, hint, fn] of COPY_FORMATS) {
+    const it = el('button', 'menu-item'); it.type = 'button'; it.setAttribute('role', 'menuitem');
+    it.append(document.createTextNode(label), el('small', '', hint));
+    it.onclick = () => { copyText(fn()); menu.open = false; };
+    pop.append(it);
+  }
+  menu.append(sum, pop); acts.append(menu);
+  top.append(acts);
+  const tabs = el('div', 'tabs'); tabs.setAttribute('role', 'tablist');
+  const addTab = (key, label, count, warn) => {
+    const b = el('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(planTab === key));
+    b.append(document.createTextNode(label));
+    if (count) b.append(el('span', 'badge' + (warn ? ' warn' : ''), count.toLocaleString('bn-BD')));
+    b.onclick = () => { planTab = key; renderPlan(); };
+    tabs.append(b);
+  };
+  addTab('path', 'পথ', selected.size); addTab('code', 'Pseudo-code', 0); addTab('warn', 'সতর্কতা', iss.length, true);
+  top.append(tabs);
+
+  if (planTab === 'code') {
+    const wrap = el('div', 'code-wrap'), pre = el('pre', 'pseudo-pre'); pre.tabIndex = 0;
+    renderCode(pre, planPseudo()); wrap.append(pre); body.append(wrap);
+  } else if (planTab === 'warn') {
     for (const i of iss) {
       const card = el('div', 'issue ' + i.kind);
       card.append(el('span', 'ik', i.kind === 'conflict' ? '✗ বিরোধ' : i.kind === 'requires' ? '! দরকার' : '⚠ সতর্কতা'), el('p', '', i.text));
       const row = el('div', 'inodes');
       for (const id of i.nodes) { const r = byId.get(id); if (!r) continue; const b = el('button', 'pending', short(r.node.name)); b.type = 'button'; b.onclick = () => openNode(id, { reveal: true }); row.append(b); }
       row.append(el('span', 'isrc', i.src));
-      card.append(row); sec.append(card);
+      card.append(row); body.append(card);
     }
-    box.append(sec);
-  }
-  const det = el('details', 'pseudo'); det.open = true;
-  det.append(el('summary', '', 'Pseudo-code দেখো (বাছা পথ থেকে)'));
-  const pre = el('pre', 'pseudo-pre', planPseudo()); pre.tabIndex = 0;
-  det.append(pre); box.append(det);
-  for (const g of planGroups()) {
-    const sec = el('section', 'plan-step');
-    sec.append(el('h3', '', g.step ? g.step.node.name : 'পথের ধরন'));
-    for (const r of g.items) {
-      const n = r.node, row = el('div', 'plan-item' + (n.tool && n.tool.archived ? ' warn' : ''));
-      const body = el('div', 'pi-body');
-      const pn = pathNames(r, g.step);
-      if (pn.length > 1) body.append(el('div', 'pi-path', pn.slice(0, -1).join(' › ')));
-      const nm = el('button', 'pi-name', pn[pn.length - 1]); nm.type = 'button'; nm.onclick = () => openNode(n.id, { reveal: true });
-      body.append(nm);
-      if (n.kind === 'tool') body.append(el('span', 'kchip tool', n.tool && n.tool.archived ? 'tool ⚠ archived' : 'tool'));
-      const tl = toolLine(n); if (tl) body.append(el('div', 'pi-meta', tl));
-      row.append(body);
-      const x = el('button', 'pi-x', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'বাদ দাও: ' + n.name); x.onclick = () => { removeWithDesc(n.id); saveSel(); refreshSel(); };
-      row.append(x);
-      sec.append(row);
+  } else {
+    const pendBy = new Map();
+    for (const r of pendingDecisions()) { const st = stepOf(r), k = st ? st.node.id : '_'; if (!pendBy.has(k)) pendBy.set(k, []); pendBy.get(k).push(r); }
+    for (const g of planGroups()) {
+      const key = g.step ? g.step.node.id : '_';
+      const sec = el('section', 'plan-step');
+      const h = el('h3', '', ''); h.append(el('span', '', g.step ? g.step.node.name : 'পথের ধরন'), el('span', '', g.items.length.toLocaleString('bn-BD')));
+      sec.append(h);
+      for (const r of g.items) {
+        const n = r.node, row = el('div', 'plan-item' + (n.tool && n.tool.archived ? ' warn' : ''));
+        const bd = el('div', 'pi-body');
+        const pn = pathNames(r, g.step);
+        if (pn.length > 1) bd.append(el('div', 'pi-path', pn.slice(0, -1).join(' › ')));
+        const nm = el('button', 'pi-name', pn[pn.length - 1]); nm.type = 'button'; nm.onclick = () => openNode(n.id, { reveal: true });
+        bd.append(nm);
+        if (n.kind === 'tool') bd.append(el('span', 'kchip tool', n.tool && n.tool.archived ? 'tool ⚠ archived' : 'tool'));
+        const tl = toolLine(n); if (tl) bd.append(el('div', 'pi-meta', tl));
+        row.append(bd);
+        const x = el('button', 'pi-x', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'বাদ দাও: ' + n.name); x.onclick = () => { removeWithDesc(n.id); saveSel(); refreshSel(); };
+        row.append(x);
+        sec.append(row);
+      }
+      if (pendBy.has(key)) { sec.append(pendList(pendBy.get(key))); pendBy.delete(key); }
+      body.append(sec);
     }
-    box.append(sec);
+    for (const [, items] of pendBy) { const sec = el('section', 'plan-step'); sec.append(el('h3', '', 'অন্যান্য'), pendList(items)); body.append(sec); }
+    const hf = orderedSel().filter((r) => r.node.kind === 'tool' && r.node.tool && r.node.tool.owner === 'huggingface' && r.node.tool.host === 'github');
+    if (hf.length) body.append(el('p', 'plan-note', 'ইকোসিস্টেম-নির্ভরতা: এই পথের ' + hf.length.toLocaleString('bn-BD') + 'টা tool Hugging Face-এর (' + hf.map((r) => short(r.node.name)).join(', ') + ')। বদল চাইলে একই সিদ্ধান্তে অন্য বিকল্প দেখো।'));
   }
-  const hf = orderedSel().filter((r) => r.node.kind === 'tool' && r.node.tool && r.node.tool.owner === 'huggingface' && r.node.tool.host === 'github');
-  if (hf.length) box.append(el('p', 'plan-note', 'ইকোসিস্টেম-নির্ভরতা: এই পথের ' + hf.length.toLocaleString('bn-BD') + 'টা tool Hugging Face-এর (' + hf.map((r) => short(r.node.name)).join(', ') + ')। বদল চাইলে একই সিদ্ধান্তে অন্য বিকল্প দেখো।'));
-  const pend = pendingDecisions();
-  if (pend.length) {
-    const sec = el('section', 'plan-pending');
-    sec.append(el('h3', '', 'এখনও বাছা হয়নি (' + pend.length + ')'));
-    for (const r of pend.slice(0, 12)) { const b = el('button', 'pending', short(r.node.name)); b.type = 'button'; b.onclick = () => { reveal(r); setOpen(r, true); }; sec.append(b); }
-    box.append(sec);
-  }
-  const clr = el('button', 'reset' + (clearArmed ? ' warn' : ''), clearArmed ? 'সব ' + selected.size + 'টা মুছবে: নিশ্চিত?' : 'সব বাছাই মুছো'); clr.type = 'button';
-  clr.onclick = () => {
-    if (!clearArmed) { clearArmed = true; renderPlan(); setTimeout(() => { if (clearArmed) { clearArmed = false; renderPlan(); } }, 5000); return; }
-    clearArmed = false; selected.clear(); saveSel(); refreshSel();
-  };
-  box.append(clr);
+  const foot = el('div', 'plan-foot');
+  const clr = el('button', 'btn sm danger' + (clearArmed ? ' armed' : ' ghost'), clearArmed ? 'সব ' + selected.size.toLocaleString('bn-BD') + 'টা মুছবে: নিশ্চিত?' : 'সব বাছাই মুছো'); clr.type = 'button';
+  clr.onclick = clearPlan;
+  foot.append(clr); box.append(foot);
+  body.scrollTop = scroll;
 }
 function refreshSel() {
   for (const r of records) if (r.selBtn) {
@@ -1337,6 +1474,8 @@ function openPlan(open) {
   $('#plan-toggle').setAttribute('aria-expanded', String(open));
 }
 $('#plan-toggle').onclick = () => openPlan($('#plan').hidden);
+document.addEventListener('click', (e) => { document.querySelectorAll('details.menu[open]').forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.querySelectorAll('details.menu[open]').forEach((d) => { d.open = false; }); });
 function inPlanTree(r) { return r.trail.some((a) => a.node.kind === 'step') || r.node.kind === 'step'; }
 function renderPick(node, box) {
   box.replaceChildren();
@@ -1358,7 +1497,7 @@ function renderPick(node, box) {
     wrap.append(el('span', 'kchip ' + (node.pick === 'one' ? 'one' : 'many'), node.pick === 'one' ? 'এখানে একটা বাছো' : 'এখানে একাধিক বাছতে পারো'));
   } else {
     const on = selected.has(node.id);
-    const b = el('button', 'control strong', on ? '✓ পথে আছে (বাদ দিতে চাপো)' : 'এটা আমার পথে বাছো');
+    const b = el('button', 'btn primary', on ? '✓ পথে আছে (বাদ দিতে চাপো)' : 'এটা আমার পথে বাছো');
     b.type = 'button'; b.onclick = () => toggleSel(node.id);
     wrap.append(b);
     if (node.basis && BASIS[node.basis]) wrap.append(el('span', 'kchip basis ' + node.basis, BASIS[node.basis]));
@@ -1400,11 +1539,13 @@ const root = build(data, tree, 0, []);
 buildJump(root);
 {
   let ids = [];
-  if (location.hash.startsWith('#plan=')) ids = location.hash.slice(6).split(',').filter(Boolean).map(resolveId);
+  const shared = location.hash.startsWith('#plan=');
+  if (shared) ids = location.hash.slice(6).split(',').filter(Boolean).map(resolveId);
   else { try { const a = JSON.parse(store('ml-atlas-plan') || '[]'); if (Array.isArray(a)) ids = a.map(resolveId); } catch (e) { ids = []; } }
   setSelFrom(ids);
+  restored = !shared && selected.size > 0;   // refresh-এ আগের বাছাই থাকে, কিন্তু panel নিজে খোলে না; ওপরে "ফিরে এসেছে" বার
   refreshSel();
-  if (selected.size && window.innerWidth > 900) openPlan(true);
+  if (shared && selected.size && window.innerWidth > 900) openPlan(true);
 }
 updateCount();
 setView(location.hash === '#path' ? 'path' : (store('ml-atlas-view') === 'path' ? 'path' : 'tree'));

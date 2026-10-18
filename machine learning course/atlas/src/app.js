@@ -376,7 +376,7 @@ modal.addEventListener('close', () => {
   if (location.hash) setHash('');
 });
 window.addEventListener('hashchange', () => {
-  if (location.hash.startsWith('#plan=')) { setSelFrom(location.hash.slice(6).split(',').filter(Boolean).map(resolveId)); saveSel(); refreshSel(); openPlan(true); return; }
+  if (location.hash.startsWith('#plan=')) { restored = false; setSelFrom(location.hash.slice(6).split(',').filter(Boolean).map(resolveId)); saveSel(); refreshSel(); openPlan(true); return; }
   const id = resolveId(decodeURIComponent(location.hash.slice(1)));
   if (id && byId.has(id)) openNode(id, { hash: false });
   else if (!id && modal.open) modal.close();
@@ -456,7 +456,8 @@ applyReadingSize();
 const themeBtn = $('#theme');
 function applyTheme(t) {
   document.documentElement.dataset.theme = t;
-  themeBtn.textContent = t === 'dark' ? '☀ light' : '☾ dark';
+  themeBtn.textContent = t === 'dark' ? '☀' : '☾';
+  themeBtn.title = t === 'dark' ? 'light theme' : 'dark theme';
   themeBtn.setAttribute('aria-label', t === 'dark' ? 'light theme-এ যাও' : 'dark theme-এ যাও');
   const meta = document.querySelector('meta[name=theme-color]');
   if (meta) meta.content = t === 'dark' ? '#151a17' : '#fbfcf7';
@@ -574,6 +575,7 @@ const planPlain = () => plan.plain(new Date().toISOString().slice(0, 10), cfg.ru
 const planJSON = () => plan.json(new Date().toISOString());
 const planLink = () => plan.link(location.href);
 const planPseudo = () => plan.pseudo(cfg.pseudo, cfg.rules);
+let restored = false, clearArmed = false, planTab = 'path';   // restored: আগের পথ localStorage থেকে ফিরেছে
 const BASIS = { course: 'কোর্সে আছে', paper: 'paper থেকে মেলানো', experience: 'অভিজ্ঞতা-ভিত্তিক, নিয়ম নয়', 'tool-doc': 'tool-এর docs বা README থেকে' };
 function decorateKind(r, row, button) {
   const n = r.node;
@@ -615,15 +617,27 @@ function setBranchOpen(r) {
 function renderSteps(box, compact) {
   const mode = activeMode();
   box.replaceChildren();
-  const row = el('div', 'modes');
+  if (compact && restored && selected.size) {
+    const rs = el('div', 'restore');
+    rs.append(el('span', '', 'আগের পথ ফিরে এসেছে: ' + selected.size.toLocaleString('bn-BD') + 'টা বাছা আছে।'));
+    const see = el('button', 'btn sm', 'পথ দেখো'); see.type = 'button'; see.onclick = () => openPlan(true);
+    const fresh = el('button', 'btn sm danger' + (clearArmed ? ' armed' : ''), clearArmed ? 'সব ' + selected.size.toLocaleString('bn-BD') + 'টা মুছবে: নিশ্চিত?' : 'নতুন করে শুরু'); fresh.type = 'button'; fresh.onclick = clearPlan;
+    const x = el('button', 'btn ghost icon sm', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'এই বার্তা সরাও'); x.onclick = () => { restored = false; refreshSel(); };
+    rs.append(see, fresh, x);
+    box.append(rs);
+  }
+  const row = el('div', 'sb-row');
+  if (compact) row.append(el('span', 'sb-label', 'পথের ধরন'));
+  const modes = el('div', 'modes');
   for (const id of ['mode-finetune', 'mode-scratch']) {
     const r = byId.get(id); if (!r) continue;
     const on = selected.has(id);
     const b = el('button', 'modebtn' + (on ? ' on' : ''), (on ? '✓ ' : '') + r.node.name);
     b.type = 'button'; b.setAttribute('aria-pressed', String(on));
     b.onclick = () => toggleSel(id);
-    row.append(b);
+    modes.append(b);
   }
+  row.append(modes);
   box.append(row);
   if (!mode) { if (!compact) box.append(el('p', 'plan-empty', 'আগে বাছো: Fine-tune করবে, না শূন্য থেকে Train? তারপর ধাপগুলো এখানে আসবে।')); return; }
   const lst = el('div', 'stepchips');
@@ -641,6 +655,7 @@ function renderSteps(box, compact) {
 function toggleSel(id) {
   const res = plan.toggle(id);
   if (!res.ok) return;
+  restored = false;
   if (res.on) {
     const r = res.record;
     if (r.children.length) setOpen(r, true);
@@ -651,9 +666,14 @@ function toggleSel(id) {
 }
 function setSelFrom(ids) { plan.setFrom(ids); }
 function saveSel() { store('ml-atlas-plan', JSON.stringify([...selected])); }
-function copyText(text, btn) {
-  const old = btn.textContent;
-  const done = (ok) => { btn.textContent = ok ? 'কপি হয়েছে ✓' : 'কপি হয়নি'; setTimeout(() => (btn.textContent = old), 1600); };
+function toast(msg) {
+  let t = $('#toast');
+  if (!t) { t = el('div'); t.id = 'toast'; t.setAttribute('role', 'status'); document.body.append(t); }
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(t._h); t._h = setTimeout(() => { t.hidden = true; }, 1800);
+}
+function copyText(text) {
+  const done = (ok) => toast(ok ? 'কপি হয়েছে ✓' : 'কপি হয়নি');
   const fallback = () => {
     const t = el('textarea'); t.value = text; t.style.cssText = 'position:fixed;left:-999px;top:0';
     document.body.append(t); t.select(); let ok = false;
@@ -662,76 +682,133 @@ function copyText(text, btn) {
   };
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => done(true), fallback); else fallback();
 }
-let clearArmed = false;
+const COPY_FORMATS = [
+  ['Pseudo-code', 'কোডের মতো রূপ', planPseudo],
+  ['Markdown', 'নোট বা README-এর জন্য', planMarkdown],
+  ['সাধারণ লেখা', 'chat বা email-এ', planPlain],
+  ['JSON', 'অন্য tool-এর জন্য', planJSON],
+  ['শেয়ার-link', 'এই পথ খুলবে', planLink],
+];
+function clearPlan() {
+  if (!clearArmed) { clearArmed = true; refreshSel(); setTimeout(() => { if (clearArmed) { clearArmed = false; refreshSel(); } }, 5000); return; }
+  clearArmed = false; restored = false; selected.clear(); saveSel(); refreshSel();
+}
+// pseudo-code: মন্তব্য ম্লান, ধাপের শিরোনাম গাঢ়, না-বাছা ‹? …› হলুদ
+function renderCode(pre, text) {
+  const code = (str) => str.split(/(‹\?[^›]*›)/).forEach((part, i) => { if (part) pre.append(i % 2 ? el('span', 'pq', part) : part); });
+  text.split('\n').forEach((ln, i) => {
+    if (i) pre.append('\n');
+    const m = /^(\s*)(#.*)$/.exec(ln);
+    if (m) { pre.append(m[1], el('span', /^#\s*(ধাপ|=====)/.test(m[2]) ? 'ph' : 'pc', m[2])); return; }
+    const k = ln.search(/\s#\s/);
+    code(k < 0 ? ln : ln.slice(0, k));
+    if (k >= 0) pre.append(el('span', 'pc', ln.slice(k)));
+  });
+}
+function pendList(items) {
+  const det = el('details', 'pend');
+  det.append(el('summary', '', 'বাকি সিদ্ধান্ত (' + items.length.toLocaleString('bn-BD') + ')'));
+  const list = el('div', 'pend-list');
+  for (const r of items) { const b = el('button', 'pending', short(r.node.name)); b.type = 'button'; b.onclick = () => { reveal(r); setOpen(r, true); }; list.append(b); }
+  det.append(list);
+  return det;
+}
 function renderPlan() {
   const box = $('#plan');
+  const old = box.querySelector('.plan-body'), scroll = old ? old.scrollTop : 0;
   box.replaceChildren();
+  const iss = selected.size ? plan.issues(cfg.rules) : [];
+  if (planTab === 'warn' && !iss.length) planTab = 'path';
+  const top = el('div', 'plan-top');
   const head = el('div', 'plan-head');
-  head.append(el('h2', '', 'আমার পথ'), el('span', 'plan-n', selected.size + 'টা বাছা'));
-  const close = el('button', 'plan-close', '✕'); close.type = 'button'; close.setAttribute('aria-label', 'তালিকা বন্ধ করো'); close.onclick = () => openPlan(false);
+  head.append(el('h2', '', 'আমার পথ'), el('span', 'plan-n', selected.size ? selected.size.toLocaleString('bn-BD') + 'টা বাছা' : ''));
+  const close = el('button', 'btn ghost icon sm', '✕'); close.type = 'button'; close.setAttribute('aria-label', 'তালিকা বন্ধ করো'); close.onclick = () => openPlan(false);
   head.append(close);
-  box.append(head);
-  const sb = el('div', 'plan-steps'); renderSteps(sb, false); box.append(sb);
+  top.append(head);
+  const body = el('div', 'plan-body');
+  box.append(top, body);
   if (!selected.size) {
-    box.append(el('p', 'plan-empty', 'গাছে নামতে নামতে "বাছো" চাপো: ধাপ ধরে বিকল্প, তারপর tool। বাছাই এখানে জমবে, আর এখান থেকে কপি করা যাবে।'));
+    const sb = el('div', 'plan-steps'); renderSteps(sb, false); body.append(sb);
+    body.append(el('p', 'plan-empty', 'গাছে নামতে নামতে "বাছো" চাপো: ধাপ ধরে বিকল্প, তারপর tool। বাছাই এখানে জমবে, আর এখান থেকে কপি করা যাবে।'));
     return;
   }
-  const acts = el('div', 'plan-acts');
-  const mk = (label, fn) => { const b = el('button', 'control', label); b.type = 'button'; b.onclick = () => copyText(fn(), b); acts.append(b); };
-  mk('Pseudo-code কপি', planPseudo); mk('Markdown কপি', planMarkdown); mk('JSON কপি', planJSON); mk('লেখা কপি', planPlain); mk('লিংক কপি', planLink);
-  box.append(acts);
-  const iss = plan.issues(cfg.rules);
-  if (iss.length) {
-    const sec = el('section', 'issues');
-    sec.append(el('h3', '', 'সতর্কতা ও বিরোধ (' + iss.length.toLocaleString('bn-BD') + ')'));
+  const mode = activeMode();
+  if (mode) {
+    const total = mode.node.steps.length, got = mode.node.steps.filter((sid) => stepStat(sid)).length;
+    const meta = el('div', 'plan-meta'), bar = el('div', 'bar thin'), fill = el('i');
+    fill.style.width = Math.round(got / total * 100) + '%'; bar.append(fill);
+    meta.append(el('b', '', mode.node.name.split(' (')[0]), el('span', '', 'ধাপ ' + got.toLocaleString('bn-BD') + '/' + total.toLocaleString('bn-BD')), bar);
+    top.append(meta);
+  }
+  const acts = el('div', 'plan-bar');
+  const menu = el('details', 'menu');
+  const sum = el('summary', 'btn primary', 'কপি ▾'); sum.setAttribute('aria-haspopup', 'menu');
+  const pop = el('div', 'menu-pop'); pop.setAttribute('role', 'menu');
+  for (const [label, hint, fn] of COPY_FORMATS) {
+    const it = el('button', 'menu-item'); it.type = 'button'; it.setAttribute('role', 'menuitem');
+    it.append(document.createTextNode(label), el('small', '', hint));
+    it.onclick = () => { copyText(fn()); menu.open = false; };
+    pop.append(it);
+  }
+  menu.append(sum, pop); acts.append(menu);
+  top.append(acts);
+  const tabs = el('div', 'tabs'); tabs.setAttribute('role', 'tablist');
+  const addTab = (key, label, count, warn) => {
+    const b = el('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(planTab === key));
+    b.append(document.createTextNode(label));
+    if (count) b.append(el('span', 'badge' + (warn ? ' warn' : ''), count.toLocaleString('bn-BD')));
+    b.onclick = () => { planTab = key; renderPlan(); };
+    tabs.append(b);
+  };
+  addTab('path', 'পথ', selected.size); addTab('code', 'Pseudo-code', 0); addTab('warn', 'সতর্কতা', iss.length, true);
+  top.append(tabs);
+
+  if (planTab === 'code') {
+    const wrap = el('div', 'code-wrap'), pre = el('pre', 'pseudo-pre'); pre.tabIndex = 0;
+    renderCode(pre, planPseudo()); wrap.append(pre); body.append(wrap);
+  } else if (planTab === 'warn') {
     for (const i of iss) {
       const card = el('div', 'issue ' + i.kind);
       card.append(el('span', 'ik', i.kind === 'conflict' ? '✗ বিরোধ' : i.kind === 'requires' ? '! দরকার' : '⚠ সতর্কতা'), el('p', '', i.text));
       const row = el('div', 'inodes');
       for (const id of i.nodes) { const r = byId.get(id); if (!r) continue; const b = el('button', 'pending', short(r.node.name)); b.type = 'button'; b.onclick = () => openNode(id, { reveal: true }); row.append(b); }
       row.append(el('span', 'isrc', i.src));
-      card.append(row); sec.append(card);
+      card.append(row); body.append(card);
     }
-    box.append(sec);
-  }
-  const det = el('details', 'pseudo'); det.open = true;
-  det.append(el('summary', '', 'Pseudo-code দেখো (বাছা পথ থেকে)'));
-  const pre = el('pre', 'pseudo-pre', planPseudo()); pre.tabIndex = 0;
-  det.append(pre); box.append(det);
-  for (const g of planGroups()) {
-    const sec = el('section', 'plan-step');
-    sec.append(el('h3', '', g.step ? g.step.node.name : 'পথের ধরন'));
-    for (const r of g.items) {
-      const n = r.node, row = el('div', 'plan-item' + (n.tool && n.tool.archived ? ' warn' : ''));
-      const body = el('div', 'pi-body');
-      const pn = pathNames(r, g.step);
-      if (pn.length > 1) body.append(el('div', 'pi-path', pn.slice(0, -1).join(' › ')));
-      const nm = el('button', 'pi-name', pn[pn.length - 1]); nm.type = 'button'; nm.onclick = () => openNode(n.id, { reveal: true });
-      body.append(nm);
-      if (n.kind === 'tool') body.append(el('span', 'kchip tool', n.tool && n.tool.archived ? 'tool ⚠ archived' : 'tool'));
-      const tl = toolLine(n); if (tl) body.append(el('div', 'pi-meta', tl));
-      row.append(body);
-      const x = el('button', 'pi-x', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'বাদ দাও: ' + n.name); x.onclick = () => { removeWithDesc(n.id); saveSel(); refreshSel(); };
-      row.append(x);
-      sec.append(row);
+  } else {
+    const pendBy = new Map();
+    for (const r of pendingDecisions()) { const st = stepOf(r), k = st ? st.node.id : '_'; if (!pendBy.has(k)) pendBy.set(k, []); pendBy.get(k).push(r); }
+    for (const g of planGroups()) {
+      const key = g.step ? g.step.node.id : '_';
+      const sec = el('section', 'plan-step');
+      const h = el('h3', '', ''); h.append(el('span', '', g.step ? g.step.node.name : 'পথের ধরন'), el('span', '', g.items.length.toLocaleString('bn-BD')));
+      sec.append(h);
+      for (const r of g.items) {
+        const n = r.node, row = el('div', 'plan-item' + (n.tool && n.tool.archived ? ' warn' : ''));
+        const bd = el('div', 'pi-body');
+        const pn = pathNames(r, g.step);
+        if (pn.length > 1) bd.append(el('div', 'pi-path', pn.slice(0, -1).join(' › ')));
+        const nm = el('button', 'pi-name', pn[pn.length - 1]); nm.type = 'button'; nm.onclick = () => openNode(n.id, { reveal: true });
+        bd.append(nm);
+        if (n.kind === 'tool') bd.append(el('span', 'kchip tool', n.tool && n.tool.archived ? 'tool ⚠ archived' : 'tool'));
+        const tl = toolLine(n); if (tl) bd.append(el('div', 'pi-meta', tl));
+        row.append(bd);
+        const x = el('button', 'pi-x', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'বাদ দাও: ' + n.name); x.onclick = () => { removeWithDesc(n.id); saveSel(); refreshSel(); };
+        row.append(x);
+        sec.append(row);
+      }
+      if (pendBy.has(key)) { sec.append(pendList(pendBy.get(key))); pendBy.delete(key); }
+      body.append(sec);
     }
-    box.append(sec);
+    for (const [, items] of pendBy) { const sec = el('section', 'plan-step'); sec.append(el('h3', '', 'অন্যান্য'), pendList(items)); body.append(sec); }
+    const hf = orderedSel().filter((r) => r.node.kind === 'tool' && r.node.tool && r.node.tool.owner === 'huggingface' && r.node.tool.host === 'github');
+    if (hf.length) body.append(el('p', 'plan-note', 'ইকোসিস্টেম-নির্ভরতা: এই পথের ' + hf.length.toLocaleString('bn-BD') + 'টা tool Hugging Face-এর (' + hf.map((r) => short(r.node.name)).join(', ') + ')। বদল চাইলে একই সিদ্ধান্তে অন্য বিকল্প দেখো।'));
   }
-  const hf = orderedSel().filter((r) => r.node.kind === 'tool' && r.node.tool && r.node.tool.owner === 'huggingface' && r.node.tool.host === 'github');
-  if (hf.length) box.append(el('p', 'plan-note', 'ইকোসিস্টেম-নির্ভরতা: এই পথের ' + hf.length.toLocaleString('bn-BD') + 'টা tool Hugging Face-এর (' + hf.map((r) => short(r.node.name)).join(', ') + ')। বদল চাইলে একই সিদ্ধান্তে অন্য বিকল্প দেখো।'));
-  const pend = pendingDecisions();
-  if (pend.length) {
-    const sec = el('section', 'plan-pending');
-    sec.append(el('h3', '', 'এখনও বাছা হয়নি (' + pend.length + ')'));
-    for (const r of pend.slice(0, 12)) { const b = el('button', 'pending', short(r.node.name)); b.type = 'button'; b.onclick = () => { reveal(r); setOpen(r, true); }; sec.append(b); }
-    box.append(sec);
-  }
-  const clr = el('button', 'reset' + (clearArmed ? ' warn' : ''), clearArmed ? 'সব ' + selected.size + 'টা মুছবে: নিশ্চিত?' : 'সব বাছাই মুছো'); clr.type = 'button';
-  clr.onclick = () => {
-    if (!clearArmed) { clearArmed = true; renderPlan(); setTimeout(() => { if (clearArmed) { clearArmed = false; renderPlan(); } }, 5000); return; }
-    clearArmed = false; selected.clear(); saveSel(); refreshSel();
-  };
-  box.append(clr);
+  const foot = el('div', 'plan-foot');
+  const clr = el('button', 'btn sm danger' + (clearArmed ? ' armed' : ' ghost'), clearArmed ? 'সব ' + selected.size.toLocaleString('bn-BD') + 'টা মুছবে: নিশ্চিত?' : 'সব বাছাই মুছো'); clr.type = 'button';
+  clr.onclick = clearPlan;
+  foot.append(clr); box.append(foot);
+  body.scrollTop = scroll;
 }
 function refreshSel() {
   for (const r of records) if (r.selBtn) {
@@ -751,6 +828,8 @@ function openPlan(open) {
   $('#plan-toggle').setAttribute('aria-expanded', String(open));
 }
 $('#plan-toggle').onclick = () => openPlan($('#plan').hidden);
+document.addEventListener('click', (e) => { document.querySelectorAll('details.menu[open]').forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.querySelectorAll('details.menu[open]').forEach((d) => { d.open = false; }); });
 function inPlanTree(r) { return r.trail.some((a) => a.node.kind === 'step') || r.node.kind === 'step'; }
 function renderPick(node, box) {
   box.replaceChildren();
@@ -772,7 +851,7 @@ function renderPick(node, box) {
     wrap.append(el('span', 'kchip ' + (node.pick === 'one' ? 'one' : 'many'), node.pick === 'one' ? 'এখানে একটা বাছো' : 'এখানে একাধিক বাছতে পারো'));
   } else {
     const on = selected.has(node.id);
-    const b = el('button', 'control strong', on ? '✓ পথে আছে (বাদ দিতে চাপো)' : 'এটা আমার পথে বাছো');
+    const b = el('button', 'btn primary', on ? '✓ পথে আছে (বাদ দিতে চাপো)' : 'এটা আমার পথে বাছো');
     b.type = 'button'; b.onclick = () => toggleSel(node.id);
     wrap.append(b);
     if (node.basis && BASIS[node.basis]) wrap.append(el('span', 'kchip basis ' + node.basis, BASIS[node.basis]));
@@ -814,11 +893,13 @@ const root = build(data, tree, 0, []);
 buildJump(root);
 {
   let ids = [];
-  if (location.hash.startsWith('#plan=')) ids = location.hash.slice(6).split(',').filter(Boolean).map(resolveId);
+  const shared = location.hash.startsWith('#plan=');
+  if (shared) ids = location.hash.slice(6).split(',').filter(Boolean).map(resolveId);
   else { try { const a = JSON.parse(store('ml-atlas-plan') || '[]'); if (Array.isArray(a)) ids = a.map(resolveId); } catch (e) { ids = []; } }
   setSelFrom(ids);
+  restored = !shared && selected.size > 0;   // refresh-এ আগের বাছাই থাকে, কিন্তু panel নিজে খোলে না; ওপরে "ফিরে এসেছে" বার
   refreshSel();
-  if (selected.size && window.innerWidth > 900) openPlan(true);
+  if (shared && selected.size && window.innerWidth > 900) openPlan(true);
 }
 updateCount();
 setView(location.hash === '#path' ? 'path' : (store('ml-atlas-view') === 'path' ? 'path' : 'tree'));
