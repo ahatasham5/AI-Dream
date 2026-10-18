@@ -378,6 +378,32 @@ class Parts(unittest.TestCase):
             self.assertTrue(any(c.get("kind") in ("decision", "option", "tool") for c in p["children"]), p["id"])
 
 
+class CompareFlags(unittest.TestCase):
+    """compare/peer পতাকার ভুল ব্যবহার build-এ আটকায়, যাতে তুলনা চুপচাপ ভেঙে না যায়।"""
+    def check(self, mutate):
+        import copy
+        root = copy.deepcopy(MAP)
+        mutate({n["id"]: n for n in walk(root)})
+        build.prepare(root)
+        with self.assertRaises(SystemExit):
+            build.validate_plan(root)
+
+    def test_unknown_compare_value_fails(self):
+        self.check(lambda N: N["task"].update(compare="all"))
+
+    def test_compare_needs_two_peers(self):
+        def m(N):
+            for c in N["task"]["children"][1:]:
+                c["peer"] = False
+        self.check(m)
+
+    def test_peer_false_needs_alternatives_parent(self):
+        self.check(lambda N: N["ft-cycle-loss"].update(peer=False))
+
+    def test_peer_only_false(self):
+        self.check(lambda N: N["semi-signal"].update(peer=True))
+
+
 if __name__ == "__main__":
     unittest.main()
 

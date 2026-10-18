@@ -218,6 +218,19 @@ def validate_plan(root):
     tool-এর repo https না হলে বা licence/যাচাই-তারিখ না থাকলে build থামে।
     stepref-এর goto আর mode-option-এর steps সত্যিকারের step-node-এ পৌঁছাতে হবে।"""
     by_id = {n["id"]: n for n, _, _ in walk(root)}
+    for node, parent, _ in walk(root):
+        # তুলনার সংকেত: compare শুধু "alternatives" (parent-এ), peer শুধু false (সন্তানে)
+        if node.get("compare") is not None:
+            if node["compare"] != "alternatives":
+                fail(f"compare শুধু \"alternatives\" হতে পারে: {node['name']} ({node['id']})")
+            peers = [c for c in node.get("children") or [] if c.get("kind") not in ("step", "stepref") and c.get("peer") is not False]
+            if len(peers) < 2:
+                fail(f"compare:alternatives-এ কমপক্ষে ২টা তুলনার-যোগ্য সন্তান লাগে: {node['name']} ({node['id']})")
+        if node.get("peer") is not None:
+            if node["peer"] is not False:
+                fail(f"peer শুধু false হতে পারে: {node['name']} ({node['id']})")
+            if not parent or parent.get("compare") != "alternatives":
+                fail(f"peer:false শুধু compare:alternatives-ওয়ালা parent-এর সন্তানে অর্থ রাখে: {node['name']} ({node['id']})")
     for node, _, _ in walk(root):
         if node.get("kind") == "stepref":
             t = by_id.get(node.get("goto"))

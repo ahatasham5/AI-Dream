@@ -133,7 +133,10 @@ test('আসল data: প্রতিটা তুলনাযোগ্য paren
     const g = C.groupOf(r);
     if (!g.length) continue;
     parents++;
-    for (const p of g) assert.ok(!p.node.seq && p.node.kind !== 'step' && p.node.kind !== 'stepref', `অযোগ্য peer: ${p.node.id}`);
+    for (const p of g) {
+      assert.ok(p.node.kind !== 'step' && p.node.kind !== 'stepref' && p.node.peer !== false, `অযোগ্য peer: ${p.node.id}`);
+      assert.ok(!p.node.seq || r.node.compare === 'alternatives', `seq-ওয়ালা peer অথচ parent বিকল্প-তালিকা বলেনি: ${p.node.id}`);
+    }
     const pick = C.initialPick(g, g[0].node.id);
     assert.equal(pick.length, Math.min(g.length, C.DEFAULT_MAX), `শুরুর সংখ্যা ভুল: ${r.node.id}`);
     assert.ok(C.validSelection(pick), `অবৈধ শুরুর বাছাই: ${r.node.id}`);
@@ -151,4 +154,29 @@ test('টীকা: "course" কখনো না; আসল সূত্র/স�
   assert.equal(n[0].text, C.BASIS.paper);
   assert.ok(!n.some((x) => /কোর্সে আছে/.test(x.text)));
   assert.deepEqual(C.notes([byName(m, 'a'), byName(m, 'e')]), []);
+});
+
+// ---------- নম্বর-ওয়ালা বিকল্প: data বলে দেয় (compare / peer) ----------
+test('compare:"alternatives" parent-এ নম্বর-ওয়ালা সন্তানও peer; peer:false বাদ; পতাকা ছাড়া আগের মতোই', () => {
+  const m = recsOf(mk('p', { compare: 'alternatives' }, [mk('a', { seq: '১', peer: false }), mk('b', { seq: '২' }), mk('c', { seq: '৩' }), mk('d', { seq: '৪', kind: 'step' })]));
+  const p = byName(m, 'p');
+  assert.deepEqual(C.groupOf(p).map((r) => r.node.id), ['b', 'c'], 'peer:false ও step বাদ, বাকি নম্বর-ওয়ালারা peer');
+  assert.deepEqual(C.peersOf(byName(m, 'a')), [], 'peer:false নিজে তুলনা পায় না');
+  const plain = recsOf(mk('p', {}, [mk('a', { seq: '১' }), mk('b', { seq: '২' }), mk('c', { seq: '৩' })]));
+  assert.deepEqual(C.groupOf(byName(plain, 'p')), [], 'পতাকা ছাড়া নম্বর-ওয়ালারা ক্রমিক, peer নয় (আগের নিয়ম)');
+  const off = recsOf(mk('p', {}, [mk('a', { peer: false }), mk('b'), mk('c')]));
+  assert.deepEqual(C.groupOf(byName(off, 'p')).map((r) => r.node.id), ['b', 'c'], 'seq ছাড়াও peer:false বাদ দেয়');
+});
+
+test('আসল data: বিকল্প-তালিকায় (Task, Architecture, Training…) তুলনা আছে; ক্রমিক অংশে (Model শেখা, Input, Output) নেই', () => {
+  const map = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'map.json'), 'utf8'));
+  const m = E.fromTree(JSON.parse(JSON.stringify(map)));
+  const size = (id) => C.groupOf(m.byId.get(id)).length;
+  assert.equal(size('task'), 5); assert.equal(size('setting'), 5); assert.equal(size('neural-network--architecture'), 6);
+  assert.equal(size('training'), 3); assert.equal(size('transformer-efficiency'), 6);
+  assert.equal(size('supervised-learning'), 3, 'Input, Target, Model শেখা বাদ; তিন ধরনের target বাকি');
+  assert.equal(size('state-space-models'), 5, 'SSM: ভিত্তি ও HiPPO বাদ; S4, Mamba, Mamba-2, Vision Mamba, Hybrid বাকি');
+  for (const id of ['ft-cycle', 'ft-input', 'ft-output', 'from-scratch-training', 'fine-tuning', 'evaluation', 'reinforcement-learning-rl', 'mode-finetune'])
+    assert.equal(size(id), 0, id + ': ক্রমিক বা ধারণা-তালিকা, তুলনা থাকার কথা না');
+  for (const r of m.records) if (r.node.compare) assert.ok(C.groupOf(r).length >= 2, r.node.id + ': compare পতাকা অথচ তুলনা নেই');
 });

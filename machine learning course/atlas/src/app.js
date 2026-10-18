@@ -135,6 +135,11 @@ function build(node, parent, depth, trail) {
       cb.setAttribute('aria-label', short(node.name) + '-এর ভেতরের ' + kids.length.toLocaleString('bn-BD') + 'টা তুলনা করো');
       cb.onclick = (e) => { e.stopPropagation(); openCompare(r); };
       row.insertBefore(cb, r.selBtn || null);
+    } else if (r.children.length >= 2 && !r.children.every((c) => c.node.kind === 'stepref')) {
+      // তুলনা নেই কেন, চুপচাপ না রেখে hover-এ বলা: সন্তানরা একটা প্রক্রিয়ার ক্রমিক অংশ বা আলাদা ধারণা, বিকল্প নয়
+      const off = el('span', 'cmpbtn off', 'বিকল্প নয়');
+      off.title = 'ভেতরের অংশগুলো একটা প্রক্রিয়ার ক্রমিক ধাপ বা আলাদা ধারণা, পরস্পরের বিকল্প নয়, তাই পাশাপাশি তুলনা নেই';
+      row.insertBefore(off, r.selBtn || null);
     }
     indicator.onclick = () => { if (r.list.hidden) openFocused(r); else { setOpen(r, false); setFocus(r); } };
     setOpen(r, depth === 0);

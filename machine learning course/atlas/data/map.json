@@ -165,6 +165,7 @@
    "insight": {
     "fact": "একই ছবিতে শ্রেণি চেনা, object-এর অবস্থান বলা ও বর্ণনা লেখা আলাদা task। Input এক হলেও output-এর প্রয়োজন বদলাতে পারে। বাড়ির দাম সংখ্যা, spam শ্রেণি, গ্রাহকের অজানা দল clustering—আগে কাঙ্ক্ষিত ফল ঠিক করলে model বাছাইয়ের প্রশ্ন পরিষ্কার হয়। প্রতিটি task খুলে model বা পদ্ধতি → গঠন → শেখা → ব্যবহার দেখো। এগুলো সম্ভাব্য পথ; সব model-এর সম্পূর্ণ তালিকা নয়। Generative framework ও RL algorithm-কে আলাদা architecture হিসেবে ধরে নিও না। বাছাইয়ের নিয়ম: কী output চাই → কী data/label আছে → সহজ baseline → আলাদা validation data-তে accuracy, সময় ও খরচ তুলনা। নিচের নির্দেশগুলো শুরুর shortlist, নিশ্চিত winner নয়।"
    },
+   "compare": "alternatives",
    "children": [
     {
      "id": "regression",
@@ -1339,6 +1340,7 @@
    "insight": {
     "fact": "এখানে signal-এর উৎস ধরে পাঁচটি প্রধান setting। Self-supervised-কে প্রায়ই unsupervised-এর অংশ ধরা হয়; বোঝার জন্য আলাদা। একই architecture ভিন্ন setting-এ শেখে। নিচের কাজ/পদ্ধতিগুলো setting-এর ব্যবহার বা কৌশল, সবগুলো নতুন setting নয়। Training-এর সাধারণ ভিত্তি এখানে shared reference, আলাদা setting নয়। Formula-এর পথ: Supervised→Regression/Binary Classification; Unsupervised→Clustering; Self-supervised→Next-token; Semi-supervised→Self-training; RL→Value-based।"
    },
+   "compare": "alternatives",
    "children": [
     {
      "id": "supervised-learning",
@@ -1354,6 +1356,7 @@
      },
      "settingPurpose": "Input-এর সঙ্গে কাঙ্ক্ষিত output জানা আছে; নতুন input-এর জন্য সেই সম্পর্ক শিখতে চাই।",
      "seq": "১",
+     "compare": "alternatives",
      "children": [
       {
        "id": "input",
@@ -1362,7 +1365,8 @@
        "insight": {
         "fact": "উদাহরণ: বাড়ির আয়তন ও ঘরের সংখ্যা।"
        },
-       "seq": "১"
+       "seq": "১",
+       "peer": false
       },
       {
        "id": "supervised-learning--target",
@@ -1371,7 +1375,8 @@
        "insight": {
         "fact": "উদাহরণ: সেই বাড়ির জানা বিক্রির দাম। Prediction এই target-এর সঙ্গে তুলনা করা হয়।"
        },
-       "seq": "২"
+       "seq": "২",
+       "peer": false
       },
       {
        "id": "supervised-learning--model",
@@ -1381,6 +1386,7 @@
         "fact": "নিচের ধারাটি ধারণাগত। Tree split বেছে শেখে; neural network সাধারণত gradient ও optimizer দিয়ে parameters update করে।"
        },
        "seq": "৩",
+       "peer": false,
        "children": [
         {
          "id": "prediction",
@@ -2084,18 +2090,21 @@
      },
      "settingPurpose": "সব data label করা যায়নি, কিন্তু unlabelled অংশ কাজে লাগাতে চাই।",
      "seq": "২",
+     "compare": "alternatives",
      "children": [
       {
        "id": "semi-signal",
        "name": "সংকেত — অল্প লেবেল + অনেক লেবেলহীন",
        "definition": "শেখার সংকেত এখানে দুই জায়গা থেকে আসে: কিছু উদাহরণে সঠিক উত্তর আছে, বেশির ভাগে নেই। Label-ওয়ালা অংশ সরাসরি শেখায়, label-হীন অংশ data-র কাঠামো (যেমন কাছাকাছি উদাহরণ একই রকম) দিয়ে সাহায্য করে। যেমন ১০০০টা label-ওয়ালা আর ১ লাখ label-হীন ছবি মিলিয়ে একটা ভালো model বানানো।",
-       "seq": "১"
+       "seq": "১",
+       "peer": false
       },
       {
        "id": "semi-cycle",
        "name": "Model শেখা (Semi-supervised-এ)",
        "definition": "Semi-supervised-এ model একই ধাপে দুই ধরনের data থেকে শেখে: label-ওয়ালা অংশে সাধারণ loss, label-হীন অংশে আলাদা লক্ষ্য (pseudo-label বা consistency-র শাস্তি)। দুই loss যোগ করে একটাই update হয়। যেমন প্রতি batch-এ কিছু label-ওয়ালা আর কিছু label-হীন ছবি থাকে।",
-       "seq": "২"
+       "seq": "২",
+       "peer": false
       },
       {
        "id": "self-training-pseudo-labels",
@@ -2210,18 +2219,21 @@
      },
      "settingPurpose": "Unlabelled data বেশি, annotation ব্যয়বহুল; data থেকেই শেখার প্রশ্ন বানাতে চাই।",
      "seq": "৩",
+     "compare": "alternatives",
      "children": [
       {
        "id": "self-signal",
        "name": "সংকেত — data-র একটা অংশই লেবেল",
        "definition": "Self-supervised শেখায় শেখার সংকেত (সঠিক উত্তর) আসে data-র নিজের অংশ থেকে: লেখার পরের শব্দ, ছবির লুকানো টুকরো, বা একই জিনিসের দুই রূপ। তাই কাউকে লেবেল লিখতে হয় না। যেমন একটা লম্বা লেখা থেকেই হাজার হাজার 'পরের শব্দ কী?' প্রশ্ন-উত্তরের জোড়া বানানো যায়।",
-       "seq": "১"
+       "seq": "১",
+       "peer": false
       },
       {
        "id": "self-cycle",
        "name": "Model শেখা (Self-supervised-এ)",
        "definition": "Self-supervised-এ শেখার প্রতিটা ধাপ supervised-এর মতোই: model অনুমান করে, loss মাপা হয়, parameters একটু বদলায়। একমাত্র তফাত target-এর উৎসে: কেউ লিখে দেয় না, input-এরই কোনো অংশ (যেমন পরের token) target হয়ে যায়। তাই একই training loop লেবেল ছাড়াই চলে।",
-       "seq": "২"
+       "seq": "২",
+       "peer": false
       },
       {
        "id": "autoregressive-next-token-prediction",
@@ -2384,18 +2396,21 @@
      },
      "settingPurpose": "কাঙ্ক্ষিত task label নেই; data-র গঠন, মিল বা representation খুঁজতে চাই।",
      "seq": "৪",
+     "compare": "alternatives",
      "children": [
       {
        "id": "unsup-signal",
        "name": "সংকেত — data-র নিজের গঠন",
        "definition": "Unsupervised-এ সঠিক উত্তর নেই, তাই শেখার সংকেত আসে data-র নিজের কাঠামো থেকে: কে কার কাছাকাছি (দল), কোন দিকে সবচেয়ে বেশি ছড়ানো (কম মাত্রায় সংক্ষেপ), কোথায় বেশি ঘন (সম্ভাবনার বণ্টন)। গ্রাহকের কেনাকাটার লগে যারা কাছাকাছি, তারাই এক দল।",
-       "seq": "১"
+       "seq": "১",
+       "peer": false
       },
       {
        "id": "unsup-cycle",
        "name": "Model শেখা (Unsupervised-এ)",
        "definition": "Unsupervised-এও চক্র একই: অনুমান, loss, update। তফাত loss-এ: সঠিক উত্তরের সাথে তুলনা নেই, আছে data-র গঠনের একটা মাপ। K-Means-এ সেটা প্রতিটা বিন্দু থেকে নিজের কেন্দ্রের দূরত্বের বর্গের যোগ, Autoencoder-এ ফেরত-বানানো input-এর ভুল।",
-       "seq": "২"
+       "seq": "২",
+       "peer": false
       },
       {
        "id": "unsupervised-learning--clustering",
@@ -3712,6 +3727,7 @@
        "insight": {
         "fact": "CNN স্থানীয় pattern-এর গঠন ব্যবহার করে; RNN ধাপের state রাখে; Transformer Attention দিয়ে তথ্য মেশায়। নাম মুখস্থের চেয়ে কোন হিসাব বদলেছে তা দেখো।"
        },
+       "compare": "alternatives",
        "children": [
         {
          "id": "multilayer-perceptron-mlp",
@@ -4859,6 +4875,7 @@
            "id": "transformer-efficiency",
            "name": "Transformer-কে দ্রুত ও লম্বা-context-সক্ষম করা",
            "definition": "Transformer-এর দুটো খরচের সমস্যা সামলানোর কৌশলের সমষ্টি: attention-এর হিসাব ক্রমের দৈর্ঘ্যের বর্গে বাড়ে, আর লেখা তৈরির সময় প্রতি ধাপে আগের সব key/value আবার পড়তে হয়। কৌশলগুলো model-এর মূল ধারণা না বদলে সেটাকে দ্রুত ও লম্বা context (একসঙ্গে যত token দেখা যায়) সামলানোর উপযোগী করে; বাস্তবে এগুলো প্রায়ই একসাথে ব্যবহার হয়।",
+           "compare": "alternatives",
            "children": [
             {
              "id": "flash-attention",
@@ -4934,6 +4951,7 @@
          "name": "State Space Model (SSM) পরিবার",
          "definition": "এমন model-এর পরিবার যা একটা ছোট লুকানো অবস্থা (state) রাখে: প্রতি ধাপে নতুন input ঢুকলে state বদলায়, আর state থেকে output আসে। গঠনে RNN-এর কাছাকাছি, কিন্তু মূলটা একটা রৈখিক ব্যবস্থা, যাকে training-এ একসঙ্গে (convolution) আর inference-এ ধাপে ধাপে (recurrence) চালানো যায়। তাই লম্বা ক্রমে খরচ রৈখিক আর state-এর আকার স্থির।",
          "seq": "৬",
+         "compare": "alternatives",
          "children": [
           {
            "id": "ssm-basics",
@@ -4947,13 +4965,15 @@
            "insight": {
             "fact": "একই model দুই রূপে চলে: training-এ সমান্তরাল (convolution), inference-এ ধাপে ধাপে (recurrence)। কিন্তু এই সুবিধা তখনই, যখন Ā, B̄, C সময়ের সঙ্গে স্থির (time-invariant)।"
            },
-           "seq": "১"
+           "seq": "১",
+           "peer": false
           },
           {
            "id": "hippo",
            "name": "HiPPO — স্মৃতি ধরে রাখার গাণিতিক ভিত্তি",
            "definition": "SSM-এর ভেতরের হিসাব (A matrix) কী হবে, সেই প্রশ্নের একটা গাণিতিক উত্তর: এ পর্যন্ত দেখা পুরো ইতিহাসকে ছোট state-এ কীভাবে সবচেয়ে ভালোভাবে ধরে রাখা যায়। এটা ইতিহাসকে polynomial-এর ওপর প্রক্ষেপ (projection) করে, আর সেখান থেকেই A-র একটা নির্দিষ্ট রূপ পাওয়া যায়। অর্থাৎ A এলোমেলো মান নয়, স্মৃতি ধরে রাখার জন্য বেছে নেওয়া।",
-           "seq": "২"
+           "seq": "২",
+           "peer": false
           },
           {
            "id": "s4",
@@ -5201,6 +5221,7 @@
      }
     ]
    },
+   "compare": "alternatives",
    "children": [
     {
      "id": "from-scratch-training",

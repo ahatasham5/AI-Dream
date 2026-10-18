@@ -2,6 +2,8 @@
  * records: engine-এর মতোই  { node, parent, children, order }
  * নিয়ম:
  *   ১. তুলনার যোগ্য ভাই (peer) = step নয়, stepref নয়, আর seq (ক্রমিক নম্বর) নেই।
+ *      ব্যতিক্রম (data বলে দেয়): parent-এ compare:"alternatives" থাকলে নম্বর শুধু তালিকার ক্রম, সন্তানরা বিকল্প, তাই seq থাকলেও peer;
+ *      সন্তানে peer:false থাকলে সে স্পষ্টভাবে বাদ (বিকল্প-তালিকার মিশ্র ক্রমিক শুরুর অংশ)। নম্বর দেখে আন্দাজ করা হয় না।
  *      নম্বর-ওয়ালারা ক্রমিক অংশ, বিকল্প নয়; তাদের পাশাপাশি রাখা অর্থহীন।
  *   ২. একটা parent-এ কমপক্ষে ২টা peer থাকলে তবেই তুলনা দেওয়া হয়।
  *   ৩. কমপক্ষে ২টা; একসাথে সর্বোচ্চ max টা (শুরুর মান DEFAULT_MAX = ৪, ব্যবহারকারী ২..ABS_MAX = ৮ করতে পারে)।
@@ -18,7 +20,12 @@ const AtlasCompare = (function () {
   const BASIS = { course: 'কোর্সে আছে', paper: 'paper থেকে মেলানো', experience: 'অভিজ্ঞতা-ভিত্তিক, নিয়ম নয়', 'tool-doc': 'tool-এর docs বা README থেকে' };
   const KIDS_SHOWN = 8;
 
-  const isPeer = (r) => r.node.kind !== 'step' && r.node.kind !== 'stepref' && !r.node.seq;
+  const isPeer = (r) => {
+    const n = r.node;
+    if (n.kind === 'step' || n.kind === 'stepref' || n.peer === false) return false;
+    if (n.seq) return !!(r.parent && r.parent.node.compare === 'alternatives');
+    return true;
+  };
   function groupOf(parentRec) {
     const kids = parentRec && parentRec.children ? parentRec.children.filter(isPeer) : [];
     return kids.length >= MIN ? kids : [];

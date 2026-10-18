@@ -1,5 +1,21 @@
 # Changelog — ML Learning Atlas
 
+## ২০২৬-১০-১৮ (১২) — তুলনা: নম্বর-ওয়ালা বিকল্পও, আর কেন নেই তা বলা
+
+### সমস্যা
+কিছু শাখায় "⇄ তুলনা" আসত না (hover-এও না)। ২১৭টা শাখার ২০টায় নেই, সবগুলোর সন্তানে ক্রমিক নম্বর। নিয়মটা ছিল "নম্বর মানেই ক্রমিক ধাপ, তুলনা অর্থহীন"। এটা মোটা: Task (Regression, Classification…), Learning Setting, Architecture-এর ধরন (MLP, CNN, RNN, Transformer…), Training-এর তিন ধরন, Transformer-এর কৌশল, SSM পরিবার আসলে বিকল্প, নম্বর শুধু তালিকার ক্রম।
+
+### পরিবর্তন
+- **data-ই বলে দেয়, নম্বর দেখে আন্দাজ নয়:** parent-এ `compare: "alternatives"` (১০টা: Task, Learning Setting, Architecture-এর ধরন, Transformer-এর কৌশল, SSM পরিবার, Training, Supervised/Semi-/Self-supervised/Unsupervised) আর মিশ্র তালিকার ক্রমিক শুরুর অংশে `peer: false` (১১টা: সংকেত, Model শেখা, Input, Target, SSM-এর ভিত্তি, HiPPO)। তুলনা এখন ২০৭ শাখায় (আগে ১৯৭)।
+- **সত্যিই ক্রমিক ১০টায় তুলনা নেই, আর সেটা এখন বলা হয়:** hover-এ ডানে "বিকল্প নয়" (tooltip: ক্রমিক ধাপ বা আলাদা ধারণা)। Model শেখা (Prediction → Loss → Update), Input, Output, Fine-tuning, From-scratch, Evaluation, RL, Mamba, আর দুই মোড।
+- `build.py` আকার আটকায়: `compare` শুধু "alternatives" ও ≥২ যোগ্য সন্তানসহ; `peer` শুধু false ও শুধু alternatives-parent-এর সন্তানে।
+
+### সীমা
+- কোনটা বিকল্প আর কোনটা ক্রমিক, তা সংজ্ঞা পড়ে আমার বিচারে (স্বতন্ত্র যাচাইকারী ছাড়া)। Evaluation (Train/Validation/Test data, Metrics, Generalization…) ও RL (পাঁচটা আলাদা অক্ষ) আমি বিকল্প-তালিকা ধরিনি; ভিন্নমত হলে `compare` বসালেই হবে।
+
+### Test
+- Node (compare, ২টা নতুন + ১টা হালনাগাদ): পতাকা-সহ/ছাড়া নিয়ম; আসল data-য় Task ৫, Architecture ৬, Training ৩, Supervised ৩, SSM ৫, আর Model শেখা/Input/Output ইত্যাদিতে ০। Python (`CompareFlags`, ৪টা): ভুল পতাকা build-এ আটকায়। browser: ১২টা শাখার বোতাম/লেখা, Model শেখা-য় hover, Task-এর তুলনা খোলে।
+
 ## ২০২৬-১০-১৮ (১১) — গাইড: বাকি আবশ্যক সিদ্ধান্ত
 
 ### সমস্যা

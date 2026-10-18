@@ -479,3 +479,8 @@ li.inc-on>.row>.term{background:var(--soft);border-color:var(--hover-line)}
 .guide-pill:hover{background:color-mix(in srgb,var(--amber) 22%,transparent)}
 .guide-pill.done{border-color:var(--line);background:transparent;color:var(--accent);cursor:default}
 @media print{#guide-pill{display:none!important}}
+
+/* তুলনা নেই কেন: ক্রমিক অংশ/আলাদা ধারণার শাখায় hover-এ "বিকল্প নয়" */
+.cmpbtn.off{display:inline-flex;align-items:center;cursor:help;font-weight:500}
+.cmpbtn.off:hover{background:transparent;color:var(--muted);border-color:transparent}
+@media(hover:none){.cmpbtn.off{opacity:.55}}
