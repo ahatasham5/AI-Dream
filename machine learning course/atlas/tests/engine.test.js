@@ -272,3 +272,14 @@ test('rules: এলোমেলো ক্লিকে সতর্কতা শ�
     if (i % 40 === 0) for (const x of m.plan.issues(rules)) for (const id of x.nodes) assert.ok(m.plan.has(id), `${x.rule}: ${id} বাছা নয়`);
   }
 });
+
+test('pseudo: বিকল্পের ঠিক নিচের tool (CER/WER → jiwer, merge → PEFT) লেখায় আসে', () => {
+  const m = fresh();
+  for (const id of ['mode-finetune', 'opt-cer-wer', 'tool-jiwer', 'opt-deploy-merge', 'tool-peft-merge', 'opt-paged', 'tool-bnb-optim']) m.plan.toggle(id);
+  const t = m.plan.pseudo(spec, rules);
+  assert.match(t, /CER\/WER[^\n]*\[tool: jiwer\]/);
+  assert.match(t, /merge:[^\n]*\[tool: PEFT merge_and_unload\]/);
+  assert.match(t, /optimizer = paged[^\n]*\[tool: bitsandbytes \(8-bit optimizer\)\]/);
+  const m2 = fresh(); for (const id of ['mode-finetune', 'opt-cer-wer']) m2.plan.toggle(id);
+  assert.ok(!m2.plan.pseudo(spec, rules).includes('[tool:'), 'tool না বাছলে [tool:] আসে না');
+});

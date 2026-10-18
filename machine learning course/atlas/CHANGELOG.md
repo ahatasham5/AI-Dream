@@ -8,6 +8,7 @@
 - ছোট পর্দা (৩৭৫) যাচাই: তালিকা নিজে খোলে না, কোনো overflow নেই, ডায়ালগ ও pseudo-code আঁটে।
 
 ### সংশোধন
+- বিকল্পের ঠিক নিচের tool (CER/WER → jiwer, merge → PEFT, paged optimizer → bitsandbytes) pseudo-code-এ আসত না; এখন `[tool: …]` হয়ে বিকল্পের লেখার সঙ্গে জোড়া।
 - Gradient Descent-এর ইতিহাস-সূত্র (EMIS মূল সাইট ৫০৩ দিচ্ছিল) জীবিত mirror-এর PDF-এ সরানো; "October 18, 1847" PDF-এর লেখায় আবার মেলানো।
 
 ## ২০২৬-১০-১৮ — pseudo-code ও সার্বজনীনতা

@@ -138,7 +138,14 @@ const AtlasEngine = (function () {
         const info = spec.slots[baseId(p.node.id, spec.slots)];
         const o = spec.options[baseId(r.node.id, spec.options)];
         if (o && typeof o === 'object' && !Array.isArray(o)) { for (const k of Object.keys(o)) push(k, o[k]); }
-        else if (info) push(info.slot, o !== undefined ? o : short(r.node.name));
+        else if (info) {
+          // বিকল্পের ঠিক নিচে বাছা tool (যেমন CER/WER → jiwer) তার লেখার সঙ্গে জোড়া লাগে
+          const tl = r.children.filter((c) => c.node.kind === 'tool' && selected.has(c.node.id)).map((c) => short(c.node.name));
+          const suffix = tl.length ? `   [tool: ${tl.join(', ')}]` : '';
+          const base = o !== undefined ? o : short(r.node.name);
+          if (Array.isArray(base)) push(info.slot, suffix ? base.slice(0, -1).concat(base[base.length - 1] + suffix) : base);
+          else push(info.slot, base + suffix);
+        }
       }
       const joinOf = (slot) => (spec.join && spec.join[slot]) || ', ';
       const out = [];
