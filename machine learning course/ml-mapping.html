@@ -356,6 +356,9 @@ details.pend>summary:hover{color:var(--ink)}
 .inodes{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
 .inodes .pending{display:inline-block;width:auto;border:1px solid var(--btn-line);padding:3px 10px;font-size:12px;border-radius:99px}
 .isrc{font-size:11.5px;color:var(--muted);margin-inline-start:4px}
+.plan-ok{margin-top:10px;padding:12px 14px;border-radius:12px;background:var(--soft)}
+.plan-ok b{color:var(--accent);font-size:14px}
+.plan-ok p{margin:6px 0 0;font-size:13px;line-height:1.7;color:var(--muted)}
 /* ছোট বার্তা */
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:var(--root-bg);color:var(--root-ink);padding:9px 16px;border-radius:99px;font-size:13px;font-weight:600;box-shadow:var(--shadow-pop)}
 
@@ -1364,7 +1367,6 @@ function renderPlan() {
   const old = box.querySelector('.plan-body'), scroll = old ? old.scrollTop : 0;
   box.replaceChildren();
   const iss = selected.size ? plan.issues(cfg.rules) : [];
-  if (planTab === 'warn' && !iss.length) planTab = 'path';
   const top = el('div', 'plan-top');
   const head = el('div', 'plan-head');
   head.append(el('h2', '', 'আমার পথ'), el('span', 'plan-n', selected.size ? selected.size.toLocaleString('bn-BD') + 'টা বাছা' : ''));
@@ -1413,6 +1415,12 @@ function renderPlan() {
     const wrap = el('div', 'code-wrap'), pre = el('pre', 'pseudo-pre'); pre.tabIndex = 0;
     renderCode(pre, planPseudo()); wrap.append(pre); body.append(wrap);
   } else if (planTab === 'warn') {
+    if (!iss.length) {
+      const ok = el('div', 'plan-ok');
+      ok.append(el('b', '', '✓ কোনো বিরোধ বা সতর্কতা নেই'),
+        el('p', '', 'এই tab বাছা বিকল্পগুলোর মিল দেখে: দুটো একসাথে চলে না, বা একটার আগে আরেকটা দরকার। ' + (((cfg.rules || {}).rules || []).length).toLocaleString('bn-BD') + 'টা সূত্র-সহ নিয়মে যাচাই হয়; কিছু মিলে গেলে এখানে কারণসহ আসবে আর tab-এ সংখ্যা দেখাবে।'));
+      body.append(ok);
+    }
     for (const i of iss) {
       const card = el('div', 'issue ' + i.kind);
       card.append(el('span', 'ik', i.kind === 'conflict' ? '✗ বিরোধ' : i.kind === 'requires' ? '! দরকার' : '⚠ সতর্কতা'), el('p', '', i.text));

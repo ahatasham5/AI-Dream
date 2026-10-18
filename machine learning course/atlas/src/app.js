@@ -718,7 +718,6 @@ function renderPlan() {
   const old = box.querySelector('.plan-body'), scroll = old ? old.scrollTop : 0;
   box.replaceChildren();
   const iss = selected.size ? plan.issues(cfg.rules) : [];
-  if (planTab === 'warn' && !iss.length) planTab = 'path';
   const top = el('div', 'plan-top');
   const head = el('div', 'plan-head');
   head.append(el('h2', '', 'আমার পথ'), el('span', 'plan-n', selected.size ? selected.size.toLocaleString('bn-BD') + 'টা বাছা' : ''));
@@ -767,6 +766,12 @@ function renderPlan() {
     const wrap = el('div', 'code-wrap'), pre = el('pre', 'pseudo-pre'); pre.tabIndex = 0;
     renderCode(pre, planPseudo()); wrap.append(pre); body.append(wrap);
   } else if (planTab === 'warn') {
+    if (!iss.length) {
+      const ok = el('div', 'plan-ok');
+      ok.append(el('b', '', '✓ কোনো বিরোধ বা সতর্কতা নেই'),
+        el('p', '', 'এই tab বাছা বিকল্পগুলোর মিল দেখে: দুটো একসাথে চলে না, বা একটার আগে আরেকটা দরকার। ' + (((cfg.rules || {}).rules || []).length).toLocaleString('bn-BD') + 'টা সূত্র-সহ নিয়মে যাচাই হয়; কিছু মিলে গেলে এখানে কারণসহ আসবে আর tab-এ সংখ্যা দেখাবে।'));
+      body.append(ok);
+    }
     for (const i of iss) {
       const card = el('div', 'issue ' + i.kind);
       card.append(el('span', 'ik', i.kind === 'conflict' ? '✗ বিরোধ' : i.kind === 'requires' ? '! দরকার' : '⚠ সতর্কতা'), el('p', '', i.text));
