@@ -347,6 +347,37 @@ class PageSource(unittest.TestCase):
         self.assertEqual(missing, [], f"app.js যে id খোঁজে অথচ template-এ নেই: {missing}")
 
 
+class Parts(unittest.TestCase):
+    """পদ্ধতির নিজের অংশ: core = সাথে আসে (info, বাছা যায় না), optional = বাছা যায় (option, কারণসহ)।"""
+    PARTS = [n for n in NODES if n.get("part")]
+
+    def test_parts_have_valid_shape(self):
+        by_parent = {}
+        for n in NODES:
+            for c in n.get("children") or []:
+                by_parent[c["id"]] = n
+        self.assertGreaterEqual(len(self.PARTS), 12)
+        for n in self.PARTS:
+            self.assertIn(n["part"], ("core", "optional"), n["id"])
+            self.assertEqual(n["kind"], "info" if n["part"] == "core" else "option", n["id"])
+            self.assertIn(by_parent[n["id"]].get("kind"), ("option", "tool"), f"{n['id']}: parent option/tool নয়")
+
+    def test_optional_parts_explain_themselves(self):
+        import copy
+        root = copy.deepcopy(MAP)
+        build.prepare(root)            # why/tradeoff build-সময়ে guidance থেকে বসে
+        opt = [n for n in walk(root) if n.get("part") == "optional"]
+        self.assertGreaterEqual(len(opt), 2)
+        for n in opt:
+            for f in ("when", "why", "tradeoff"):
+                self.assertTrue(str(n.get(f, "")).strip(), f"{n['id']}: {f} নেই")
+
+    def test_core_parts_are_never_the_only_thing_that_explains_a_choice(self):
+        """core যার ভেতরে বসে, সেই parent-এর অন্তত একটা বাছার বিষয় (decision/option/tool) থাকতে হবে; নইলে শুধু ✓ চিহ্নের তালিকা।"""
+        for p in {id(n): n for n in NODES for c in (n.get("children") or []) if c.get("part") == "core"}.values():
+            self.assertTrue(any(c.get("kind") in ("decision", "option", "tool") for c in p["children"]), p["id"])
+
+
 if __name__ == "__main__":
     unittest.main()
 

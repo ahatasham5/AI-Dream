@@ -250,6 +250,32 @@ test('count: একই decision-এ দুটো আলাদা বাছলে
   }
 });
 
+// ---------- পদ্ধতির নিজের অংশ: core (সাথে আসে) ও optional (বাছা যায়) ----------
+test('part: "সাথে আসে" অংশ বাছা যায় না, গোনাও হয় না; ঐচ্ছিক অংশ বাছলে parent আসে ও আলাদা সিদ্ধান্ত গোনা হয়', () => {
+  const m = fresh();
+  for (const id of ['sft-input-target', 'sft-learning-cycle', 'loss-mask', 'lora-rank', 'quantization']) {
+    assert.equal(m.byId.get(id).node.part, 'core', id);
+    assert.equal(m.plan.toggle(id).ok, false, id + ' বাছা যাওয়ার কথা না');
+  }
+  assert.equal(m.plan.size(), 0);
+  m.plan.toggle('instruction-tuning');                               // ঐচ্ছিক অংশ (SFT-র ব্যবহার)
+  assert.ok(m.plan.has('supervised-fine-tuning-sft'), 'ঐচ্ছিক অংশ বাছলে তার parent (SFT) নিজে আসার কথা');
+  assert.equal(m.plan.count(), 1);
+  m.plan.toggle('opt-loss-all');                                      // একই parent-এর নিচে আরেকটা, আলাদা সিদ্ধান্ত
+  assert.equal(m.plan.count(), 2);
+  assert.deepEqual(m.plan.choices().map((r) => r.node.id).sort(), ['instruction-tuning', 'opt-loss-all']);
+  m.plan.toggle('supervised-fine-tuning-sft');                       // parent বাদ → অংশও যায়
+  assert.equal(m.plan.size(), 0, 'parent বাদ দিলে ঐচ্ছিক অংশ থেকে যাচ্ছে');
+});
+
+test('part: ঐচ্ছিক অংশ pick-one ভাঙে না (parent option, decision নয়) আর সব মিলিয়ে সূত্র ঠিক থাকে', () => {
+  const m = fresh();
+  for (const id of ['lora-low-rank-update', 'lora-dropout', 'opt-lora-small']) m.plan.toggle(id);
+  assert.ok(m.plan.has('lora-dropout') && m.plan.has('opt-lora-small'), 'দুটো একসাথে থাকার কথা');
+  assert.equal(m.plan.count(), 2);
+  checkInvariants(m, 'part');
+});
+
 // ---------- আবশ্যক / ঐচ্ছিক / default ----------
 test('need: বাকি-তালিকায় শুধু আবশ্যক; ঐচ্ছিক আলাদা তালিকায়', () => {
   const m = fresh();

@@ -458,3 +458,8 @@ body.searching .fcrumb{display:none}
 li.closed>.row .kchip.pickn.has{display:inline-block}
 #accordion[aria-pressed=true]{background:var(--soft);color:var(--accent)}
 @media (max-width:700px){.fcrumb{padding:0 14px 8px}}
+
+/* "সাথে আসে" অংশ: parent বাছলে আগে থেকেই বাছা চিহ্নে, নইলে ম্লান */
+.kchip.inc{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.kchip.inc.on{background:var(--soft);color:var(--accent);box-shadow:none;font-weight:700}
+li.inc-on>.row>.term{background:var(--soft);border-color:var(--hover-line)}

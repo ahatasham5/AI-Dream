@@ -228,10 +228,19 @@ def validate_plan(root):
         for sid in node.get("steps") or []:
             if by_id.get(sid, {}).get("kind") != "step":
                 fail(f"mode-এর steps-এ step নয় এমন id: {node['name']} → {sid}")
-    for node, _, _ in walk(root):
+    for node, parent, _ in walk(root):
         k = node.get("kind")
         if k is None:
             continue
+        part = node.get("part")
+        if part is not None:
+            # option-এর ভেতরে তার নিজেরই অংশ: core = সাথে আসে (info), optional = আলাদা করে বাছা যায় (option)
+            if part not in ("core", "optional"):
+                fail(f"part core বা optional হতে হবে: {node['name']} ({node['id']})")
+            if (part == "core") != (k == "info") or (part == "optional") != (k == "option"):
+                fail(f"part:{part} শুধু {'info' if part == 'core' else 'option'}-এ চলে, এটা {k}: {node['id']}")
+            if not parent or parent.get("kind") not in ("option", "tool"):
+                fail(f"part-ওয়ালা node-এর parent option বা tool হতে হবে: {node['id']}")
         if k not in KINDS:
             fail(f"অচেনা kind '{k}': {node['name']}")
         kids = node.get("children") or []
@@ -260,7 +269,8 @@ def validate_plan(root):
                 if not str(node.get(f, "")).strip():
                     fail(f"{k}-এ '{f}' (বাছার কারণ) নেই: {node['name']} ({node['id']})")
             ok = ("decision", "tool", "stepref", "info") if k == "option" else ("decision", "info")
-            bad = [c["name"] for c in kids if c.get("kind") not in ok]
+            # option-এর সন্তান option হতে পারে শুধু তার ঐচ্ছিক অংশ (part: optional) হলে
+            bad = [c["name"] for c in kids if c.get("kind") not in ok and not (k == "option" and c.get("kind") == "option" and c.get("part") == "optional")]
             if bad:
                 fail(f"{k}-এর সন্তান {'/'.join(ok)} ছাড়া হতে পারে না: {node['name']} → {bad}")
         for u in [node.get("docs")] + [h.get("u") for h in node.get("how", [])]:

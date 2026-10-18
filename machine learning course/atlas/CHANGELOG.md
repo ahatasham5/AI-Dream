@@ -1,5 +1,24 @@
 # Changelog — ML Learning Atlas
 
+## ২০২৬-১০-১৮ (১০) — "সাথে আসে" আর ঐচ্ছিক অংশ, "পড়ে বোঝো"-র বদলে
+
+### সমস্যা
+SFT-র Input ও Target, শেখার চক্র ইত্যাদি SFT-র নিজেরই অংশ, অথচ "পড়ে বোঝো"-তে লুকোনো ছিল, যেন বাইরের ব্যাখ্যা।
+
+### পরিবর্তন
+- **`part: "core"` (১০টা node):** parent বাছলে গাছে নিজে থেকে `✓ সাথে আছে` (বাছা-রঙে), না বাছলে ম্লান "… বাছলে আসে"। SFT: Input ও Target, শেখার চক্র, Loss Mask। LoRA: forward pass ও scale, Rank, Alpha, শুরুর মান, Target modules। QLoRA: Quantization, NF4 ও block scale। সবার আগে দেখায়; বাছা যায় না, "বাছা"-র সংখ্যায় গোনাও হয় না। dialog-এও একই ব্যাখ্যা।
+- **`part: "optional"` (২টা):** **Instruction Tuning** (SFT-র একটা ব্যবহার, আলাদা algorithm নয়) আর **LoRA Dropout** এখন আসল ঐচ্ছিক বিকল্প: `ঐচ্ছিক` চিহ্ন, `বাছো` বোতাম। বাছলে parent নিজে আসে, parent বাদ দিলে এটাও যায়। `when`/`why`/`tradeoff` সংজ্ঞা থেকে নেওয়া।
+- **"পড়ে বোঝো" এখনো আছে** শুধু যেগুলো সত্যিই পড়ার ব্যাখ্যা (যেমন LoRA-র "Adapter save বনাম Merged save", "Merge ও Unmerge", "Frozen-এর ভেতর দিয়ে gradient")।
+- `build.py` `part`-এর আকার যাচাই করে; option-এর সন্তান option চলে শুধু `part: optional` হলে।
+
+### সীমা
+- কোনটা core, কোনটা ঐচ্ছিক, কোনটা শুধু-পড়ার, তা প্রতিটা সংজ্ঞা পড়ে আমার বিচারে করা (স্বতন্ত্র যাচাইকারী ছাড়া)। বিচার-নির্ভর: Loss Mask (core; "কোথায় গুনবে" নিচের সিদ্ধান্ত), NF4 ও block scale (core)।
+- ঐচ্ছিক অংশ বাছলে এখনো pseudo-code বদলায় না (Instruction Tuning, LoRA Dropout-র কোনো ছাঁচ-লাইন নেই)।
+
+### Test
+- Node (২টা): core বাছা যায় না ও গোনা হয় না; ঐচ্ছিক বাছলে parent আসে, parent বাদে অংশও যায়, সূত্র অক্ষত। Python (`Parts`, ৩টা): `part`-এর আকার, ঐচ্ছিকের কারণ-ক্ষেত্র, core-এর parent-এ বাছার বিষয় আছে।
+- browser: SFT বাছার আগে/পরে/বাদে চিহ্ন বদলায়, সংখ্যা ঠিক, LoRA-তে তিন রকম একসাথে, dialog ঠিক; console error ০।
+
 ## ২০২৬-১০-১৮ (৯) — "বাছা"-র সংখ্যা: স্বাধীন সিদ্ধান্ত গোনা
 
 ### সমস্যা

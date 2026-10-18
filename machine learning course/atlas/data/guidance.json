@@ -799,6 +799,14 @@
   "tool-whisper-lib": {
    "why": "Whisper model-এর মূল repository, MIT licence; speech recognition-এ সরাসরি।",
    "tradeoff": "এই repo-র লক্ষ্য model ও তার ব্যবহার: fine-tuning-এর ধাপ README-তে আলাদা করে দেখে নাও।"
+  },
+  "instruction-tuning": {
+   "why": "লেখা চালিয়ে যাওয়া base model 'প্রশ্ন করলে উত্তর দেবে' আচরণ শেখে",
+   "tradeoff": "নানা ধরনের নির্দেশ আর তার ভালো উত্তরের জোড়া লাগে; এটা আলাদা algorithm নয়, SFT-এরই একটা ব্যবহার"
+  },
+  "lora-dropout": {
+   "why": "প্রতিবার পাশের পথের কিছু input লুকিয়ে ফেললে মুখস্থ করার ঝোঁক কমে",
+   "tradeoff": "শুধু training-এ কাজ করে, আর সাধারণত শুধু LoRA-র পাশের পথে বসে, মূল পথে নয়"
   }
  }
 }

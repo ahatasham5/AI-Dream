@@ -7217,25 +7217,31 @@
                "id": "instruction-tuning",
                "name": "Instruction Tuning",
                "definition": "নানা ধরনের নির্দেশ আর তার ভালো উত্তরের জোড়া দিয়ে করা SFT, যাতে model নির্দেশ পেলে লেখা চালিয়ে না গিয়ে সেটা মেনে উত্তর দেয়। শুধু লেখা চালিয়ে যাওয়া base model-কে 'প্রশ্ন করলে উত্তর দেবে' আচরণ শেখানোই এর কাজ। এটা আলাদা algorithm নয়, SFT-এরই একটা ব্যবহার।",
-               "kind": "info"
+               "kind": "option",
+               "part": "optional",
+               "when": "base model-কে নির্দেশ মেনে উত্তর দিতে শেখাতে চাইলে",
+               "basis": "course"
               },
               {
                "id": "loss-mask",
                "name": "Loss Mask — কোন token-এ loss",
                "definition": "প্রতিটা token-এর পাশে বসানো ১ বা ০ চিহ্ন, যা বলে ওই token-এর ভুল loss-এ গোনা হবে কি না। প্রশ্ন + উত্তর + শেষ-চিহ্ন এক সারিতে থাকলে সাধারণত প্রশ্নের অংশে ০, উত্তর ও শেষ-চিহ্নে ১। ০ হলে সেখান থেকে loss ও gradient আসে না, তবে token-টা context হিসেবে থাকে; padding-ও এভাবে বাদ যায়।",
-               "kind": "info"
+               "kind": "info",
+               "part": "core"
               },
               {
                "id": "sft-input-target",
                "name": "SFT — Input ও Target",
                "definition": "SFT-এর data সাজানোর ছাঁচ: Input হলো প্রশ্ন বা নির্দেশ, Target হলো তার ভালো উত্তর। এক সারি মানে প্রশ্ন, উত্তর আর শেষ-চিহ্ন। এটা সাধারণ supervised learning-এরই ছাঁচ, শুধু model শূন্য থেকে নয়, আগে-শেখা checkpoint থেকে শুরু করে।",
-               "kind": "info"
+               "kind": "info",
+               "part": "core"
               },
               {
                "id": "sft-learning-cycle",
                "name": "SFT — শেখার চক্র",
                "definition": "SFT-তে একবার শেখা এভাবে ঘটে: model সারির পরের token অনুমান করে, শুধু উত্তর ও শেষ-চিহ্নের জায়গায় cross-entropy loss মাপা হয় (mask দিয়ে), তারপর trainable parameters update হয়। কারা trainable তা আলাদা সিদ্ধান্ত: Full হলে সবাই, LoRA হলে শুধু ছোট A, B matrix। কোডে এটা সাধারণ language-model training, শুধু data আর mask আলাদা।",
-               "kind": "info"
+               "kind": "info",
+               "part": "core"
               }
              ]
             },
@@ -7648,7 +7654,8 @@
                     "meaning": "W, b: frozen মূল অংশ; A: r×d, B: m×r শেখা matrix; s: সংশোধন কত জোরে যোগ হবে।",
                     "example": "W 1000×1000 হলে A ও B মিলে trainable r×(d+m); r=8-এ 16,000।"
                    },
-                   "kind": "info"
+                   "kind": "info",
+                   "part": "core"
                   },
                   {
                    "id": "lora-rank",
@@ -7659,7 +7666,8 @@
                     "meaning": "ΔW = B·A-র rank সর্বোচ্চ r। r বাড়ালে parameter সমানুপাতে বাড়ে।",
                     "example": "1000×1000 matrix-এ r = 1, 8, 64 হলে trainable 2,000, 16,000, 128,000 (W-র 0.2%, 1.6%, 12.8%)। কোন r ভালো, কাজ দেখে পরীক্ষা করে ঠিক করতে হয়।"
                    },
-                   "kind": "info"
+                   "kind": "info",
+                   "part": "core"
                   },
                   {
                    "id": "lora-alpha",
@@ -7670,7 +7678,8 @@
                     "meaning": "α/r এক রাখলে r বদলালেও সংশোধনের জোর একই থাকে। (rsLoRA-র scale আলাদা)",
                     "example": "B(Ax) = [1, 2, 1] হলে s = 0.5-এ সংশোধন [0.5, 1, 0.5], s = 2-এ [2, 4, 2]।"
                    },
-                   "kind": "info"
+                   "kind": "info",
+                   "part": "core"
                   },
                   {
                    "id": "lora-init",
@@ -7679,13 +7688,17 @@
                    "insight": {
                     "fact": "দুটোই শূন্য হলে কারও gradient শূন্যের বেশি হয় না, শেখা আটকে যায়। B শূন্য, A random হলে প্রথম update-এ B নড়ে, তখন A-এর gradient-ও আসে।"
                    },
-                   "kind": "info"
+                   "kind": "info",
+                   "part": "core"
                   },
                   {
                    "id": "lora-dropout",
                    "name": "LoRA Dropout",
                    "definition": "training-এ LoRA-র পাশের পথে যাওয়া input-এর কিছু সংখ্যা এলোমেলোভাবে ০ করে দেওয়া। সাধারণত শুধু এই পাশের পথে বসে, মূল পথে নয়। ছোট data-য় adapter data মুখস্থ করে ফেলতে পারে; প্রতিবার কিছু অংশ লুকিয়ে ফেললে সেই ঝোঁক কমে।",
-                   "kind": "info"
+                   "kind": "option",
+                   "part": "optional",
+                   "when": "ছোট data-য় adapter data মুখস্থ করে ফেলার ঝুঁকি থাকলে",
+                   "basis": "course"
                   },
                   {
                    "id": "lora-target-modules",
@@ -7694,7 +7707,8 @@
                    "insight": {
                     "fact": "বড় model-এ (24 block, r=8) শুধু q বাছলে trainable মূলের 0.16%, চারটা module বাছলে 1.09%। target বাড়ালে trainable সমানুপাতে বাড়ে; কোনটা ভালো কাজ দেখে ঠিক হয়।"
                    },
-                   "kind": "info"
+                   "kind": "info",
+                   "part": "core"
                   },
                   {
                    "id": "lora-gradient-memory",
@@ -7777,7 +7791,8 @@
                    "insight": {
                     "fact": "weight-এর ছোট error পরের হিসাবে মিশে score সরাতে পারে। সেরা বিকল্পের margin > 2ε হলে সেরা বিকল্প বদলায় না।"
                    },
-                   "kind": "info"
+                   "kind": "info",
+                   "part": "core"
                   },
                   {
                    "id": "nf4-block-scale",
@@ -7786,7 +7801,8 @@
                    "insight": {
                     "fact": "৭ বিলিয়ন weight-এর model bf16-তে শুধু weight-ই প্রায় ১৪ GB। কম bit-এ রাখলে একই GPU-তে বড় model চালানো যায়।"
                    },
-                   "kind": "info"
+                   "kind": "info",
+                   "part": "core"
                   },
                   {
                    "id": "qlora-quant",

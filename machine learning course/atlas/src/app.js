@@ -125,8 +125,9 @@ function build(node, parent, depth, trail) {
     indicator.setAttribute('aria-controls', ul.id);
     li.append(ul);
     r.children = node.children.map((n) => build(n, ul, depth + 1, [...trail, r]));
-    const reads = r.children.filter((c) => c.node.kind === 'info');
-    if (reads.length && reads.length < r.children.length && inPlanTree(r)) groupReading(r, reads);
+    for (const c of r.children.filter((x) => x.node.part === 'core').reverse()) ul.prepend(c.li);   // "সাথে আসে" অংশ সবার আগে
+    const reads = r.children.filter((c) => c.node.kind === 'info' && !c.node.part);               // শুধু-পড়ার ব্যাখ্যা
+    if (reads.length && r.children.some((c) => c.node.kind !== 'info') && inPlanTree(r)) groupReading(r, reads);
     const kids = AtlasCompare.groupOf(r);
     if (kids.length) {
       const cb = el('button', 'cmpbtn', '⇄ তুলনা');
@@ -668,7 +669,9 @@ function decorateKind(r, row, button) {
   if (n.kind === 'tool') {
     button.append(el('span', 'kchip tool', n.tool && n.tool.archived ? 'tool ⚠ archived' : 'tool'));
   }
-  if (n.kind === 'info' && r.trail.some((a) => a.node.kind === 'step')) button.append(el('span', 'kchip info', 'ব্যাখ্যা'));
+  if (n.part === 'core') { r.incChip = el('span', 'kchip inc'); button.append(r.incChip); }   // পদ্ধতির নিজের অংশ: বাছলে সাথে আসে; অবস্থা refreshSel বসায়
+  else if (n.kind === 'info' && r.trail.some((a) => a.node.kind === 'step')) button.append(el('span', 'kchip info', 'ব্যাখ্যা'));
+  if (n.part === 'optional') button.append(el('span', 'kchip opt', 'ঐচ্ছিক'));
   if (n.kind === 'stepref') {
     const g = el('button', 'selbtn go', 'ধাপে যাও →');
     g.type = 'button';
@@ -924,6 +927,12 @@ function refreshSel() {
     r.selBtn.setAttribute('aria-pressed', String(on));
     r.li.classList.toggle('picked', on);
   }
+  for (const r of records) if (r.incChip) {   // "সাথে আসে" অংশ: parent বাছা থাকলে ✓ সাথে আছে, নইলে ম্লান
+    const on = !!r.parent && selected.has(r.parent.node.id);
+    r.incChip.classList.toggle('on', on);
+    r.incChip.textContent = on ? '✓ সাথে আছে' : short(r.parent.node.name).split(' (')[0] + ' বাছলে আসে';
+    r.li.classList.toggle('inc-on', on);
+  }
   const counts = AtlasFocus.pickedCounts(records, byId, plan.choiceIds());
   for (const r of records) if (r.pickChip) {
     const n = counts.get(r.node.id) || 0;
@@ -958,9 +967,14 @@ function renderPick(node, box) {
     if (r && inPlanTree(r)) {
       let a = r.parent;
       while (a && !SELECTABLE.has(a.node.kind) && a.node.kind !== 'decision') a = a.parent;
-      const where = a && SELECTABLE.has(a.node.kind) ? `"${short(a.node.name)}" বাছলে এটা নিজে থেকেই তার অংশ হয়ে আসে` : 'এটা ব্যাখ্যা, সিদ্ধান্ত নয়';
       const note = el('div', 'infonote');
-      note.append(el('span', 'kchip info', 'ব্যাখ্যা'), el('span', '', ' বাছার বিষয় নয়: ' + where + '; আলাদা করে বাছার কিছু নেই। সিদ্ধান্তগুলো ওপরের ও নিচের "বাছো" বোতামওয়ালা node-এ।'));
+      if (node.part === 'core' && a && SELECTABLE.has(a.node.kind)) {
+        const on = selected.has(a.node.id);
+        note.append(el('span', 'kchip inc' + (on ? ' on' : ''), on ? '✓ সাথে আছে' : 'সাথে আসে'),
+          el('span', '', ` "${short(a.node.name)}" ${on ? 'বেছেছো, তাই এটা নিজে থেকেই পথে আছে' : 'বাছলে এটা নিজে থেকেই পথে আসবে'}; আলাদা করে বাছতে হয় না।`));
+      } else {
+        note.append(el('span', 'kchip info', 'ব্যাখ্যা'), el('span', '', ' শুধু বোঝার জন্য, বাছার বিষয় নয়। সিদ্ধান্তগুলো "বাছো" বোতামওয়ালা node-এ।'));
+      }
       wrap.append(note); box.append(wrap);
     }
     return;
