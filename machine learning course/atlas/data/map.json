@@ -1554,7 +1554,7 @@
               {
                "id": "computational-graph",
                "name": "Computational Graph",
-               "definition": "একটা হিসাবের প্রতিটা operation (গুণ, যোগ, বর্গ…) আর কোনটা কার ওপর নির্ভর করে, তা বিন্দু ও তীর দিয়ে আঁকা নকশা। সামনে হেঁটে মান হিসাব হয়, আর পেছনে হেঁটে (backpropagation) প্রতিটা ধাপের derivative গুণ করে gradient আসে। একই parameter একাধিক পথে ব্যবহৃত হলে সব পথের অবদান যোগ হয়।",
+               "definition": "একটা হিসাবের প্রতিটা operation (গুণ, যোগ, বর্গ…) আর কোনটা কার ওপর নির্ভর করে, তা বিন্দু ও তীর দিয়ে আঁকা নকশা। input থেকে output-এর দিকে গেলে মান হিসাব হয়, আর output থেকে input-এর দিকে উল্টো পথে (backpropagation) প্রতিটা ধাপের derivative গুণ করে gradient আসে। একই parameter একাধিক পথে ব্যবহৃত হলে সব পথের অবদান যোগ হয়।",
                "insight": {
                 "fact": "Forward-এ মান হিসাব হয়; backward-এ স্থানীয় derivatives দিয়ে প্রভাব ফেরে। একটি parameter একাধিক পথে ব্যবহৃত হলে contributions যোগ হয়।"
                }
@@ -1566,7 +1566,7 @@
           {
            "id": "gradient-descent-update",
            "name": "Gradient Descent Update",
-           "definition": "Gradient যেদিকে loss কমতে দেখাল, সেদিকে parameters-কে এক ধাপ সরানো: পুরোনো মান থেকে learning rate × gradient বাদ। যেমন learning rate ০.১ হলে w ১ থেকে ১.৪, b ০ থেকে ০.২ হয়; prediction ২ থেকে ৩ হয়, loss ২ থেকে ০.৫-এ নামে। এই ধাপ বারবার করলেই model শেখে।",
+           "definition": "Gradient বলে কোন দিকে গেলে loss বাড়ে; তাই পুরোনো মান থেকে learning rate × gradient বাদ দিয়ে parameters-কে উল্টো দিকে, মানে loss কমার দিকে, এক ধাপ সরানো হয়। যেমন learning rate ০.১ হলে w ১ থেকে ১.৪, b ০ থেকে ০.২ হয়; prediction ২ থেকে ৩ হয়, loss ২ থেকে ০.৫-এ নামে। এই ধাপ বারবার করলেই model শেখে।",
            "mathDetail": {
             "formula": "w_new=w−η∂L/∂w; b_new=b−η∂L/∂b",
             "meaning": "η: learning rate; দুটো gradient একই পুরোনো parameters থেকে হিসাব করা।",
@@ -1650,7 +1650,7 @@
           {
            "id": "boosting",
            "name": "Boosting",
-           "definition": "Tree একটার পর একটা শেখানো, যেখানে প্রতিটা নতুন tree আগের সবার মিলিত prediction-এর বাকি থাকা ভুল কমানোর চেষ্টা করে। Bagging-এর মতো স্বাধীনভাবে নয়, ধাপে ধাপে। Gradient boosting-এ 'gradient' বলে loss কোন দিকে কমে তা বোঝায়, আর সেটা নতুন একটা tree দিয়ে আন্দাজ করা হয়; neural network-এর মতো parameter সরাসরি বদলানো হয় না।",
+           "definition": "Tree একটার পর একটা শেখানো, যেখানে প্রতিটা নতুন tree আগের সবার মিলিত prediction-এর বাকি থাকা ভুল কমানোর চেষ্টা করে। Bagging-এর মতো স্বাধীনভাবে নয়, ধাপে ধাপে। Gradient boosting-এ নতুন tree শেখে loss-এর gradient-এর উল্টো দিকটা, মানে ভুল কমানোর দিকটা, আন্দাজ করতে; neural network-এর মতো parameter সরাসরি বদলানো হয় না।",
            "insight": {
             "fact": "Gradient boosting-এ 'gradient' বলতে loss কোন দিকে কমে তা বোঝায়, আর সেটা নতুন একটা tree দিয়ে আন্দাজ করা হয়। Neural network-এর মতো parameter সরাসরি বদলানো হয় না।"
            }
@@ -1782,7 +1782,7 @@
             {
              "id": "gradient-parameter-update",
              "name": "Gradient ও Parameter Update",
-             "definition": "Logistic Regression-এ probability-র ভুল থেকে weight আর bias শেখানোর ধাপ: gradient বলে কোনটা কোন দিকে সরলে loss কমে, আর সেদিকে ছোট ধাপ নেওয়া হয়। এখানে gradient দাঁড়ায় (probability − সঠিক উত্তর) × input, বেশ সরল। যেমন x=২, w=০, b=০, উত্তর ১, learning rate ০.১ হলে w=০.১, b=০.০৫; probability ০.৫ থেকে ≈ ০.৫৬২২ আর loss ০.৬৯৩১ থেকে ≈ ০.৫৭৫৯ হয়।",
+             "definition": "Logistic Regression-এ probability-র ভুল থেকে weight আর bias শেখানোর ধাপ: gradient বলে কোন weight বাড়ালে loss কোন দিকে আর কতটা বাড়ে, আর update তার উল্টো দিকে ছোট ধাপ নেয়, তাই loss কমে। এখানে gradient দাঁড়ায় (probability − সঠিক উত্তর) × input, বেশ সরল। যেমন x=২, w=০, b=০, উত্তর ১, learning rate ০.১ হলে w=০.১, b=০.০৫; probability ০.৫ থেকে ≈ ০.৫৬২২ আর loss ০.৬৯৩১ থেকে ≈ ০.৫৭৫৯ হয়।",
              "mathDetail": {
               "formula": "∂L/∂w=(p−y)x; ∂L/∂b=p−y",
               "meaning": "এই সরল gradient sigmoid ও binary cross-entropy একত্র করলে পাওয়া যায়।",
