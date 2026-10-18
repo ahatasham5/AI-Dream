@@ -98,6 +98,11 @@ __CSS__
   <div id="cmp-pick" class="cmp-pick" role="group" aria-label="কোনগুলো তুলনা করবে"></div>
   <div class="cmp-tools">
     <label><input type="checkbox" id="cmp-diff"> শুধু যেখানে ফারাক আছে</label>
+    <span class="cmp-max" role="group" aria-label="একসাথে সর্বোচ্চ কতটা">একসাথে সর্বোচ্চ
+      <button type="button" class="btn sm icon" id="cmp-max-dec" aria-label="সংখ্যা কমাও">−</button>
+      <output id="cmp-max-val" aria-live="polite">৪</output>
+      <button type="button" class="btn sm icon" id="cmp-max-inc" aria-label="সংখ্যা বাড়াও">＋</button>
+    </span>
     <span id="cmp-count" aria-live="polite"></span>
   </div>
   <div id="cmp-body" class="cmp-scroll"></div>

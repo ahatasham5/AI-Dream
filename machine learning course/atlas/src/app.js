@@ -861,7 +861,7 @@ function renderPick(node, box) {
     const b = el('button', 'btn primary', on ? '✓ পথে আছে (বাদ দিতে চাপো)' : 'এটা আমার পথে বাছো');
     b.type = 'button'; b.onclick = () => toggleSel(node.id);
     wrap.append(b);
-    if (node.basis && BASIS[node.basis]) wrap.append(el('span', 'kchip basis ' + node.basis, BASIS[node.basis]));
+    if (node.basis && node.basis !== 'course' && BASIS[node.basis]) wrap.append(el('span', 'kchip basis ' + node.basis, BASIS[node.basis]));   // "কোর্সে আছে" পাঠকের কাজের তথ্য নয়
     if (node.docs) { const a = el('a', 'src', 'docs'); a.href = node.docs; a.target = '_blank'; a.rel = 'noopener noreferrer'; wrap.append(a); }
     const guide = el('div', 'guide');
     const row = (cls, label, text) => { if (!text) return; const d = el('div', 'grow ' + cls); d.append(el('span', 'gk', label), el('span', 'gv', text)); guide.append(d); };
@@ -895,17 +895,32 @@ function renderPick(node, box) {
 }
 /* ---------- তুলনা: একই parent-এর ভাইদের পাশাপাশি ---------- */
 const cmpDlg = $('#compare');
-const cmp = { parent: null, peers: [], sel: [] };   // sel: বাছা record, গাছের ক্রমে
+// order: বাছার সময়ক্রমে id (পুরোনো আগে; ভরলে সবচেয়ে আগেরটা সরে); sel: সেই record-গুলো গাছের ক্রমে; max: একসাথে কতটা
+const cmp = { parent: null, peers: [], order: [], sel: [], max: AtlasCompare.DEFAULT_MAX };
 const bn = (n) => n.toLocaleString('bn-BD');
-const cmpHash = () => '#cmp=' + cmp.sel.map((r) => r.node.id).join(',');
-// parentRec-এর ভেতরের ভাইদের তুলনা। pickIds থাকলে ওগুলো আগে বাছা; অবৈধ হলে বর্তমান থেকে শুরুর ৪টা
+const cmpHash = () => '#cmp=' + cmp.order.join(',');
+function setCmpOrder(order) { cmp.order = order; cmp.sel = cmp.peers.filter((r) => order.includes(r.node.id)); }
+function loadCmpMax() {
+  const v = Number(store('ml-atlas-cmpmax'));
+  return v >= AtlasCompare.MIN && v <= AtlasCompare.ABS_MAX ? v : AtlasCompare.DEFAULT_MAX;
+}
+// parentRec-এর ভেতরের ভাইদের তুলনা। pickIds (একাধিক, link থেকে) থাকলে ওগুলোই; একটা (dialog থেকে) বা অবৈধ হলে
+// ওই node থেকে শুরু করে max টা, আর ওই node সবার শেষে বসে (ভরলে সবচেয়ে পরে সরে)
 function openCompare(parentRec, pickIds) {
   const peers = AtlasCompare.groupOf(parentRec);
   if (!peers.length) return;
   cmpReturn = null;
-  let sel = pickIds ? peers.filter((r) => pickIds.includes(r.node.id)) : [];
-  if (!AtlasCompare.validSelection(sel)) sel = AtlasCompare.initialPick(peers, pickIds && pickIds[0]);
-  cmp.parent = parentRec; cmp.peers = peers; cmp.sel = sel;
+  cmp.max = loadCmpMax();
+  cmp.parent = parentRec; cmp.peers = peers;
+  let order = [...new Set((pickIds || []).filter((id) => peers.some((r) => r.node.id === id)))];
+  if (order.length >= AtlasCompare.MIN && order.length <= AtlasCompare.ABS_MAX) {
+    cmp.max = Math.max(cmp.max, order.length);   // শেয়ার-link-এ যতগুলো আছে সবই দেখা যাক (এই সেশনের জন্য)
+  } else {
+    const cur = pickIds && pickIds[0];
+    order = AtlasCompare.initialPick(peers, cur, cmp.max).map((r) => r.node.id);
+    if (order.includes(cur)) order = order.filter((id) => id !== cur).concat(cur);
+  }
+  setCmpOrder(order);
   if (modal.open) modal.close();
   renderCompare();
   if (!cmpDlg.open) cmpDlg.showModal();
@@ -930,7 +945,6 @@ function cmpCell(type, v) {
   if (type === 'code') td.append(el('pre', 'cmp-code', v));
   else if (type === 'list') { const ul = el('ul', 'cmp-list'); for (const x of v) ul.append(el('li', '', x)); td.append(ul); }
   else if (type === 'link') { const a = el('a', '', v.replace(/^https:\/\//, '')); a.href = v; a.target = '_blank'; a.rel = 'noopener noreferrer'; td.append(a); }
-  else if (type === 'tag') td.append(el('span', 'kchip basis', v));
   else td.append(el('p', 'cmp-text', v));
   return td;
 }
@@ -938,22 +952,29 @@ function renderCompare() {
   const { parent, peers, sel } = cmp;
   const act = document.activeElement, keep = act && act.dataset ? act.dataset.cmpFocus : null;
   $('#cmp-title').textContent = short(parent.node.name) + ': পাশাপাশি তুলনা';
-  $('#cmp-sub').textContent = bn(peers.length) + 'টা বিকল্পের মধ্যে ' + bn(sel.length) + 'টা বাছা আছে। ' + bn(AtlasCompare.MIN) + ' থেকে ' + bn(AtlasCompare.MAX) + 'টা একসাথে চলে।';
+  $('#cmp-sub').textContent = bn(peers.length) + 'টা বিকল্পের মধ্যে ' + bn(sel.length) + 'টা পাশাপাশি দেখছ। কোনগুলো দেখবে তুমিই বাছো; ভরে গেলে নতুনটা চাপলে সবচেয়ে আগে বাছাটা সরে যায়।';
   const pick = $('#cmp-pick');
   pick.replaceChildren();
   for (const r of peers) {
     const on = sel.includes(r);
-    const locked = on ? sel.length <= AtlasCompare.MIN : sel.length >= AtlasCompare.MAX;
+    const locked = on && sel.length <= AtlasCompare.MIN;
     const b = el('button', 'cmp-chip' + (on ? ' on' : ''), (on ? '✓ ' : '') + short(r.node.name));
     b.type = 'button'; b.dataset.cmpFocus = 'chip:' + r.node.id; b.setAttribute('aria-pressed', String(on));
     if (locked) b.setAttribute('aria-disabled', 'true');
+    if (!on && sel.length >= cmp.max) { const oldest = byId.get(cmp.order[0]); if (oldest) b.title = 'ভরা আছে: চাপলে "' + short(oldest.node.name) + '" সরে যাবে'; }
     b.onclick = () => {
-      if (locked) { toast(on ? 'কমপক্ষে ' + bn(AtlasCompare.MIN) + 'টা লাগে' : 'সর্বোচ্চ ' + bn(AtlasCompare.MAX) + 'টা একসাথে'); return; }
-      cmp.sel = peers.filter((x) => (x === r ? !on : sel.includes(x)));
+      const res = AtlasCompare.toggle(cmp.order, r.node.id, cmp.max);
+      if (res.blocked) { toast('কমপক্ষে ' + bn(AtlasCompare.MIN) + 'টা লাগে'); return; }
+      setCmpOrder(res.order);
+      if (res.dropped) toast('"' + short(byId.get(res.dropped).node.name) + '" সরে গেল (একসাথে সর্বোচ্চ ' + bn(cmp.max) + 'টা)');
       renderCompare(); setHash(cmpHash());
     };
     pick.append(b);
   }
+  // সর্বোচ্চ সংখ্যা: − ৪ +
+  const mv = $('#cmp-max-val'); mv.textContent = bn(cmp.max);
+  $('#cmp-max-dec').disabled = cmp.max <= AtlasCompare.MIN;
+  $('#cmp-max-inc').disabled = cmp.max >= Math.min(AtlasCompare.ABS_MAX, peers.length);
   const rows = AtlasCompare.rows(sel);
   const diffOnly = $('#cmp-diff').checked;
   const shown = diffOnly ? rows.filter((x) => !x.same) : rows;
@@ -962,6 +983,7 @@ function renderCompare() {
   body.replaceChildren();
   const table = el('table', 'cmp-table');
   table.style.setProperty('--n', sel.length);
+  table.style.setProperty('--w', (sel.length > 4 ? 230 : 270) + 'px');   // কলাম বেশি হলে সরু; অনুভূমিক স্ক্রলে প্রথম কলাম আটকে থাকে
   const cap = el('caption', 'sr-only', short(parent.node.name) + '-এর বিকল্পগুলোর তুলনা'); table.append(cap);
   const hr = el('tr');
   hr.append(Object.assign(el('th', 'corner'), { scope: 'col' }));
@@ -983,7 +1005,7 @@ function renderCompare() {
     }
     if (sel.length > AtlasCompare.MIN) {
       const x = el('button', 'btn sm ghost icon', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'তুলনা থেকে বাদ দাও: ' + short(r.node.name)); x.dataset.cmpFocus = 'drop:' + r.node.id;
-      x.onclick = () => { cmp.sel = sel.filter((y) => y !== r); renderCompare(); setHash(cmpHash()); };
+      x.onclick = () => { setCmpOrder(cmp.order.filter((id) => id !== r.node.id)); renderCompare(); setHash(cmpHash()); };
       acts.append(x);
     }
     head.append(acts); th.append(head); hr.append(th);
@@ -1003,10 +1025,26 @@ function renderCompare() {
   }
   table.append(tb);
   if (!shown.length) body.append(el('p', 'cmp-empty', rows.length ? 'এই বিকল্পগুলো সব সারিতে হুবহু এক। "শুধু ফারাক"-এর টিক তুলে সব দেখো।' : 'এগুলোর পাশাপাশি রাখার মতো আর কোনো তথ্য এখনও নেই।'));
-  else body.append(table);
+  else {
+    body.append(table);
+    const notes = AtlasCompare.notes(sel);
+    if (notes.length) {
+      const p = el('p', 'cmp-notes');
+      p.append(el('strong', '', 'টীকা: '), document.createTextNode(notes.map((x) => x.name + ' — ' + x.text).join(' · ')));
+      body.append(p);
+    }
+  }
   if (keep) { const t = [...cmpDlg.querySelectorAll('[data-cmp-focus]')].find((n) => n.dataset.cmpFocus === keep); if (t) t.focus(); }
 }
 $('#cmp-diff').onchange = () => renderCompare();
+function setCmpMax(n) {
+  cmp.max = Math.max(AtlasCompare.MIN, Math.min(AtlasCompare.ABS_MAX, n));
+  store('ml-atlas-cmpmax', String(cmp.max));
+  setCmpOrder(AtlasCompare.clampOrder(cmp.order, cmp.max));   // কমালে সবচেয়ে নতুন max টা থাকে
+  renderCompare(); setHash(cmpHash());
+}
+$('#cmp-max-dec').onclick = () => setCmpMax(cmp.max - 1);
+$('#cmp-max-inc').onclick = () => setCmpMax(cmp.max + 1);
 $('#cmp-close').onclick = () => cmpDlg.close();
 $('#cmp-link').onclick = () => copyText(location.href.split('#')[0] + cmpHash());
 cmpDlg.addEventListener('click', (e) => { if (e.target === cmpDlg) cmpDlg.close(); });

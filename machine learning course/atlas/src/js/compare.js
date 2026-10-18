@@ -4,12 +4,16 @@
  *   ১. তুলনার যোগ্য ভাই (peer) = step নয়, stepref নয়, আর seq (ক্রমিক নম্বর) নেই।
  *      নম্বর-ওয়ালারা ক্রমিক অংশ, বিকল্প নয়; তাদের পাশাপাশি রাখা অর্থহীন।
  *   ২. একটা parent-এ কমপক্ষে ২টা peer থাকলে তবেই তুলনা দেওয়া হয়।
- *   ৩. একবারে ২ থেকে MAX (৪)টা; তুলনা শুধু একই parent-এর ভেতরে।
+ *   ৩. কমপক্ষে ২টা; একসাথে সর্বোচ্চ max টা (শুরুর মান DEFAULT_MAX = ৪, ব্যবহারকারী ২..ABS_MAX = ৮ করতে পারে)।
+ *      কোনগুলো হবে ব্যবহারকারী বাছে; ভরে গেলে নতুন বাছলে সবচেয়ে আগে বাছাটা সরে যায় (toggle)।
+ *      তুলনা শুধু একই parent-এর ভেতরে।
  *   ৪. সারি node-এর যা আছে তা থেকেই তৈরি; সবার জন্য ফাঁকা সারি বাদ।
+ *   ৫. "তথ্যের ভিত্তি" সারি নেই। "কোর্সে আছে" পাঠকের কাজের তথ্য নয়; শুধু আসল সূত্র/সতর্কতা শেষে টীকা (notes)।
  */
 const AtlasCompare = (function () {
   'use strict';
-  const MAX = 4;
+  const DEFAULT_MAX = 4;
+  const ABS_MAX = 8;
   const MIN = 2;
   const BASIS = { course: 'কোর্সে আছে', paper: 'paper থেকে মেলানো', experience: 'অভিজ্ঞতা-ভিত্তিক, নিয়ম নয়', 'tool-doc': 'tool-এর docs বা README থেকে' };
   const KIDS_SHOWN = 8;
@@ -22,22 +26,38 @@ const AtlasCompare = (function () {
   // rec নিজে ও তার ভাইরা (নিজেসহ); যোগ্য না হলে []
   const peersOf = (rec) => (rec && rec.parent && isPeer(rec) ? groupOf(rec.parent) : []);
 
-  // ৪-এর বেশি ভাই থাকলে বর্তমান node থেকে শুরু করে ৪টা (গাছের ক্রমে), নইলে সবাই
-  function initialPick(list, currentId) {
-    if (list.length <= MAX) return list.slice();
+  // max-এর বেশি ভাই থাকলে বর্তমান node থেকে শুরু করে max টা (গাছের ক্রমে), নইলে সবাই
+  function initialPick(list, currentId, max = DEFAULT_MAX) {
+    if (list.length <= max) return list.slice();
     const i = Math.max(0, list.findIndex((r) => r.node.id === currentId));
     const take = new Set();
-    for (let k = 0; k < MAX; k++) take.add(list[(i + k) % list.length]);
+    for (let k = 0; k < max; k++) take.add(list[(i + k) % list.length]);
     return list.filter((r) => take.has(r));
   }
-  // নির্বাচন বৈধ কি: ২..MAX, সবাই এক parent-এর peer
+  // নির্বাচন বৈধ কি: ২..ABS_MAX, সবাই এক parent-এর peer, কেউ দুবার নয়
   function validSelection(recs) {
-    if (!recs || recs.length < MIN || recs.length > MAX) return false;
+    if (!recs || recs.length < MIN || recs.length > ABS_MAX) return false;
     const p = recs[0].parent;
     if (!p) return false;
     const peers = groupOf(p);
     return recs.every((r) => r.parent === p && peers.includes(r)) && new Set(recs).size === recs.length;
   }
+
+  /* বাছা-বদল (pure)। order: বাছার সময়ক্রমে id (পুরোনো আগে)। id বাছা থাকলে বাদ, নইলে যোগ।
+   * ভরে গেলে (order.length > max) সবচেয়ে আগে বাছাটা সরে যায়, তাই ব্যবহারকারীকে আগে হাতে বাদ দিতে হয় না।
+   * কমপক্ষে MIN টা থাকতেই হয়: তার নিচে নামানো যায় না (blocked: 'min')।
+   * ফেরত: { order (নতুন তালিকা), dropped (সরে যাওয়া id | null), blocked ('min' | null) } */
+  function toggle(order, id, max) {
+    if (order.includes(id)) {
+      if (order.length <= MIN) return { order: order.slice(), dropped: null, blocked: 'min' };
+      return { order: order.filter((x) => x !== id), dropped: null, blocked: null };
+    }
+    const next = order.concat(id);
+    const dropped = next.length > max ? next.shift() : null;
+    return { order: next, dropped, blocked: null };
+  }
+  // max কমালে সবচেয়ে নতুন max টা থাকে
+  const clampOrder = (order, max) => (order.length > max ? order.slice(order.length - max) : order.slice());
 
   const short = (name) => name.replace(/^[০-৯0-9]+\.\s*/, '').split(' — ')[0];
   const s = (v) => (typeof v === 'string' && v.trim() ? v.trim() : null);
@@ -48,7 +68,6 @@ const AtlasCompare = (function () {
     ['আসল কথা', 'def', 'সংজ্ঞা', 'text', (n) => s(n.definition)],
     ['আসল কথা', 'problem', 'কোন সমস্যা মেটায়', 'text', (n) => s(n.story && n.story.problem) || s(n.selection && n.selection.problem)],
     ['আসল কথা', 'idea', 'মূল ধারণা', 'text', (n) => s(n.story && n.story.idea)],
-    ['আসল কথা', 'basis', 'তথ্যের ভিত্তি', 'tag', (n) => BASIS[n.basis] || null],
     ['বাছার কারণ', 'when', 'কখন বাছবে', 'text', (n) => s(n.when) || s(n.selection && n.selection.when)],
     ['বাছার কারণ', 'why', 'কেন বাছবে', 'text', (n) => s(n.why)],
     ['বাছার কারণ', 'cost', 'দাম / কখন এড়াবে', 'text', (n) => s(n.tradeoff) || s(n.selection && n.selection.avoid)],
@@ -88,6 +107,17 @@ const AtlasCompare = (function () {
     return out;
   }
 
-  return { MAX, MIN, BASIS, isPeer, groupOf, peersOf, initialPick, validSelection, rows };
+  /* টেবিলের শেষের টীকা: শুধু যেগুলোর আসল সূত্র বা সতর্কতা আছে (paper, tool-docs, "অভিজ্ঞতা-ভিত্তিক")।
+   * "course" (কোর্সে আছে) এখানে আসে না: ওটা পাঠকের কাজের তথ্য নয়। */
+  function notes(recs) {
+    const out = [];
+    for (const r of recs) {
+      const b = r.node.basis;
+      if (b && b !== 'course' && BASIS[b]) out.push({ id: r.node.id, name: short(r.node.name), text: BASIS[b] });
+    }
+    return out;
+  }
+
+  return { DEFAULT_MAX, ABS_MAX, MIN, BASIS, isPeer, groupOf, peersOf, initialPick, validSelection, toggle, clampOrder, rows, notes };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = AtlasCompare;

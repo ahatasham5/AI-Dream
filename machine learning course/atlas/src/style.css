@@ -380,17 +380,19 @@ details.pend>summary:hover{color:var(--ink)}
 .cmp-top h2{margin:2px 0 0;font-size:22px;line-height:1.5}
 .cmp-top p{margin:2px 0 0;color:var(--muted);font-size:13px;line-height:1.6}
 .cmp-actions{display:flex;gap:6px;flex:none}
-.cmp-pick{display:flex;flex-wrap:wrap;gap:6px;padding:0 24px 10px}
+.cmp-pick{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:0 24px 10px}
 .cmp-chip{height:30px;padding:0 12px;border:1px solid var(--btn-line);background:transparent;color:var(--muted);border-radius:99px;font-size:13px;text-align:start}
 .cmp-chip:hover{background:var(--hover);color:var(--ink)}
 .cmp-chip.on{background:var(--soft);border-color:var(--accent);color:var(--accent);font-weight:650}
 .cmp-chip[aria-disabled=true]{opacity:.45;cursor:not-allowed}
 .cmp-tools{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:6px 24px 10px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
 .cmp-tools label{display:inline-flex;align-items:center;gap:7px;cursor:pointer;color:var(--ink)}
+.cmp-max{display:inline-flex;align-items:center;gap:6px}
+.cmp-max output{min-width:20px;text-align:center;font:650 14px system-ui;color:var(--ink)}
 .cmp-tools input{width:16px;height:16px;padding:0;accent-color:var(--accent)}
 .cmp-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
 .cmp-empty{margin:0;padding:34px 24px;color:var(--muted);line-height:1.8}
-.cmp-table{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max(100%,calc(140px + var(--n) * 270px))}
+.cmp-table{--w:270px;border-collapse:separate;border-spacing:0;table-layout:fixed;width:max(100%,calc(140px + var(--n) * var(--w)))}
 .cmp-table th,.cmp-table td{padding:12px 16px;vertical-align:top;text-align:start;border-bottom:1px solid var(--line);font-size:14.5px;line-height:1.75;overflow-wrap:anywhere}
 .cmp-table thead th{position:sticky;top:0;z-index:3;background:var(--dlg);border-bottom:1px solid var(--btn-line)}
 .cmp-table th.corner,.cmp-table th.rl{position:sticky;left:0;width:140px;background:var(--dlg);z-index:2}
@@ -404,6 +406,7 @@ details.pend>summary:hover{color:var(--ink)}
 .cmp-colhead .kchip{justify-self:start;margin:0}
 .cmp-colacts{display:flex;flex-wrap:wrap;gap:6px}
 .cmp-text{margin:0}
+.cmp-notes{margin:0;padding:12px 24px 18px;font-size:12.5px;line-height:1.7;color:var(--muted);border-top:1px solid var(--line)}
 .cmp-list{margin:0;padding-left:18px;list-style:disc}
 .cmp-list li{padding:1px 0}.cmp-list li:before,.cmp-list li:after{display:none}
 .cmp-code{margin:0;padding:10px 12px;border-radius:10px;background:var(--code-bg);color:var(--code-ink);border:1px solid var(--code-line);font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -413,8 +416,15 @@ details.pend>summary:hover{color:var(--ink)}
 @media(max-width:650px){
   #compare{width:calc(100% - 12px);max-height:94dvh}
   .cmp-top,.cmp-pick,.cmp-tools{padding-left:14px;padding-right:14px}
-  .cmp-table{width:max(100%,calc(96px + var(--n) * 240px))}
+  .cmp-table{width:max(100%,calc(96px + var(--n) * 220px))}
   .cmp-table th,.cmp-table td{padding:10px 12px}
+  #cmp-sub{display:none}
+  .cmp-top{padding-bottom:6px}.cmp-top h2{font-size:19px}
+  .cmp-pick{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:8px}
+  .cmp-pick::-webkit-scrollbar{display:none}
+  .cmp-chip{flex:none;height:34px}
+  .cmp-tools{padding-top:2px;padding-bottom:8px}
+  #compare .btn.sm.icon{width:36px;height:34px}
   .cmp-table th.corner,.cmp-table th.rl{width:96px}
 }
 @media print{.cmpbtn,#cmp-entry,#compare{display:none!important}}
