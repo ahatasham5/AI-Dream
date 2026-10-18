@@ -744,10 +744,19 @@ const AtlasEngine = (function () {
     const pathNames = (r, stop) => { const out = []; for (let x = r; x && x !== stop && (stop || x.depth > 1); x = x.parent) if (!GENERIC.has(x.node.name)) out.unshift(short(x.node.name)); return out; };
     const ordered = () => [...selected].map((id) => byId.get(id)).sort((a, b) => a.order - b.order);
     const activeMode = () => { for (const id of selected) { const r = byId.get(id); if (r && r.node.steps) return r; } return null; };
+    /** স্বাধীন বাছাই: বাছা node, যার নিচে আর কিছু বাছা নেই। নিচের কিছু বাছলে ওপরের বিকল্প নিজে থেকে বাছা হয়
+     *  (যেমন checkpoint বাছলে তার model-ধরনও), তাই ওপরেরটা আলাদা সিদ্ধান্ত নয়; সংখ্যা এভাবেই গোনা হয়। */
+    function choiceIds() {
+      const implied = new Set();
+      for (const id of selected) for (let a = (byId.get(id) || {}).parent; a; a = a.parent) implied.add(a.node.id);
+      return new Set([...selected].filter((id) => !implied.has(id)));
+    }
+    const choices = () => { const c = choiceIds(); return ordered().filter((r) => c.has(r.node.id)); };
     function stepStat(sid) {
       const r = byId.get(sid); let n = 0;
       if (!r) return 0;
-      (function rec(x) { if (selected.has(x.node.id) && SELECTABLE.has(x.node.kind) && !x.node.steps) n++; x.children.forEach(rec); })(r);
+      const c = choiceIds();
+      (function rec(x) { if (c.has(x.node.id) && SELECTABLE.has(x.node.kind) && !x.node.steps) n++; x.children.forEach(rec); })(r);
       return n;
     }
     const needOf = (n) => (n.need === 'optional' ? 'optional' : 'required');
@@ -785,9 +794,10 @@ const AtlasEngine = (function () {
     const optionalOpen = () => unfilled().filter((r) => needOf(r.node) === 'optional');
     /** না বাছলে যে বিকল্প ধরা হয় (data-র defaultOption), নইলে null। */
     const defaultOf = (r) => (r.node.defaultOption && r.children.find((c) => c.node.id === r.node.defaultOption)) || null;
-    function groups() {
+    /** ধাপ ধরে বাছাই। onlyChoices হলে শুধু স্বাধীন বাছাই (ওপরের নিজে-আসা বিকল্প বাদ); নইলে সব বাছা node। */
+    function groups(onlyChoices) {
       const g = new Map();
-      for (const r of ordered()) { const st = stepOf(r); const key = st ? st.node.id : '_'; if (!g.has(key)) g.set(key, { step: st, items: [] }); g.get(key).items.push(r); }
+      for (const r of onlyChoices ? choices() : ordered()) { const st = stepOf(r); const key = st ? st.node.id : '_'; if (!g.has(key)) g.set(key, { step: st, items: [] }); g.get(key).items.push(r); }
       return [...g.values()];
     }
     function toolLine(n) {
@@ -815,10 +825,10 @@ const AtlasEngine = (function () {
     }
     function markdown(dateStr, rules) {
       const md = activeMode();
-      const lines = ['# আমার পথ' + (md ? ': ' + short(md.node.name) : ''), '', `> ML Learning Atlas থেকে · ${dateStr} · ${selected.size}টা বাছাই`, ''];
+      const lines = ['# আমার পথ' + (md ? ': ' + short(md.node.name) : ''), '', `> ML Learning Atlas থেকে · ${dateStr} · ${choiceIds().size}টা বাছাই`, ''];
       const iss = issues(rules);
       if (iss.length) { lines.push('## সতর্কতা ও বিরোধ'); for (const i of iss) lines.push(`- ${i.kind === 'conflict' ? '✗' : i.kind === 'requires' ? '!' : '⚠'} ${i.text} (${i.src})`); lines.push(''); }
-      for (const g of groups()) {
+      for (const g of groups(true)) {
         lines.push('## ' + (g.step ? g.step.node.name : 'পথের ধরন'));
         for (const r of g.items) {
           lines.push('- ' + pathNames(r, g.step).join(' › ') + (r.node.kind === 'tool' ? ' (tool)' : ''));
@@ -833,12 +843,13 @@ const AtlasEngine = (function () {
     }
     const plain = (dateStr, rules) => markdown(dateStr, rules).replace(/^#+ /gm, '').replace(/^> /gm, '');
     function json(createdIso) {
+      const ch = choiceIds();
       return JSON.stringify({
         version: 1, source: 'ML Learning Atlas', created: createdIso,
         mode: (activeMode() || {}).node ? activeMode().node.id : null,
         items: ordered().map((r) => {
           const st = stepOf(r), n = r.node;
-          return { id: n.id, name: n.name, kind: n.kind, step: st ? { id: st.node.id, name: st.node.name } : null, path: pathNames(r, st),
+          return { id: n.id, name: n.name, kind: n.kind, choice: ch.has(n.id), step: st ? { id: st.node.id, name: st.node.name } : null, path: pathNames(r, st),
             tool: n.kind === 'tool' && n.tool ? { repo: n.tool.repo, license: n.tool.license, archived: !!n.tool.archived } : undefined };
         })
       }, null, 2);
@@ -899,7 +910,7 @@ const AtlasEngine = (function () {
       return out.join('\n');
     }
     const link = (base) => base.split('#')[0] + '#plan=' + [...selected].join(',');
-    return { set: selected, has: (id) => selected.has(id), size: () => selected.size, ids: () => [...selected], toggle, setFrom, clear, removeWithDesc,
+    return { set: selected, has: (id) => selected.has(id), size: () => selected.size, count: () => choiceIds().size, choiceIds, choices, ids: () => [...selected], toggle, setFrom, clear, removeWithDesc,
       ancestors, stepOf, pathNames, ordered, activeMode, stepStat, pending, optionalOpen, defaultOf, groups, toolLine, markdown, plain, json, link, pseudo, issues };
   }
 
@@ -925,6 +936,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = AtlasEngin
  *   ২. কোনো node-এ পৌঁছাতে (খোঁজা, "বাকি সিদ্ধান্ত", "ধাপে যাও") পথের প্রতিটা স্তরে একই নিয়ম: পথের ভাইরা গোটে, পথ খোলে।
  *   ৩. পথ (breadcrumb) = গাছের মূল থেকে ওই node পর্যন্ত, শুধু গঠনের জন্য বসানো নামগুলো ("গঠন ও হিসাব" ইত্যাদি) বাদে।
  *   ৪. গোটানো শাখার ভেতরে কয়টা বাছা আছে তা গোনা হয়, যাতে গুটোলেও বাছাই লুকিয়ে না যায়।
+ *      গোনা হয় স্বাধীন বাছাই (engine.choiceIds): checkpoint বাছলে তার model-ধরনও নিজে বাছা হয়, কিন্তু তা আলাদা সিদ্ধান্ত নয়।
  */
 const AtlasFocus = (function () {
   'use strict';
@@ -957,17 +969,17 @@ const AtlasFocus = (function () {
     return out;
   }
 
-  /** r-এর নিচে (নিজে বাদে) বাছা node-এর সংখ্যা। selected = Set(id)। */
-  function pickedUnder(r, selected) {
+  /** r-এর নিচে (নিজে বাদে) picked-এর সংখ্যা। picked = Set(id): সাধারণত plan.choiceIds()। */
+  function pickedUnder(r, picked) {
     let n = 0;
-    (function rec(x) { for (const c of x.children) { if (selected.has(c.node.id)) n++; rec(c); } })(r);
+    (function rec(x) { for (const c of x.children) { if (picked.has(c.node.id)) n++; rec(c); } })(r);
     return n;
   }
 
   /** সব record-এর জন্য একবারে (দ্রুত): id → নিচের বাছার সংখ্যা। শুধু যাদের >০। */
-  function pickedCounts(records, byId, selected) {
+  function pickedCounts(records, byId, picked) {
     const counts = new Map();
-    for (const id of selected) {
+    for (const id of picked) {
       const r = byId.get(id);
       for (let a = r && r.parent; a; a = a.parent) counts.set(a.node.id, (counts.get(a.node.id) || 0) + 1);
     }
@@ -1798,7 +1810,7 @@ function renderPlan() {
   const iss = selected.size ? plan.issues(cfg.rules) : [];
   const top = el('div', 'plan-top');
   const head = el('div', 'plan-head');
-  head.append(el('h2', '', 'আমার পথ'), el('span', 'plan-n', selected.size ? selected.size.toLocaleString('bn-BD') + 'টা বাছা' : ''));
+  head.append(el('h2', '', 'আমার পথ'), el('span', 'plan-n', selected.size ? plan.count().toLocaleString('bn-BD') + 'টা বাছা' : ''));
   const close = el('button', 'btn ghost icon sm', '✕'); close.type = 'button'; close.setAttribute('aria-label', 'তালিকা বন্ধ করো'); close.onclick = () => openPlan(false);
   head.append(close);
   top.append(head);
@@ -1837,7 +1849,7 @@ function renderPlan() {
     b.onclick = () => { planTab = key; renderPlan(); };
     tabs.append(b);
   };
-  addTab('path', 'পথ', selected.size); addTab('code', 'Pseudo-code', 0); addTab('warn', 'সতর্কতা', iss.length, true);
+  addTab('path', 'পথ', plan.count()); addTab('code', 'Pseudo-code', 0); addTab('warn', 'সতর্কতা', iss.length, true);
   top.append(tabs);
 
   if (planTab === 'code') {
@@ -1863,7 +1875,7 @@ function renderPlan() {
     const bucket = (map, r) => { const st = stepOf(r), k = st ? st.node.id : '_'; if (!map.has(k)) map.set(k, []); map.get(k).push(r); };
     for (const r of pendingDecisions()) bucket(pendBy, r);
     for (const r of plan.optionalOpen()) bucket(optBy, r);
-    for (const g of planGroups()) {
+    for (const g of planGroups(true)) {
       const key = g.step ? g.step.node.id : '_';
       const sec = el('section', 'plan-step');
       const h = el('h3', '', ''); h.append(el('span', '', g.step ? g.step.node.name : 'পথের ধরন'), el('span', '', g.items.length.toLocaleString('bn-BD')));
@@ -1878,7 +1890,7 @@ function renderPlan() {
         if (n.kind === 'tool') bd.append(el('span', 'kchip tool', n.tool && n.tool.archived ? 'tool ⚠ archived' : 'tool'));
         const tl = toolLine(n); if (tl) bd.append(el('div', 'pi-meta', tl));
         row.append(bd);
-        const x = el('button', 'pi-x', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'বাদ দাও: ' + n.name); x.onclick = () => { removeWithDesc(n.id); saveSel(); refreshSel(); };
+        const x = el('button', 'pi-x', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'বাদ দাও: ' + n.name); x.onclick = () => { plan.removeWithDesc(n.id); saveSel(); refreshSel(); };
         row.append(x);
         sec.append(row);
       }
@@ -1892,7 +1904,7 @@ function renderPlan() {
     if (hf.length) body.append(el('p', 'plan-note', 'ইকোসিস্টেম-নির্ভরতা: এই পথের ' + hf.length.toLocaleString('bn-BD') + 'টা tool Hugging Face-এর (' + hf.map((r) => short(r.node.name)).join(', ') + ')। বদল চাইলে একই সিদ্ধান্তে অন্য বিকল্প দেখো।'));
   }
   const foot = el('div', 'plan-foot');
-  const clr = el('button', 'btn sm danger' + (clearArmed ? ' armed' : ' ghost'), clearArmed ? 'সব ' + selected.size.toLocaleString('bn-BD') + 'টা মুছবে: নিশ্চিত?' : 'সব বাছাই মুছো'); clr.type = 'button';
+  const clr = el('button', 'btn sm danger' + (clearArmed ? ' armed' : ' ghost'), clearArmed ? 'সব ' + plan.count().toLocaleString('bn-BD') + 'টা মুছবে: নিশ্চিত?' : 'সব বাছাই মুছো'); clr.type = 'button';
   clr.onclick = clearPlan;
   foot.append(clr); box.append(foot);
   body.scrollTop = scroll;
@@ -1904,13 +1916,13 @@ function refreshSel() {
     r.selBtn.setAttribute('aria-pressed', String(on));
     r.li.classList.toggle('picked', on);
   }
-  const counts = AtlasFocus.pickedCounts(records, byId, selected);
+  const counts = AtlasFocus.pickedCounts(records, byId, plan.choiceIds());
   for (const r of records) if (r.pickChip) {
     const n = counts.get(r.node.id) || 0;
     r.pickChip.classList.toggle('has', n > 0);
     r.pickChip.textContent = n ? '✓ ' + n.toLocaleString('bn-BD') + 'টা বাছা' : '';
   }
-  $('#plan-count').textContent = selected.size.toLocaleString('bn-BD');
+  $('#plan-count').textContent = plan.count().toLocaleString('bn-BD');
   renderSteps($('#startbar'), true);
   renderPlan();
   if (modal.open && modal.dataset.nodeId) renderPick(byId.get(modal.dataset.nodeId).node, $('#pick'));

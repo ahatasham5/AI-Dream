@@ -74,7 +74,19 @@ test('pickedCounts = pickedUnder: এলোমেলো বাছাইয়ে
   const sel = m.records.filter((r) => E.SELECTABLE.has(r.node.kind));
   for (let i = 0; i < 400; i++) m.plan.toggle(sel[Math.floor(rand() * sel.length)].node.id);
   assert.ok(m.plan.size() > 0);
-  const counts = F.pickedCounts(m.records, m.byId, m.plan.set);
-  for (const r of m.records) assert.equal(counts.get(r.node.id) || 0, F.pickedUnder(r, m.plan.set), r.node.id);
+  const counts = F.pickedCounts(m.records, m.byId, m.plan.choiceIds());
+  for (const r of m.records) assert.equal(counts.get(r.node.id) || 0, F.pickedUnder(r, m.plan.choiceIds()), r.node.id);
   for (const id of counts.keys()) assert.ok(m.byId.get(id).children.length > 0, 'পাতায় সংখ্যা: ' + id);
+});
+
+test('গোটানো শাখার সংখ্যা: একটা checkpoint বাছলে ১ (ওপরের model-ধরন বাছা হলেও আলাদা নয়)', () => {
+  const m = fresh();
+  m.plan.toggle('tool-qwen25-vl');
+  const counts = F.pickedCounts(m.records, m.byId, m.plan.choiceIds());
+  assert.equal(counts.get('base-kind'), 1, 'কোন ধরনের model? decision');
+  assert.equal(counts.get('ft-input'), 1);
+  assert.equal(counts.get('opt-base-vlm'), 1, 'ধরনের নিজের ভেতরে checkpoint ১টা');
+  m.plan.toggle('tool-vllm');                                   // আরেকটা, আলাদা শাখায়
+  const c2 = F.pickedCounts(m.records, m.byId, m.plan.choiceIds());
+  assert.equal(c2.get('ft-input'), 1, 'vllm অন্য ধাপের');
 });

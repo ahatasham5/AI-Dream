@@ -818,7 +818,7 @@ function renderPlan() {
   const iss = selected.size ? plan.issues(cfg.rules) : [];
   const top = el('div', 'plan-top');
   const head = el('div', 'plan-head');
-  head.append(el('h2', '', 'আমার পথ'), el('span', 'plan-n', selected.size ? selected.size.toLocaleString('bn-BD') + 'টা বাছা' : ''));
+  head.append(el('h2', '', 'আমার পথ'), el('span', 'plan-n', selected.size ? plan.count().toLocaleString('bn-BD') + 'টা বাছা' : ''));
   const close = el('button', 'btn ghost icon sm', '✕'); close.type = 'button'; close.setAttribute('aria-label', 'তালিকা বন্ধ করো'); close.onclick = () => openPlan(false);
   head.append(close);
   top.append(head);
@@ -857,7 +857,7 @@ function renderPlan() {
     b.onclick = () => { planTab = key; renderPlan(); };
     tabs.append(b);
   };
-  addTab('path', 'পথ', selected.size); addTab('code', 'Pseudo-code', 0); addTab('warn', 'সতর্কতা', iss.length, true);
+  addTab('path', 'পথ', plan.count()); addTab('code', 'Pseudo-code', 0); addTab('warn', 'সতর্কতা', iss.length, true);
   top.append(tabs);
 
   if (planTab === 'code') {
@@ -883,7 +883,7 @@ function renderPlan() {
     const bucket = (map, r) => { const st = stepOf(r), k = st ? st.node.id : '_'; if (!map.has(k)) map.set(k, []); map.get(k).push(r); };
     for (const r of pendingDecisions()) bucket(pendBy, r);
     for (const r of plan.optionalOpen()) bucket(optBy, r);
-    for (const g of planGroups()) {
+    for (const g of planGroups(true)) {
       const key = g.step ? g.step.node.id : '_';
       const sec = el('section', 'plan-step');
       const h = el('h3', '', ''); h.append(el('span', '', g.step ? g.step.node.name : 'পথের ধরন'), el('span', '', g.items.length.toLocaleString('bn-BD')));
@@ -898,7 +898,7 @@ function renderPlan() {
         if (n.kind === 'tool') bd.append(el('span', 'kchip tool', n.tool && n.tool.archived ? 'tool ⚠ archived' : 'tool'));
         const tl = toolLine(n); if (tl) bd.append(el('div', 'pi-meta', tl));
         row.append(bd);
-        const x = el('button', 'pi-x', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'বাদ দাও: ' + n.name); x.onclick = () => { removeWithDesc(n.id); saveSel(); refreshSel(); };
+        const x = el('button', 'pi-x', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'বাদ দাও: ' + n.name); x.onclick = () => { plan.removeWithDesc(n.id); saveSel(); refreshSel(); };
         row.append(x);
         sec.append(row);
       }
@@ -912,7 +912,7 @@ function renderPlan() {
     if (hf.length) body.append(el('p', 'plan-note', 'ইকোসিস্টেম-নির্ভরতা: এই পথের ' + hf.length.toLocaleString('bn-BD') + 'টা tool Hugging Face-এর (' + hf.map((r) => short(r.node.name)).join(', ') + ')। বদল চাইলে একই সিদ্ধান্তে অন্য বিকল্প দেখো।'));
   }
   const foot = el('div', 'plan-foot');
-  const clr = el('button', 'btn sm danger' + (clearArmed ? ' armed' : ' ghost'), clearArmed ? 'সব ' + selected.size.toLocaleString('bn-BD') + 'টা মুছবে: নিশ্চিত?' : 'সব বাছাই মুছো'); clr.type = 'button';
+  const clr = el('button', 'btn sm danger' + (clearArmed ? ' armed' : ' ghost'), clearArmed ? 'সব ' + plan.count().toLocaleString('bn-BD') + 'টা মুছবে: নিশ্চিত?' : 'সব বাছাই মুছো'); clr.type = 'button';
   clr.onclick = clearPlan;
   foot.append(clr); box.append(foot);
   body.scrollTop = scroll;
@@ -924,13 +924,13 @@ function refreshSel() {
     r.selBtn.setAttribute('aria-pressed', String(on));
     r.li.classList.toggle('picked', on);
   }
-  const counts = AtlasFocus.pickedCounts(records, byId, selected);
+  const counts = AtlasFocus.pickedCounts(records, byId, plan.choiceIds());
   for (const r of records) if (r.pickChip) {
     const n = counts.get(r.node.id) || 0;
     r.pickChip.classList.toggle('has', n > 0);
     r.pickChip.textContent = n ? '✓ ' + n.toLocaleString('bn-BD') + 'টা বাছা' : '';
   }
-  $('#plan-count').textContent = selected.size.toLocaleString('bn-BD');
+  $('#plan-count').textContent = plan.count().toLocaleString('bn-BD');
   renderSteps($('#startbar'), true);
   renderPlan();
   if (modal.open && modal.dataset.nodeId) renderPick(byId.get(modal.dataset.nodeId).node, $('#pick'));

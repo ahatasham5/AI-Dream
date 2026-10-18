@@ -45,10 +45,19 @@ const AtlasEngine = (function () {
     const pathNames = (r, stop) => { const out = []; for (let x = r; x && x !== stop && (stop || x.depth > 1); x = x.parent) if (!GENERIC.has(x.node.name)) out.unshift(short(x.node.name)); return out; };
     const ordered = () => [...selected].map((id) => byId.get(id)).sort((a, b) => a.order - b.order);
     const activeMode = () => { for (const id of selected) { const r = byId.get(id); if (r && r.node.steps) return r; } return null; };
+    /** স্বাধীন বাছাই: বাছা node, যার নিচে আর কিছু বাছা নেই। নিচের কিছু বাছলে ওপরের বিকল্প নিজে থেকে বাছা হয়
+     *  (যেমন checkpoint বাছলে তার model-ধরনও), তাই ওপরেরটা আলাদা সিদ্ধান্ত নয়; সংখ্যা এভাবেই গোনা হয়। */
+    function choiceIds() {
+      const implied = new Set();
+      for (const id of selected) for (let a = (byId.get(id) || {}).parent; a; a = a.parent) implied.add(a.node.id);
+      return new Set([...selected].filter((id) => !implied.has(id)));
+    }
+    const choices = () => { const c = choiceIds(); return ordered().filter((r) => c.has(r.node.id)); };
     function stepStat(sid) {
       const r = byId.get(sid); let n = 0;
       if (!r) return 0;
-      (function rec(x) { if (selected.has(x.node.id) && SELECTABLE.has(x.node.kind) && !x.node.steps) n++; x.children.forEach(rec); })(r);
+      const c = choiceIds();
+      (function rec(x) { if (c.has(x.node.id) && SELECTABLE.has(x.node.kind) && !x.node.steps) n++; x.children.forEach(rec); })(r);
       return n;
     }
     const needOf = (n) => (n.need === 'optional' ? 'optional' : 'required');
@@ -86,9 +95,10 @@ const AtlasEngine = (function () {
     const optionalOpen = () => unfilled().filter((r) => needOf(r.node) === 'optional');
     /** না বাছলে যে বিকল্প ধরা হয় (data-র defaultOption), নইলে null। */
     const defaultOf = (r) => (r.node.defaultOption && r.children.find((c) => c.node.id === r.node.defaultOption)) || null;
-    function groups() {
+    /** ধাপ ধরে বাছাই। onlyChoices হলে শুধু স্বাধীন বাছাই (ওপরের নিজে-আসা বিকল্প বাদ); নইলে সব বাছা node। */
+    function groups(onlyChoices) {
       const g = new Map();
-      for (const r of ordered()) { const st = stepOf(r); const key = st ? st.node.id : '_'; if (!g.has(key)) g.set(key, { step: st, items: [] }); g.get(key).items.push(r); }
+      for (const r of onlyChoices ? choices() : ordered()) { const st = stepOf(r); const key = st ? st.node.id : '_'; if (!g.has(key)) g.set(key, { step: st, items: [] }); g.get(key).items.push(r); }
       return [...g.values()];
     }
     function toolLine(n) {
@@ -116,10 +126,10 @@ const AtlasEngine = (function () {
     }
     function markdown(dateStr, rules) {
       const md = activeMode();
-      const lines = ['# আমার পথ' + (md ? ': ' + short(md.node.name) : ''), '', `> ML Learning Atlas থেকে · ${dateStr} · ${selected.size}টা বাছাই`, ''];
+      const lines = ['# আমার পথ' + (md ? ': ' + short(md.node.name) : ''), '', `> ML Learning Atlas থেকে · ${dateStr} · ${choiceIds().size}টা বাছাই`, ''];
       const iss = issues(rules);
       if (iss.length) { lines.push('## সতর্কতা ও বিরোধ'); for (const i of iss) lines.push(`- ${i.kind === 'conflict' ? '✗' : i.kind === 'requires' ? '!' : '⚠'} ${i.text} (${i.src})`); lines.push(''); }
-      for (const g of groups()) {
+      for (const g of groups(true)) {
         lines.push('## ' + (g.step ? g.step.node.name : 'পথের ধরন'));
         for (const r of g.items) {
           lines.push('- ' + pathNames(r, g.step).join(' › ') + (r.node.kind === 'tool' ? ' (tool)' : ''));
@@ -134,12 +144,13 @@ const AtlasEngine = (function () {
     }
     const plain = (dateStr, rules) => markdown(dateStr, rules).replace(/^#+ /gm, '').replace(/^> /gm, '');
     function json(createdIso) {
+      const ch = choiceIds();
       return JSON.stringify({
         version: 1, source: 'ML Learning Atlas', created: createdIso,
         mode: (activeMode() || {}).node ? activeMode().node.id : null,
         items: ordered().map((r) => {
           const st = stepOf(r), n = r.node;
-          return { id: n.id, name: n.name, kind: n.kind, step: st ? { id: st.node.id, name: st.node.name } : null, path: pathNames(r, st),
+          return { id: n.id, name: n.name, kind: n.kind, choice: ch.has(n.id), step: st ? { id: st.node.id, name: st.node.name } : null, path: pathNames(r, st),
             tool: n.kind === 'tool' && n.tool ? { repo: n.tool.repo, license: n.tool.license, archived: !!n.tool.archived } : undefined };
         })
       }, null, 2);
@@ -200,7 +211,7 @@ const AtlasEngine = (function () {
       return out.join('\n');
     }
     const link = (base) => base.split('#')[0] + '#plan=' + [...selected].join(',');
-    return { set: selected, has: (id) => selected.has(id), size: () => selected.size, ids: () => [...selected], toggle, setFrom, clear, removeWithDesc,
+    return { set: selected, has: (id) => selected.has(id), size: () => selected.size, count: () => choiceIds().size, choiceIds, choices, ids: () => [...selected], toggle, setFrom, clear, removeWithDesc,
       ancestors, stepOf, pathNames, ordered, activeMode, stepStat, pending, optionalOpen, defaultOf, groups, toolLine, markdown, plain, json, link, pseudo, issues };
   }
 

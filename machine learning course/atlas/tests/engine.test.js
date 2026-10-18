@@ -212,6 +212,44 @@ test('pseudo: শূন্য-থেকের নকল (-sc) সিদ্ধা
   assert.match(t, /precision = mixed/);
 });
 
+// ---------- স্বাধীন বাছাইয়ের সংখ্যা ----------
+test('count: একটা checkpoint বাছলে সংখ্যা ১; তার ওপরের model-ধরন নিজে বাছা হলেও আলাদা গোনা হয় না', () => {
+  const m = fresh();
+  m.plan.toggle('tool-qwen25-vl');
+  assert.ok(m.plan.has('opt-base-vlm'), 'ওপরের বিকল্প নিজে বাছা হওয়ার কথা');
+  assert.equal(m.plan.size(), 2, 'বাছা node ২টা (ধরন + checkpoint)');
+  assert.equal(m.plan.count(), 1, 'কিন্তু সিদ্ধান্ত ১টা');
+  assert.deepEqual(m.plan.choices().map((r) => r.node.id), ['tool-qwen25-vl']);
+  assert.equal(m.plan.stepStat('ft-input'), 1);
+  assert.ok(!m.plan.markdown('2026-01-01').includes('- আগের model › কোন ধরনের model? › Vision-Language model (ছবি + লেখা → লেখা)\n'), 'ওপরের বিকল্প আলাদা সারিতে এসেছে');
+  assert.match(m.plan.markdown('2026-01-01'), /· 1টা বাছাই/);
+  const js = JSON.parse(m.plan.json('2026-01-01T00:00:00Z'));
+  assert.deepEqual(js.items.map((i) => [i.id, i.choice]), [['opt-base-vlm', false], ['tool-qwen25-vl', true]], 'JSON-এ সব node থাকে, choice-চিহ্নসহ');
+  m.plan.toggle('tool-qwen25-vl');                          // checkpoint বাদ: ধরনটাই এখন সিদ্ধান্ত
+  assert.equal(m.plan.count(), 1);
+  assert.deepEqual(m.plan.choices().map((r) => r.node.id), ['opt-base-vlm']);
+});
+
+test('count: একই decision-এ দুটো আলাদা বাছলে ২; এলোমেলো ক্লিকে সূত্র সবসময় ঠিক', () => {
+  const m = fresh();
+  m.plan.toggle('opt-accuracy'); m.plan.toggle('opt-f1');   // মাপকাঠি: many
+  assert.equal(m.plan.count(), 2);
+  for (const seed of [11, 12, 13]) {
+    const f = fresh(), rand = rng(seed), sel = f.records.filter((r) => E.SELECTABLE.has(r.node.kind));
+    for (let i = 0; i < 3000; i++) {
+      f.plan.toggle(sel[Math.floor(rand() * sel.length)].node.id);
+      if (i % 50) continue;
+      const ch = f.plan.choiceIds();
+      assert.ok(f.plan.count() <= f.plan.size() && (f.plan.size() === 0 || f.plan.count() >= 1));
+      for (const id of f.plan.ids()) {
+        let below = false;
+        (function rec(r) { for (const c of r.children) { if (f.plan.has(c.node.id)) below = true; rec(c); } })(f.byId.get(id));
+        assert.equal(ch.has(id), !below, `${id}: choice=${ch.has(id)} অথচ নিচে বাছা ${below}`);
+      }
+    }
+  }
+});
+
 // ---------- আবশ্যক / ঐচ্ছিক / default ----------
 test('need: বাকি-তালিকায় শুধু আবশ্যক; ঐচ্ছিক আলাদা তালিকায়', () => {
   const m = fresh();
