@@ -51,19 +51,41 @@ const AtlasEngine = (function () {
       (function rec(x) { if (selected.has(x.node.id) && SELECTABLE.has(x.node.kind) && !x.node.steps) n++; x.children.forEach(rec); })(r);
       return n;
     }
-    function pending() {
-      const steps = new Set(ordered().map((r) => stepOf(r)).filter(Boolean));
+    const needOf = (n) => (n.need === 'optional' ? 'optional' : 'required');
+    /** সক্রিয় অথচ কিছু-না-বাছা decision (আবশ্যক ও ঐচ্ছিক দুটোই)।
+     *  সক্রিয় = তার ধাপ steps-এ আছে, নয়তো তার বাছাইযোগ্য পূর্বপুরুষ বাছা। steps না দিলে বাছা node-গুলোর ধাপ। */
+    function unfilled(steps) {
+      const act = steps || new Set(ordered().map((r) => stepOf(r)).filter(Boolean));
       const out = [];
       for (const r of records) {
         if (r.node.kind !== 'decision') continue;
         let a = r.parent;
         while (a && a.node.kind !== 'step' && !SELECTABLE.has(a.node.kind)) a = a.parent;   // info/decision পেরিয়ে
         if (!a) continue;
-        const active = a.node.kind === 'step' ? steps.has(a) : selected.has(a.node.id);
+        const active = a.node.kind === 'step' ? act.has(a) : selected.has(a.node.id);
         if (active && !r.children.some((c) => selected.has(c.node.id))) out.push(r);
       }
       return out;
     }
+    const filled = (r) => r.children.some((c) => selected.has(c.node.id));
+    /** বাকি আবশ্যক সিদ্ধান্ত। একই group-এর যেকোনো একটা পূরণ হলে পুরো group পূর্ণ; অপূর্ণ group-এ একটাই দেখায়। */
+    function pending() {
+      const out = [], seenGroup = new Set();
+      for (const r of unfilled()) {
+        if (needOf(r.node) !== 'required') continue;
+        const g = r.node.group;
+        if (g) {
+          if (seenGroup.has(g) || records.some((x) => x.node.group === g && filled(x))) continue;
+          seenGroup.add(g);
+        }
+        out.push(r);
+      }
+      return out;
+    }
+    /** চাইলে ঠিক করার মতো ঐচ্ছিক সিদ্ধান্ত (এখনো অবাছা)। */
+    const optionalOpen = () => unfilled().filter((r) => needOf(r.node) === 'optional');
+    /** না বাছলে যে বিকল্প ধরা হয় (data-র defaultOption), নইলে null। */
+    const defaultOf = (r) => (r.node.defaultOption && r.children.find((c) => c.node.id === r.node.defaultOption)) || null;
     function groups() {
       const g = new Map();
       for (const r of ordered()) { const st = stepOf(r); const key = st ? st.node.id : '_'; if (!g.has(key)) g.set(key, { step: st, items: [] }); g.get(key).items.push(r); }
@@ -132,16 +154,21 @@ const AtlasEngine = (function () {
       const baseId = (id, table) => (!(id in table) && id.endsWith('-sc') && (id.slice(0, -3) in table) ? id.slice(0, -3) : id);
       const vals = {};
       const push = (slot, v) => { (vals[slot] = vals[slot] || []).push(...(Array.isArray(v) ? v : [v])); };
-      for (const r of ordered()) {
+      // না-বাছা ঐচ্ছিক decision-এর defaultOption বাছার মতোই বসে, ‹সাধারণ মান› চিহ্নসহ। মোডের সব ধাপ সক্রিয় ধরা হয়।
+      const defaults = unfilled(new Set(mode.node.steps.map((sid) => byId.get(sid)).filter(Boolean)))
+        .filter((r) => needOf(r.node) === 'optional').map(defaultOf).filter(Boolean);
+      const entries = ordered().map((r) => ({ r, def: false })).concat(defaults.map((r) => ({ r, def: true })));
+      for (const { r, def } of entries) {
         const p = r.parent;
         if (!p || p.node.kind !== 'decision') continue;
+        const mark = def ? ' ‹সাধারণ মান›' : '';
         const info = spec.slots[baseId(p.node.id, spec.slots)];
         const o = spec.options[baseId(r.node.id, spec.options)];
-        if (o && typeof o === 'object' && !Array.isArray(o)) { for (const k of Object.keys(o)) push(k, o[k]); }
+        if (o && typeof o === 'object' && !Array.isArray(o)) { for (const k of Object.keys(o)) push(k, o[k]); }   // (বহু-slot বিকল্পে default-চিহ্ন বসে না; এমন default রাখা হয়নি)
         else if (info) {
           // বিকল্পের ঠিক নিচে বাছা tool (যেমন CER/WER → jiwer) তার লেখার সঙ্গে জোড়া লাগে
           const tl = r.children.filter((c) => c.node.kind === 'tool' && selected.has(c.node.id)).map((c) => short(c.node.name));
-          const suffix = tl.length ? `   [tool: ${tl.join(', ')}]` : '';
+          const suffix = (tl.length ? `   [tool: ${tl.join(', ')}]` : '') + mark;
           const base = o !== undefined ? o : short(r.node.name);
           if (Array.isArray(base)) push(info.slot, suffix ? base.slice(0, -1).concat(base[base.length - 1] + suffix) : base);
           else push(info.slot, base + suffix);
@@ -174,7 +201,7 @@ const AtlasEngine = (function () {
     }
     const link = (base) => base.split('#')[0] + '#plan=' + [...selected].join(',');
     return { set: selected, has: (id) => selected.has(id), size: () => selected.size, ids: () => [...selected], toggle, setFrom, clear, removeWithDesc,
-      ancestors, stepOf, pathNames, ordered, activeMode, stepStat, pending, groups, toolLine, markdown, plain, json, link, pseudo, issues };
+      ancestors, stepOf, pathNames, ordered, activeMode, stepStat, pending, optionalOpen, defaultOf, groups, toolLine, markdown, plain, json, link, pseudo, issues };
   }
 
   /** DOM ছাড়া গাছ থেকে records/byId বানায় (test-এর জন্য)। app.js নিজের record বানায়, একই আকারে। */

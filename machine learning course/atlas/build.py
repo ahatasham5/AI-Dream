@@ -240,6 +240,18 @@ def validate_plan(root):
                 fail(f"decision-এ pick (one/many) নেই: {node['name']}")
             if not kids:
                 fail(f"decision-এ কোনো বিকল্প নেই: {node['name']}")
+            if node.get("need") not in ("required", "optional"):
+                fail(f"decision-এ need (required/optional) নেই: {node['name']} ({node['id']})")
+            if not str(node.get("needWhy", "")).strip():
+                fail(f"decision-এ needWhy (আবশ্যক বা ঐচ্ছিক কেন) নেই: {node['name']} ({node['id']})")
+            dflt = node.get("defaultOption")
+            if dflt is not None:
+                if node["need"] != "optional" or node["pick"] != "one":
+                    fail(f"defaultOption শুধু ঐচ্ছিক, একটা-বাছার decision-এ: {node['name']} ({node['id']})")
+                if dflt not in [c["id"] for c in kids]:
+                    fail(f"defaultOption এই decision-এর বিকল্প নয়: {node['id']} → {dflt}")
+            if node.get("group") is not None and node["need"] != "required":
+                fail(f"group শুধু আবশ্যক decision-এ: {node['name']} ({node['id']})")
             bad = [c["name"] for c in kids if c.get("kind") not in ("option", "tool")]
             if bad:
                 fail(f"decision-এর সন্তান option/tool নয়: {node['name']} → {bad}")

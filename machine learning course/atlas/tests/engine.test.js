@@ -212,6 +212,79 @@ test('pseudo: শূন্য-থেকের নকল (-sc) সিদ্ধা
   assert.match(t, /precision = mixed/);
 });
 
+// ---------- আবশ্যক / ঐচ্ছিক / default ----------
+test('need: বাকি-তালিকায় শুধু আবশ্যক; ঐচ্ছিক আলাদা তালিকায়', () => {
+  const m = fresh();
+  m.plan.toggle('mode-finetune'); m.plan.toggle('opt-accuracy');          // ধাপ ১ সক্রিয়
+  m.plan.toggle('supervised-fine-tuning-sft'); m.plan.toggle('opt-amp');    // ধাপ ২ ও ৩ সক্রিয়
+  const req = m.plan.pending().map((r) => r.node.id), opt = m.plan.optionalOpen().map((r) => r.node.id);
+  assert.ok(req.includes('goal-baseline') && req.includes('base-kind'), 'আবশ্যক বাকি ধরা পড়েনি');
+  assert.ok(!req.includes('hp-optimizer') && !req.includes('run-track'), 'ঐচ্ছিক বাকি-তালিকায়');
+  assert.ok(opt.includes('hp-optimizer') && opt.includes('run-track') && opt.includes('sft-loss-where'));
+  for (const id of req) assert.equal(m.byId.get(id).node.need, 'required', id);
+  for (const id of opt) assert.equal(m.byId.get(id).node.need, 'optional', id);
+  assert.equal(new Set([...req, ...opt]).size, req.length + opt.length, 'একই decision দুই তালিকায়');
+});
+
+test('need: একই group-এর যেকোনো একটা পূর্ণ হলে পুরো group পূর্ণ, অপূর্ণ থাকলে একটাই দেখায়', () => {
+  const m = fresh(); m.plan.toggle('mode-finetune'); m.plan.toggle('opt-accuracy'); m.plan.toggle('supervised-fine-tuning-sft');
+  const ids = () => m.plan.pending().map((r) => r.node.id).filter((i) => i === 'run-highlevel' || i === 'run-compose');
+  // তার ধাপ (ft-cycle) তখনই সক্রিয় যখন সেখানে কিছু বাছা
+  m.plan.toggle('opt-amp');
+  assert.equal(ids().length, 1, 'group অপূর্ণ: ঠিক একটা দেখানোর কথা, পেয়েছি ' + ids());
+  m.plan.toggle('tool-trl');
+  assert.deepEqual(ids(), [], 'compose পূর্ণ হলে highlevel-ও বাকি দেখাচ্ছে');
+  m.plan.toggle('tool-trl'); m.plan.toggle('tool-unsloth');
+  assert.deepEqual(ids(), [], 'highlevel পূর্ণ হলে compose বাকি দেখাচ্ছে');
+});
+
+test('default: না-বাছা ঐচ্ছিক decision-এর ডিফল্ট pseudo-code-এ ‹সাধারণ মান› চিহ্নে বসে', () => {
+  const m = fresh(); m.plan.toggle('mode-finetune');
+  const t = m.plan.pseudo(spec);
+  assert.match(t, /optimizer = AdamW\(decoupled weight decay\) ‹সাধারণ মান›/);
+  assert.match(t, /stop_rule = stop when validation loss rises.* ‹সাধারণ মান›/);
+  assert.match(t, /parallel = single device ‹সাধারণ মান›/);
+  assert.ok(!/optimizer = ‹\?/.test(t) && !/parallel = ‹\?/.test(t), 'ডিফল্ট থাকতেও অবাছা চিহ্ন');
+  assert.ok(/metrics\s+= ‹\?/.test(t), 'আবশ্যক অবাছা থাকলে ‹?› চিহ্ন থাকার কথা');
+});
+
+test('default: নিজে বাছলে ডিফল্ট-চিহ্ন যায়; SFT-র ডিফল্ট শুধু SFT বাছলে', () => {
+  const m = fresh(); m.plan.toggle('mode-finetune');
+  assert.ok(!m.plan.pseudo(spec).includes('loss_mask:'), 'SFT ছাড়া mask-নোট');
+  m.plan.toggle('supervised-fine-tuning-sft');
+  assert.match(m.plan.pseudo(spec), /loss_mask: only answer tokens.* ‹সাধারণ মান›/);
+  m.plan.toggle('opt-loss-all');
+  const t = m.plan.pseudo(spec);
+  assert.match(t, /loss_mask: no mask: every token counts\n/);
+  assert.ok(!/loss_mask:.*‹সাধারণ মান›/.test(t), 'নিজে বাছার পরও ডিফল্ট-চিহ্ন');
+  assert.ok(!t.includes('loss_mask: only answer'), 'ডিফল্ট আর বাছা দুটোই বসেছে');
+  m.plan.toggle('opt-adam');
+  assert.match(m.plan.pseudo(spec), /optimizer = Adam\n/);
+  assert.ok(!/optimizer = .*‹সাধারণ মান›/.test(m.plan.pseudo(spec)));
+});
+
+test('default: -sc পথেও ডিফল্ট বসে, আর ঐচ্ছিক-অবাছা ছাঁচ-লাইন বাদ যায় (engine, iterate)', () => {
+  const m = fresh(); m.plan.toggle('mode-scratch');
+  const t = m.plan.pseudo(spec);
+  assert.match(t, /optimizer = AdamW.* ‹সাধারণ মান›/);
+  assert.match(t, /data = load\(your_dataset\)/);
+  assert.ok(!t.includes('serve_with'), 'অবাছা ঐচ্ছিক engine-এর লাইন থাকার কথা না');
+  m.plan.toggle('tool-vllm-sc');
+  assert.match(m.plan.pseudo(spec), /serve_with vLLM/);
+  const f = fresh(); f.plan.toggle('mode-finetune');
+  assert.ok(!f.plan.pseudo(spec).includes('ভুল থেকে নতুন data'), 'অবাছা ঐচ্ছিক iterate ফাঁকা চিহ্ন হয়ে এসেছে');
+});
+
+test('default: প্রতিটা defaultOption ঐচ্ছিক, একটা-বাছার decision-এর নিজের বিকল্প', () => {
+  const m = fresh(); let n = 0;
+  for (const r of m.records) {
+    if (!r.node.defaultOption) continue; n++;
+    assert.equal(r.node.need, 'optional', r.node.id); assert.equal(r.node.pick, 'one', r.node.id);
+    assert.ok(m.plan.defaultOf(r), 'defaultOption এই decision-এর সন্তান নয়: ' + r.node.id);
+  }
+  assert.ok(n >= 8);
+});
+
 // ---------- বিরোধ ও নির্ভরতা ----------
 const rules = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'rules.json'), 'utf8'));
 const issueIds = (m) => m.plan.issues(rules).map((i) => i.rule);

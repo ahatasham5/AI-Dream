@@ -253,6 +253,70 @@ class Definitions(unittest.TestCase):
                 self.assertEqual(n.get("definition"), base["definition"], n["id"])
 
 
+class NeedAndDefaults(unittest.TestCase):
+    """আবশ্যক/ঐচ্ছিক ও default: প্রতিটা decision-এ কারণসহ, শূন্য-থেকের নকলে মিল, আর ছাঁচের সাথে সামঞ্জস্য।"""
+    DECISIONS = {n["id"]: n for n in NODES if n.get("kind") == "decision"}
+    SPEC = load("pseudo.json")
+
+    def test_every_decision_has_need_and_reason(self):
+        for i, n in self.DECISIONS.items():
+            self.assertIn(n.get("need"), ("required", "optional"), i)
+            self.assertTrue(str(n.get("needWhy", "")).strip(), f"কারণ নেই: {i}")
+
+    def test_sc_copies_match_their_base(self):
+        """-sc নকল ও ভিত্তি decision-এ need, group ও default (সংশ্লিষ্ট -sc বিকল্প) এক।"""
+        pairs = 0
+        for i, n in self.DECISIONS.items():
+            base = self.DECISIONS.get(i[:-3]) if i.endswith("-sc") else None
+            if not base:
+                continue
+            pairs += 1
+            self.assertEqual(n["need"], base["need"], i)
+            self.assertEqual(n.get("group"), base.get("group"), i)
+            self.assertEqual(n.get("defaultOption"), base["defaultOption"] + "-sc" if base.get("defaultOption") else None, i)
+        self.assertGreater(pairs, 10)
+
+    def test_groups_have_at_least_two_required_members(self):
+        groups = {}
+        for i, n in self.DECISIONS.items():
+            if n.get("group"):
+                groups.setdefault(n["group"], []).append(n)
+        self.assertTrue(groups)
+        for g, ms in groups.items():
+            self.assertGreaterEqual(len(ms), 2, g)
+            self.assertTrue(all(m["need"] == "required" for m in ms), g)
+
+    def test_defaults_have_pseudo_text(self):
+        """default বসাতে হলে তার pseudo-লেখা থাকতেই হবে, নইলে ডিফল্ট ফাঁকা বসবে।"""
+        opts = self.SPEC["options"]
+        for i, n in self.DECISIONS.items():
+            d = n.get("defaultOption")
+            if not d:
+                continue
+            key = d if d in opts else d[:-3] if d.endswith("-sc") else d
+            self.assertIn(key, opts, f"{i} → {d}")
+            self.assertIsInstance(opts[key], str, f"{i}: default বহু-slot বিকল্প হতে পারে না")
+
+    def test_template_plain_slots_are_fed_by_required_or_default_decisions(self):
+        """ছাঁচে `{{slot}}` সোজা লাইনে থাকলে তাকে খাওয়ানো কোনো decision আবশ্যক বা default-সহ হতে হবে;
+        নইলে ঐচ্ছিক-অবাছা অবস্থায় লেখায় ‹? …› ফাঁকা চিহ্ন এসে পড়ত। ঐচ্ছিকের লাইন হবে `?slot`।"""
+        feeds = {}
+        for i, n in self.DECISIONS.items():
+            info = self.SPEC["slots"].get(i) or self.SPEC["slots"].get(i[:-3] if i.endswith("-sc") else i)
+            if info:
+                feeds.setdefault(info["slot"], []).append(n)
+        for mode, lines in self.SPEC["templates"].items():
+            for ln in lines:
+                if re.match(r"^\s*[?!]\w+\s", ln):
+                    continue
+                for slot in re.findall(r"\{\{(\w+)\}\}", ln):
+                    ds = feeds.get(slot)
+                    if not ds:
+                        continue
+                    self.assertTrue(any(d["need"] == "required" or d.get("defaultOption") for d in ds),
+                                    f"{mode}: `{slot}` সোজা লাইনে, অথচ খাওয়ানো সব decision ঐচ্ছিক ও default-হীন")
+
+
 if __name__ == "__main__":
     unittest.main()
 

@@ -80,12 +80,14 @@ Training-এর ১০ উপাদান (Target থেকে Learning Rate) Fr
 | `kind` | মানে |
 |---|---|
 | `step` | পথের একটা ধাপ (যেমন "৪. পদ্ধতি ও memory-র হিসাব") |
-| `decision` | একটা সিদ্ধান্ত। `pick`: `"one"` (একটা বাছো, অন্যটা বাছলে আগেরটা বাদ) বা `"many"` |
+| `decision` | একটা সিদ্ধান্ত। `pick`: `"one"` (একটা বাছো, অন্যটা বাছলে আগেরটা বাদ) বা `"many"`। সাথে `need` (নিচে) |
 | `option` | বাছার মতো একটা পথ বা technique। `when` (কখন বাছবে), `basis` (`course` / `paper` / `experience` / `tool-doc`), `docs` |
 | `info` | ব্যাখ্যামূলক node (সংজ্ঞা, গল্প); বাছা যায় না। বাছাইযোগ্য গাছের ভেতরে ধারণা-node এটাই |
 | `tool` | কংক্রিট tool বা checkpoint। `tool`: `repo` (https), `license`, `archived`, `pushed`, `checked`, `src` বাধ্যতামূলক; `docs`, `supports`, `note` ঐচ্ছিক |
 
 - option-এর সন্তান `decision` বা `tool`; tool-এর সন্তান `decision`। `build.py` এটা যাচাই করে।
+- **আবশ্যক বনাম ঐচ্ছিক:** প্রতিটা `decision`-এ `need` (`required` বা `optional`) আর `needWhy` (এক লাইনে কারণ) থাকতেই হবে; `build.py` আটকায়। `required` না বাছলে "বাকি সিদ্ধান্ত"-এ আসে। `optional` আলাদা "চাইলে ঠিক করো" তালিকায় যায়। ঐচ্ছিক একটা-বাছার decision-এ `defaultOption` (তার একটা বিকল্পের id) দিলে না বাছায় pseudo-code-এ সেটা `‹সাধারণ মান›` চিহ্নে বসে। default শুধু সেখানেই দাও যেখানে বিকল্পের `when`-এ "ডিফল্ট/সাধারণ" প্রমাণ আছে। `group` (শুধু আবশ্যকে) দিলে একই group-এর যেকোনো একটা পূরণ হলে পুরোটা পূর্ণ (যেমন training চালানোর দুই উপায়)। ছাঁচে (`pseudo.json`) ঐচ্ছিক-default-হীন slot-এর লাইন `?slot` দিয়ে লেখো; test এটা আটকায়। `-sc` নকল ভিত্তির সাথে একই `need`/`group`/default রাখে (test আটকায়)।
+- বিকল্পের পাশে মেশা `info` node-গুলো গাছে আলাদা, ভাঁজ-করা "পড়ে বোঝো" অংশে দেখায়; সংখ্যা ও কারণ সেখানেই লেখা।
 - নিচের বিকল্প বাছলে ওপরের বাছাইযোগ্য node-গুলোও নিজে থেকে বাছা হয়; `pick: one`-এ ভাই-বোনের একটা বাছলে বাকিরা বাদ।
 - ডান পাশ থেকে কপি: Markdown, JSON (id সহ, ভবিষ্যতে code তৈরির জন্য), সাধারণ লেখা, শেয়ার-লিংক (`#plan=id1,id2,...`)। বাছাই শুধু এই browser-এ জমা থাকে।
 - tool-এর তথ্য পুরোনো হয়। `python3 atlas/verify_tools.py` আবার GitHub/Hugging Face থেকে মিলিয়ে অমিল জানায় (লগইন ছাড়া ঘণ্টায় ৬০ অনুরোধ; `GITHUB_TOKEN` দিলে বেশি)।

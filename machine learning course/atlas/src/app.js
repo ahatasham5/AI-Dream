@@ -73,6 +73,8 @@ function build(node, parent, depth, trail) {
     indicator.setAttribute('aria-controls', ul.id);
     li.append(ul);
     r.children = node.children.map((n) => build(n, ul, depth + 1, [...trail, r]));
+    const reads = r.children.filter((c) => c.node.kind === 'info');
+    if (reads.length && reads.length < r.children.length && inPlanTree(r)) groupReading(r, reads);
     const kids = AtlasCompare.groupOf(r);
     if (kids.length) {
       const cb = el('button', 'cmpbtn', '⇄ তুলনা');
@@ -87,6 +89,20 @@ function build(node, parent, depth, trail) {
   parent.append(li);
   return r;
 }
+
+// বাছার সিদ্ধান্তের পাশে মিশে থাকা "ব্যাখ্যা" node-গুলো আলাদা, ভাঁজ-করা "পড়ে বোঝো" অংশে: কোনটা বাছার, কোনটা শুধু পড়ার তা এক নজরে বোঝা যায়
+function groupReading(r, reads) {
+  const ul = r.list, label = el('li', 'rg-label'), b = el('button', 'rg-toggle');
+  const n = reads.length.toLocaleString('bn-BD');
+  b.type = 'button';
+  r.rgSet = (open) => { ul.classList.toggle('rg-closed', !open); b.textContent = (open ? '▾ ' : '▸ ') + 'পড়ে বোঝো (' + n + ')'; b.setAttribute('aria-expanded', String(open)); };
+  b.onclick = () => r.rgSet(ul.classList.contains('rg-closed'));
+  label.append(b, el('span', 'rg-hint', SELECTABLE_KINDS.has(r.node.kind) ? 'বাছতে হয় না: "' + short(r.node.name) + '" বাছলে এগুলো নিজে থেকেই আসে' : 'বাছার বিষয় নয়, শুধু বোঝার জন্য'));
+  ul.append(label);
+  for (const c of reads) { c.li.classList.add('rg-info'); ul.append(c.li); }
+  r.rgSet(false);
+}
+const SELECTABLE_KINDS = new Set(['option', 'tool']);
 
 /* ---------- dialog-এর ভেতরের অংশ ---------- */
 function section(title, build_) {
@@ -336,6 +352,7 @@ function clearSearch() {
 function reveal(r) {
   if (search.value) clearSearch();
   for (let a = r.parent; a; a = a.parent) { a.li.hidden = false; setOpen(a, true); }
+  if (r.parent && r.parent.list) r.parent.list.classList.remove('rg-closed');   // "পড়ে বোঝো" ভাঁজে থাকলে খোলে
   r.li.hidden = false;
   r.li.scrollIntoView({ block: 'center' });
   r.li.classList.remove('pulse'); void r.li.offsetWidth; r.li.classList.add('pulse');
@@ -412,7 +429,7 @@ search.addEventListener('input', () => {
 for (const [id, open] of [['expand', true], ['collapse', false]])
   document.getElementById(id).onclick = () => {
     clearSearch();
-    records.forEach((r) => { r.li.hidden = false; setOpen(r, open || r.depth === 0); });
+    records.forEach((r) => { r.li.hidden = false; setOpen(r, open || r.depth === 0); if (r.rgSet) r.rgSet(open); });
   };
 document.addEventListener('keydown', (e) => {
   if (e.key === '/' && !modal.open && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) { e.preventDefault(); search.focus(); }
@@ -573,11 +590,15 @@ const planPseudo = () => plan.pseudo(cfg.pseudo, cfg.rules);
 let clearArmed = false, planTab = 'path';
 let prevIds = [], prevDismissed = false;   // আগের সেশনের পথ: নিজে বসে না, শুধু ফিরিয়ে আনার প্রস্তাব
 const BASIS = AtlasCompare.BASIS;
+// আবশ্যক (পথ এটা ছাড়া অসম্পূর্ণ) বনাম ঐচ্ছিক (না বাছলেও চলে; default থাকলে সেটা ধরা হয়)
+const needChip = (n) => el('span', 'kchip ' + (n.need === 'optional' ? 'opt' : 'req'), n.need === 'optional' ? 'ঐচ্ছিক' : 'আবশ্যক');
+const defaultNameOf = (n) => { const c = (n.children || []).find((x) => x.id === n.defaultOption); return c ? short(c.name) : ''; };
 function decorateKind(r, row, button) {
   const n = r.node;
   if (!n.kind) return;
   if (n.kind === 'decision') {
     button.append(el('span', 'kchip ' + (n.pick === 'one' ? 'one' : 'many'), n.pick === 'one' ? 'একটা বাছো' : 'একাধিক বাছতে পারো'));
+    button.append(needChip(n));
   }
   if (n.kind === 'tool') {
     button.append(el('span', 'kchip tool', n.tool && n.tool.archived ? 'tool ⚠ archived' : 'tool'));
@@ -692,7 +713,7 @@ function clearPlan() {
 }
 // pseudo-code: মন্তব্য ম্লান, ধাপের শিরোনাম গাঢ়, না-বাছা ‹? …› হলুদ
 function renderCode(pre, text) {
-  const code = (str) => str.split(/(‹\?[^›]*›)/).forEach((part, i) => { if (part) pre.append(i % 2 ? el('span', 'pq', part) : part); });
+  const code = (str) => str.split(/(‹[^›]*›)/).forEach((part, i) => { if (part) pre.append(i % 2 ? el('span', part.startsWith('‹?') ? 'pq' : 'pd', part) : part); });
   text.split('\n').forEach((ln, i) => {
     if (i) pre.append('\n');
     const m = /^(\s*)(#.*)$/.exec(ln);
@@ -707,6 +728,21 @@ function pendList(items) {
   det.append(el('summary', '', 'বাকি সিদ্ধান্ত (' + items.length.toLocaleString('bn-BD') + ')'));
   const list = el('div', 'pend-list');
   for (const r of items) { const b = el('button', 'pending', short(r.node.name)); b.type = 'button'; b.onclick = () => { reveal(r); setOpen(r, true); }; list.append(b); }
+  det.append(list);
+  return det;
+}
+// ঐচ্ছিক সিদ্ধান্তের তালিকা: কোনটা না বাছলে কী ধরা হবে তা পাশে দেখায়
+function optList(items) {
+  const det = el('details', 'pend opt');
+  det.append(el('summary', '', 'চাইলে ঠিক করো (' + items.length.toLocaleString('bn-BD') + ')'));
+  const list = el('div', 'pend-list');
+  for (const r of items) {
+    const b = el('button', 'pending', short(r.node.name)); b.type = 'button';
+    const d = defaultNameOf(r.node);
+    if (d) b.append(el('small', 'pdef', 'না বাছলে: ' + d));
+    b.onclick = () => { reveal(r); setOpen(r, true); };
+    list.append(b);
+  }
   det.append(list);
   return det;
 }
@@ -778,8 +814,10 @@ function renderPlan() {
       card.append(row); body.append(card);
     }
   } else {
-    const pendBy = new Map();
-    for (const r of pendingDecisions()) { const st = stepOf(r), k = st ? st.node.id : '_'; if (!pendBy.has(k)) pendBy.set(k, []); pendBy.get(k).push(r); }
+    const pendBy = new Map(), optBy = new Map();
+    const bucket = (map, r) => { const st = stepOf(r), k = st ? st.node.id : '_'; if (!map.has(k)) map.set(k, []); map.get(k).push(r); };
+    for (const r of pendingDecisions()) bucket(pendBy, r);
+    for (const r of plan.optionalOpen()) bucket(optBy, r);
     for (const g of planGroups()) {
       const key = g.step ? g.step.node.id : '_';
       const sec = el('section', 'plan-step');
@@ -800,9 +838,11 @@ function renderPlan() {
         sec.append(row);
       }
       if (pendBy.has(key)) { sec.append(pendList(pendBy.get(key))); pendBy.delete(key); }
+      if (optBy.has(key)) { sec.append(optList(optBy.get(key))); optBy.delete(key); }
       body.append(sec);
     }
-    for (const [, items] of pendBy) { const sec = el('section', 'plan-step'); sec.append(el('h3', '', 'অন্যান্য'), pendList(items)); body.append(sec); }
+    for (const [k, items] of pendBy) { const sec = el('section', 'plan-step'); sec.append(el('h3', '', 'অন্যান্য'), pendList(items)); if (optBy.has(k)) { sec.append(optList(optBy.get(k))); optBy.delete(k); } body.append(sec); }
+    for (const [, items] of optBy) { const sec = el('section', 'plan-step'); sec.append(el('h3', '', 'অন্যান্য'), optList(items)); body.append(sec); }
     const hf = orderedSel().filter((r) => r.node.kind === 'tool' && r.node.tool && r.node.tool.owner === 'huggingface' && r.node.tool.host === 'github');
     if (hf.length) body.append(el('p', 'plan-note', 'ইকোসিস্টেম-নির্ভরতা: এই পথের ' + hf.length.toLocaleString('bn-BD') + 'টা tool Hugging Face-এর (' + hf.map((r) => short(r.node.name)).join(', ') + ')। বদল চাইলে একই সিদ্ধান্তে অন্য বিকল্প দেখো।'));
   }
@@ -855,7 +895,10 @@ function renderPick(node, box) {
     return;
   }
   if (node.kind === 'decision') {
-    wrap.append(el('span', 'kchip ' + (node.pick === 'one' ? 'one' : 'many'), node.pick === 'one' ? 'এখানে একটা বাছো' : 'এখানে একাধিক বাছতে পারো'));
+    wrap.append(el('span', 'kchip ' + (node.pick === 'one' ? 'one' : 'many'), node.pick === 'one' ? 'এখানে একটা বাছো' : 'এখানে একাধিক বাছতে পারো'), needChip(node));
+    if (node.needWhy) {
+      wrap.append(el('p', 'when', (node.need === 'optional' ? 'ঐচ্ছিক: ' : 'আবশ্যক: ') + node.needWhy + '।'));
+    }
   } else {
     const on = selected.has(node.id);
     const b = el('button', 'btn primary', on ? '✓ পথে আছে (বাদ দিতে চাপো)' : 'এটা আমার পথে বাছো');

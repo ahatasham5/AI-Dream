@@ -5222,6 +5222,8 @@
          "definition": "প্রশ্ন: আগে-শেখা model থেকে শুরু (fine-tune) করলে কি চলবে না? বেশির ভাগ কাজে সেটা সস্তা ও দ্রুত, তাই শূন্য থেকে শুধু কারণ থাকলেই। বিকল্পগুলো আলাদা হয় আগে-শেখা model আছে কি না তার ওপর: আছে (Fine-tune-এ যাও), নেই কারণ input বা ধরন একদম আলাদা, অথবা উদ্দেশ্য শুধু শেখা (ছোট model)।",
          "kind": "decision",
          "pick": "one",
+         "need": "required",
+         "needWhy": "শূন্য থেকে train ভারী কাজ, তাই আগে যাচাই করতে হয় সত্যিই লাগবে কি না",
          "children": [
           {
            "id": "opt-sc-pretrained-exists",
@@ -5255,6 +5257,8 @@
          "definition": "কাজ সফল হলো কি না কোন সংখ্যায় মাপবে, সেই প্রশ্ন। কাজের ধরন ঠিক করে মাপ: শ্রেণিবিন্যাসে Accuracy, Precision, Recall, F1; OCR-এ CER ও WER; সংখ্যা অনুমানে MSE/RMSE/MAE; ভাষা-model-এ Perplexity; লেখার মিলে BLEU/ROUGE। একাধিক মাপ একসাথে রাখা যায়।",
          "kind": "decision",
          "pick": "many",
+         "need": "required",
+         "needWhy": "'ভালো' মানে কী তা এটাই ঠিক করে; checkpoint বাছা, থামা আর তুলনা সবই এর ওপর দাঁড়ায়",
          "children": [
           {
            "id": "opt-accuracy-sc",
@@ -5398,6 +5402,8 @@
          "definition": "প্রশ্ন: model-এর মূল কাঠামো কোন ধরনের হবে? উত্তর নির্ভর করে input-এর ধরন আর কাজের ওপর: সাধারণত ছবির জন্য CNN, লেখা বা ক্রমের জন্য RNN, Transformer বা SSM, সরল ছকের data-য় MLP। পাঁচটা বিকল্প থেকে একটা বাছতে হয়।",
          "kind": "decision",
          "pick": "one",
+         "need": "required",
+         "needWhy": "model-এর পরিবার না ঠিক করলে architecture-ই থাকে না",
          "children": [
           {
            "id": "opt-sc-mlp",
@@ -5437,6 +5443,8 @@
              "definition": "প্রশ্ন: Transformer-এর কোড কোথা থেকে আসবে? তিনটা বিকল্পই পাওয়া কোড থেকে শুরু করার পথ: প্রচলিত model-এর তৈরি definition-সহ Hugging Face Transformers, পড়ে বোঝার মতো ছোট nanoGPT, আর recipe-সহ LitGPT। শূন্য থেকে নিজে লেখার চেয়ে এগুলো দ্রুত।",
              "kind": "decision",
              "pick": "one",
+             "need": "optional",
+             "needWhy": "তৈরি implementation না নিয়ে নিজে লিখলেও পথ চলে",
              "children": [
               {
                "id": "tool-transformers-sc",
@@ -5508,6 +5516,8 @@
              "definition": "প্রশ্ন: Mamba layer নিজের model-এ ব্যবহার করতে কোন implementation নেবে? Mamba হলো State Space Model পরিবারের layer, যা Transformer-এর attention-এর বিকল্প। এখানে বিকল্প একটাই: Mamba-র মূল repository।",
              "kind": "decision",
              "pick": "one",
+             "need": "optional",
+             "needWhy": "তৈরি implementation না নিয়ে নিজে লিখলেও পথ চলে",
              "children": [
               {
                "id": "tool-mamba",
@@ -5538,6 +5548,8 @@
          "definition": "প্রশ্ন: layer-এর ভেতরের মানগুলো কীভাবে স্থির রাখবে? মান অযথা বড়-ছোট হলে শেখা অস্থির হয়; normalization মানগুলোকে ছড়ানো দিয়ে ভাগ করে (LayerNorm ও BatchNorm আগে গড়ও বাদ দেয়, RMSNorm শুধু ভাগ করে) একই মাপের কাছে আনে। তিন বিকল্প: LayerNorm, RMSNorm, BatchNorm।",
          "kind": "decision",
          "pick": "one",
+         "need": "optional",
+         "needWhy": "architecture-এর বিস্তারিত সূক্ষ্ম করতে চাইলে বাছো; না বাছলেও পথ দাঁড়ায়",
          "children": [
           {
            "id": "opt-sc-layernorm",
@@ -5571,6 +5583,8 @@
          "definition": "প্রশ্ন: Transformer-কে token-এর অবস্থান কীভাবে জানাবে? Attention নিজে ক্রম বোঝে না, তাই 'কোন token কত নম্বরে' তথ্য আলাদা করে ঢোকাতে হয়। দুটো পথ: RoPE (query ও key vector ঘুরিয়ে) আর ALiBi (attention-এর নম্বর থেকে দূরত্ব অনুযায়ী বাড়তি বিয়োগ)।",
          "kind": "decision",
          "pick": "one",
+         "need": "optional",
+         "needWhy": "শুধু Transformer হলে লাগে",
          "children": [
           {
            "id": "opt-sc-rope",
@@ -5596,6 +5610,8 @@
          "definition": "প্রশ্ন: লম্বা লেখায় attention-এর খরচ কীভাবে কমাবে? Attention-এ প্রতিটা token প্রতিটাকে দেখে, তাই ক্রম লম্বা হলে হিসাব ও memory দ্রুত বাড়ে; generation-এ আগের token-এর হিসাব জমিয়ে রাখার (KV cache) memory-ও বাড়ে। তিনটা কৌশল আছে, একসাথে একাধিকও নেওয়া যায়।",
          "kind": "decision",
          "pick": "many",
+         "need": "optional",
+         "needWhy": "শুধু Transformer হলে লাগে, আর এটা attention-এর বাড়তি দক্ষতা",
          "children": [
           {
            "id": "opt-sc-flash",
@@ -5638,6 +5654,8 @@
          "definition": "প্রশ্ন: লেখাকে কোন এককে ভাঙবে? Model লেখা সরাসরি পড়ে না, পড়ে token (ছোট টুকরো)-এর নম্বর। দুটো বিকল্প: Subword (শব্দের অংশ, যেমন BPE-র শেখা টুকরো) অথবা Byte-level (প্রতিটা byte-ই একেকটা token)।",
          "kind": "decision",
          "pick": "one",
+         "need": "optional",
+         "needWhy": "শুধু text বা sequence data হলে লাগে",
          "children": [
           {
            "id": "opt-sc-bpe",
@@ -5653,6 +5671,8 @@
              "definition": "প্রশ্ন: tokenizer বানানোর জন্য কোন library নেবে? দুটো পথ: Hugging Face tokenizers (দ্রুত, নিজের tokenizer শেখানো ও ব্যবহারের জন্য) বা SentencePiece (শব্দ-ভাগ করা ছাড়া কাঁচা লেখা থেকে সরাসরি শেখে)।",
              "kind": "decision",
              "pick": "one",
+             "need": "optional",
+             "needWhy": "tokenizer-এর library জানাতে চাইলে বাছো; না বাছলেও পথ চলে",
              "children": [
               {
                "id": "tool-hf-tokenizers",
@@ -5706,6 +5726,8 @@
          "definition": "প্রশ্ন: কাঁচা data থেকে কী কী আবর্জনা সাফ করবে? Web বা মিশ্র উৎস থেকে আনা লেখায় একই লেখা বারবার, ভুল ভাষা বা ভাঙা অংশ থাকে। দুটো কাজ: ডুপ্লিকেট সাফ আর ভাষা ও মান ফিল্টার; দরকারে দুটোই করা যায়।",
          "kind": "decision",
          "pick": "many",
+         "need": "optional",
+         "needWhy": "data পরিষ্কার করা ভালো, কিন্তু না করলেও training চলে",
          "children": [
           {
            "id": "opt-sc-dedup",
@@ -5731,6 +5753,8 @@
          "definition": "data ফাইল থেকে পড়া, train/validation/test-এ ভাগ করা আর প্রতিটা সারিকে model-এর ছাঁচে (যেমন chat template-এ) সাজানোর কাজ কোন library দিয়ে চলবে, সেই বাছাই। এখানে সরঞ্জাম-বিকল্প একটাই: Hugging Face Datasets; ছোট কাজে সাধারণ ফাইল পড়ার কোডও চলে।",
          "kind": "decision",
          "pick": "one",
+         "need": "optional",
+         "needWhy": "data পড়ার জন্য আলাদা tool না নিলেও নিজের code দিয়ে চলে",
          "children": [
           {
            "id": "tool-hf-datasets-sc",
@@ -5757,6 +5781,8 @@
          "definition": "data কীভাবে train (শেখার), validation (বাছাইয়ের) আর test (শেষ পরীক্ষার) ভাগে যাবে, সেই নিয়ম। উদ্দেশ্য leakage ঠেকানো, অর্থাৎ শেখার সময় দেখা তথ্য পরীক্ষায় ঢুকে ফল ফাঁপিয়ে না দেওয়া। বিকল্প: এলোমেলো ভাগ, বা group অথবা সময় ধরে ভাগ।",
          "kind": "decision",
          "pick": "one",
+         "need": "required",
+         "needWhy": "train/validation/test ভাগ না করলে ফল যাচাই করা যায় না, leakage-এর ঝুঁকি থাকে",
          "children": [
           {
            "id": "opt-split-random-sc",
@@ -5791,6 +5817,8 @@
          "definition": "প্রশ্ন: training শুরুতে weight-গুলোকে কী মান দেবে? সব ০ দিলে সব unit একই কাজ করে, একই gradient পায়, আর কখনো আলাদা হয় না; তাই ছোট এলোমেলো মান দেওয়া হয়। মানের ছড়ানো ঠিক না হলে সংকেত ফুলে বা মরে যেতে পারে।",
          "kind": "decision",
          "pick": "one",
+         "need": "required",
+         "needWhy": "আগে-শেখা weight নেই, তাই শুরুর weight কীভাবে বসবে তা ঠিক করতেই হয়",
          "children": [
           {
            "id": "opt-sc-init-random",
@@ -5808,6 +5836,9 @@
          "definition": "এই প্রশ্নটা হলো: gradient পাওয়ার পর weight কীভাবে বদলাবে, সেই নিয়ম কোনটা। SGD, Adam আর AdamW কীভাবে সরবে তার কৌশল ঠিক করে; Paged / 8-bit optimizer আলাদা দিকের: নিয়মটা প্রায় একই রেখে optimizer-এর জমানো তথ্যের memory কমায়।",
          "kind": "decision",
          "pick": "one",
+         "need": "optional",
+         "needWhy": "না বাছলে প্রচলিত ডিফল্ট AdamW ধরা হয়",
+         "defaultOption": "opt-adamw-sc",
          "children": [
           {
            "id": "opt-adamw-sc",
@@ -5867,6 +5898,8 @@
          "definition": "এই প্রশ্নটা হলো: training চলতে চলতে learning rate (প্রতি ধাপে weight কতটা সরবে) একই থাকবে, না সময়ের সাথে বদলাবে। বিকল্প: শুরুতে ধীরে বাড়ানো (warmup), পরে ক্রমে কমানো (decay), বা সারা সময় স্থির (constant)। Warmup আর decay একসাথেও চলে।",
          "kind": "decision",
          "pick": "many",
+         "need": "required",
+         "needWhy": "learning rate সময়ের সাথে কীভাবে চলবে তা ঠিক করা দরকার (স্থির রাখাও একটা উত্তর)",
          "children": [
           {
            "id": "opt-warmup-sc",
@@ -5900,6 +5933,8 @@
          "definition": "প্রশ্ন: learning rate-এর শুরুর মান কীভাবে ঠিক করবে? খুব বড় হলে training ভেঙে যায়, খুব ছোট হলে প্রায় এগোয় না; তাই মানটা আন্দাজে না বসিয়ে পরীক্ষা করে বাছতে হয়। এখানে পথ: আগে ছোট model-এ খুঁজে, তারপর বড়-তে।",
          "kind": "decision",
          "pick": "one",
+         "need": "required",
+         "needWhy": "learning rate-এর শুরুর মান ছাড়া training চালানো যায় না",
          "children": [
           {
            "id": "opt-sc-lr-small-first",
@@ -5926,6 +5961,8 @@
          "definition": "এই প্রশ্নটা হলো: model GPU memory-তে না আঁটলে কোন কৌশল দিয়ে চাপ কমানো হবে। চারটাই আলাদা দিক ধরে: কম bit-এ হিসাব, মাঝের মান আবার হিসাব করা, বড় batch-কে টুকরো করা, আর attention-এর হিসাব memory-সাশ্রয়ীভাবে করা। কয়েকটা একসাথে জোড়া যায়।",
          "kind": "decision",
          "pick": "many",
+         "need": "optional",
+         "needWhy": "model আঁটলে memory কৌশল ছাড়াই training চলে; না আঁটলে তখন লাগে",
          "children": [
           {
            "id": "opt-amp-sc",
@@ -5967,6 +6004,8 @@
              "definition": "এই প্রশ্নটা হলো: FlashAttention-এর ধারণাটা কোন পথে চালানো হবে। একই ধারণা দু-জায়গায় পাওয়া যায়: আলাদা একটা library (flash-attn) হিসেবে, অথবা PyTorch-এর নিজের ভেতরে-থাকা attention ফাংশনের (SDPA) মাধ্যমে।",
              "kind": "decision",
              "pick": "one",
+             "need": "optional",
+             "needWhy": "FlashAttention-এর নির্দিষ্ট implementation জানাতে চাইলে বাছো; না বাছলেও পথ চলে",
              "children": [
               {
                "id": "tool-flash-attn-sc",
@@ -6007,6 +6046,9 @@
          "definition": "এই প্রশ্নটা হলো: কাজটা একটা GPU-তেই হবে, নাকি model বা data একাধিক GPU-তে ভাগ হবে। বিকল্পগুলো আলাদা: একটা GPU (ভাগ নেই), DDP (data ভাগ, model-এর পূর্ণ কপি প্রতি GPU-তে), আর FSDP ও ZeRO (model-এর অংশও ভাগ করে রাখা)।",
          "kind": "decision",
          "pick": "one",
+         "need": "optional",
+         "needWhy": "ভাগ না করা (একটা GPU) এখানে ভিত্তি; বাকিগুলো বাড়তি",
+         "defaultOption": "opt-single-gpu-sc",
          "children": [
           {
            "id": "opt-single-gpu-sc",
@@ -6068,6 +6110,8 @@
          "definition": "এই প্রশ্নটা হলো: training script একটা GPU থেকে একাধিক GPU-তে চালানোর ঝামেলা কোনো সহায়ক tool সামলাবে কি না। এটা ঐচ্ছিক: tool ছাড়াও script হাতে লেখা যায়, কিন্তু একই script সহজে এক বা একাধিক GPU-তে চালাতে চাইলে এমন tool কাজে আসে।",
          "kind": "decision",
          "pick": "one",
+         "need": "optional",
+         "needWhy": "launch tool ঐচ্ছিক; ছাড়াও training শুরু করা যায়",
          "children": [
           {
            "id": "tool-accelerate-sc",
@@ -6094,6 +6138,8 @@
          "definition": "প্রশ্ন: বহু GPU ও বহু machine (node) জুড়ে বড় model শেখাতে কোন framework নেবে? এগুলো model ও data নানাভাবে ভাগ করে চালানোর তৈরি ব্যবস্থা। চারটা বিকল্প: Megatron-LM, torchtitan, GPT-NeoX, nanotron।",
          "kind": "decision",
          "pick": "one",
+         "need": "optional",
+         "needWhy": "বড় স্কেলের framework শুধু বড় স্কেলে লাগে",
          "children": [
           {
            "id": "tool-megatron",
@@ -6179,6 +6225,8 @@
          "definition": "প্রশ্ন: training loop কোন tool দিয়ে চালাবে? Tool নিলে বারবার লেখা কোড (checkpoint, logging) কমে; না নিলে নিজে লিখতে হয়। তিন পথ: PyTorch Lightning, Hugging Face Trainer, বা নিজের PyTorch loop।",
          "kind": "decision",
          "pick": "one",
+         "need": "required",
+         "needWhy": "training চালানোর একটা উপায় লাগে",
          "children": [
           {
            "id": "tool-lightning-sc",
@@ -6228,6 +6276,8 @@
          "definition": "এই প্রশ্নটা হলো: প্রতিটা run-এর loss, সেটিং আর ফল কোথাও লিখে রাখা হবে কি না, যাতে পরে run-গুলো পাশাপাশি তুলনা করা যায়। বিকল্পগুলো (Weights & Biases, TensorBoard, MLflow) আলাদা ধরনের; কয়েকটা একসাথেও চালানো যায়।",
          "kind": "decision",
          "pick": "many",
+         "need": "optional",
+         "needWhy": "experiment tracking ছাড়াও training চলে",
          "children": [
           {
            "id": "tool-wandb-sc",
@@ -6284,6 +6334,9 @@
          "definition": "এই প্রশ্নটা হলো: training চলার সময় কোন মুহূর্তগুলোর model সংরক্ষণ (checkpoint) করে রাখা হবে। এক নীতি: যে মুহূর্তে validation-এর ফল সেরা, সেটা রাখা। অন্য নীতি: নিয়মিত ব্যবধানে রাখা, যাতে মাঝপথে থেমে গেলে আবার সেখান থেকে চালানো যায়।",
          "kind": "decision",
          "pick": "one",
+         "need": "optional",
+         "needWhy": "না বাছলে সাধারণ নীতি ধরা হয়: সেরা validation-এর checkpoint রাখা",
+         "defaultOption": "opt-ckpt-best-sc",
          "children": [
           {
            "id": "opt-ckpt-best-sc",
@@ -6318,6 +6371,8 @@
          "definition": "Model আসলেই শিখেছে, নাকি শুধু training data মুখস্থ করেছে, তা ধরার প্রশ্ন। দুটো মাপ একসাথে লাগে: training চলার সময় validation loss, আর শেষে আলাদা test set। একটাই যথেষ্ট নয়, তাই দুটোই রাখা হয়।",
          "kind": "decision",
          "pick": "many",
+         "need": "required",
+         "needWhy": "মাপ ছাড়া model ভালো হলো কি না বলার উপায় নেই",
          "children": [
           {
            "id": "opt-sc-val-loss",
@@ -6343,6 +6398,8 @@
          "definition": "প্রশ্ন: base আর tuned model-কে একই test-এ মেপে তুলনা করতে কোন সফটওয়্যার চালাবে। কোনোটা ভাষা-model-এর benchmark-এর সেট চালায়, কোনোটা শুধু metric হিসাব করে, একটা OCR বা speech-এর ভুলের হার মাপে। একাধিকও নেওয়া যায়।",
          "kind": "decision",
          "pick": "many",
+         "need": "optional",
+         "needWhy": "নির্দিষ্ট মাপার tool ছাড়াও নিজের হিসাবে মাপা যায়",
          "children": [
           {
            "id": "tool-lm-eval-sc",
@@ -6418,6 +6475,8 @@
          "definition": "প্রশ্ন: তৈরি model চালিয়ে ব্যবহারকারীকে উত্তর দেবে কোন সফটওয়্যার (serving engine)। Engine model-টাকে memory-তে তুলে অনুরোধ নেয় ও উত্তর ফেরত দেয়; বিকল্পগুলো আলাদা হয় চালানোর জায়গায় (GPU-সার্ভার, CPU, ডেস্কটপ) আর ব্যবহারের ধরনে।",
          "kind": "decision",
          "pick": "one",
+         "need": "optional",
+         "needWhy": "শুধু মেপে বা নিজের code-এ চালালে serving engine লাগে না",
          "children": [
           {
            "id": "tool-vllm-sc",
@@ -6514,6 +6573,8 @@
          "definition": "প্রশ্ন: চালানোর জন্য model-এর weight-কে কম bit-এ নামিয়ে (যেমন ১৬ থেকে ৪ bit) ছোট ও দ্রুত করবে কোন পথে। কম bit মানে কম memory। তিন বিকল্পের মধ্যে GGUF একটা ফাইল-ফরম্যাট, আর GPTQ ও AWQ দুটো আলাদা quantization-অ্যালগরিদম।",
          "kind": "decision",
          "pick": "one",
+         "need": "optional",
+         "needWhy": "quantization ছাড়াও serve করা যায়",
          "children": [
           {
            "id": "opt-gguf-sc",
@@ -6619,6 +6680,8 @@
          "definition": "কাজ সফল হলো কি না কোন সংখ্যায় মাপবে, সেই প্রশ্ন। কাজের ধরন ঠিক করে মাপ: শ্রেণিবিন্যাসে Accuracy, Precision, Recall, F1; OCR-এ CER ও WER; সংখ্যা অনুমানে MSE/RMSE/MAE; ভাষা-model-এ Perplexity; লেখার মিলে BLEU/ROUGE। একাধিক মাপ একসাথে রাখা যায়।",
          "kind": "decision",
          "pick": "many",
+         "need": "required",
+         "needWhy": "'ভালো' মানে কী তা এটাই ঠিক করে; checkpoint বাছা, থামা আর তুলনা সবই এর ওপর দাঁড়ায়",
          "children": [
           {
            "id": "opt-accuracy",
@@ -6753,6 +6816,8 @@
          "definition": "Tuning-এর আগে কোন ফলকে তুলনার শুরু-বিন্দু ধরবে, এই প্রশ্ন। tuning-এর পর ফল ভালো হলো কি না তা এই বিন্দুর সাথে মিলিয়েই বোঝা যায়। বিকল্প: শুধু ভালো prompt, কয়েকটা উদাহরণসহ prompt, বা নিজের আগের version।",
          "kind": "decision",
          "pick": "one",
+         "need": "required",
+         "needWhy": "baseline ছাড়া tuning-এর ফল ভালো হলো কি না বলার তুলনা-বিন্দু থাকে না",
          "children": [
           {
            "id": "opt-baseline-prompt",
@@ -6805,6 +6870,8 @@
            "definition": "কোন পরিবারের model থেকে শুরু করবে, এই প্রশ্ন। প্রধান ভিত্তি হলো কাজের input আর output: শুধু লেখা, ছবি ও লেখা, ছবি থেকে লেখা (OCR-নির্দিষ্ট), ছবি থেকে class, বা অডিও থেকে লেখা। এখানকার বাছাই পরের সব ধাপের সীমা ঠিক করে।",
            "kind": "decision",
            "pick": "one",
+           "need": "required",
+           "needWhy": "কোন ধরনের model থেকে শুরু তা না জানলে checkpoint আর পরের ধাপ ঠিক করা যায় না",
            "children": [
             {
              "id": "opt-base-text",
@@ -6820,6 +6887,8 @@
                "definition": "আগে-শেখা model-এর কোন নির্দিষ্ট সংরক্ষিত রূপ (checkpoint) থেকে fine-tuning শুরু করবে, সেই প্রশ্ন। শুধু-লেখার LLM পরিবারে এখানে বিকল্প Llama-3.1-8B।",
                "kind": "decision",
                "pick": "one",
+               "need": "required",
+               "needWhy": "load করার checkpoint না জানলে শুরু করার কিছুই থাকে না",
                "children": [
                 {
                  "id": "tool-llama31-8b",
@@ -6855,6 +6924,8 @@
                "definition": "Vision-Language পরিবারের কোন আগে-শেখা model (checkpoint) থেকে fine-tuning শুরু করবে, সেই প্রশ্ন। বিকল্প দুটো: Qwen2.5-VL-7B-Instruct আর Surya OCR 2।",
                "kind": "decision",
                "pick": "one",
+               "need": "required",
+               "needWhy": "load করার checkpoint না জানলে শুরু করার কিছুই থাকে না",
                "children": [
                 {
                  "id": "tool-qwen25-vl",
@@ -6905,6 +6976,8 @@
                "definition": "OCR-নির্দিষ্ট encoder-decoder পরিবারের কোন আগে-শেখা model (checkpoint) থেকে শুরু করবে, সেই প্রশ্ন। বিকল্প দুটো: TrOCR (base-printed) আর Donut (base)।",
                "kind": "decision",
                "pick": "one",
+               "need": "required",
+               "needWhy": "load করার checkpoint না জানলে শুরু করার কিছুই থাকে না",
                "children": [
                 {
                  "id": "tool-trocr",
@@ -6955,6 +7028,8 @@
                "definition": "ছবি-শ্রেণিবিন্যাস backbone পরিবারের কোন আগে-শেখা model (checkpoint) থেকে শুরু করবে, সেই প্রশ্ন। বিকল্প দুটো: ViT (base, patch16-224) আর ResNet-50।",
                "kind": "decision",
                "pick": "one",
+               "need": "required",
+               "needWhy": "load করার checkpoint না জানলে শুরু করার কিছুই থাকে না",
                "children": [
                 {
                  "id": "tool-vit",
@@ -7004,6 +7079,8 @@
                "definition": "speech → লেখা (ASR) পরিবারের কোন আগে-শেখা model (checkpoint) থেকে শুরু করবে, সেই প্রশ্ন। এখানে বিকল্প একটা: Whisper (small)।",
                "kind": "decision",
                "pick": "one",
+               "need": "required",
+               "needWhy": "load করার checkpoint না জানলে শুরু করার কিছুই থাকে না",
                "children": [
                 {
                  "id": "tool-whisper-small",
@@ -7032,6 +7109,8 @@
            "definition": "আগে-শেখা model-এর weight ফাইল কোথা থেকে নেবে, এই প্রশ্ন। এটা training-এর অংশ নয়, শুধু শুরুর checkpoint জোগাড়ের উৎস। বিকল্প: Hugging Face Hub বা ModelScope-এর মতো অনলাইন সংগ্রহ, অথবা নিজের ডিস্কে থাকা ফাইল।",
            "kind": "decision",
            "pick": "one",
+           "need": "required",
+           "needWhy": "weight কোথা থেকে আসবে তা না জানলে load করা যায় না",
            "children": [
             {
              "id": "tool-hf-hub",
@@ -7092,6 +7171,8 @@
            "definition": "Model কোন ধরনের সংকেত থেকে শিখবে, এই প্রশ্ন। একই checkpoint থেকে শুরু করেও সংকেত আলাদা হতে পারে: SFT-এ সঠিক উত্তরের জোড়া, Continued Pretraining-এ শুধু নতুন text, Preference-এ দুই উত্তরের কোনটা ভালো, RL-এ reward, Distillation-এ অন্য model-এর উত্তর।",
            "kind": "decision",
            "pick": "one",
+           "need": "required",
+           "needWhy": "কোন সংকেত থেকে শেখাবে (SFT, preference ইত্যাদি) তা training-এর মূল সিদ্ধান্ত; data-র ছাঁচ আর loss এর ওপর নির্ভর করে",
            "children": [
             {
              "id": "supervised-fine-tuning-sft",
@@ -7110,6 +7191,9 @@
                "definition": "প্রশ্ন আর উত্তর একই সারিতে জোড়া থাকলে model-এর ভুল কোন অংশে মাপা হবে, সেই বাছাই। বিকল্প দুটো: শুধু উত্তর (ও শেষ-চিহ্ন)-এ মাপা, যাতে model উত্তর বানাতে শেখে; অথবা প্রশ্নসহ পুরো সারিতেই মাপা।",
                "kind": "decision",
                "pick": "one",
+               "need": "optional",
+               "needWhy": "না বাছলে সাধারণ SFT-র মান ধরা হয়: শুধু উত্তরে loss",
+               "defaultOption": "opt-loss-answer",
                "children": [
                 {
                  "id": "opt-loss-answer",
@@ -7249,6 +7333,8 @@
            "definition": "নতুন data model-কে কোন ছাঁচে সাজিয়ে দেওয়া হবে, সেই প্রশ্ন। ছাঁচ নির্ভর করে শেখার সংকেত আর কাজের ধরনের ওপর: প্রশ্ন–উত্তর জোড়া, কথোপকথনের পালা, ছবি বা অডিওর সাথে সঠিক লেখা, শুধু text, তুলনা-জোড়া, বা feature আর target-এর ছক।",
            "kind": "decision",
            "pick": "one",
+           "need": "required",
+           "needWhy": "data কোন ছাঁচে সাজানো তা না জানলে training-এ কিছু দেওয়া যায় না",
            "children": [
             {
              "id": "opt-fmt-qa",
@@ -7322,6 +7408,8 @@
            "definition": "data ফাইল থেকে পড়া, train/validation/test-এ ভাগ করা আর প্রতিটা সারিকে model-এর ছাঁচে (যেমন chat template-এ) সাজানোর কাজ কোন library দিয়ে চলবে, সেই বাছাই। এখানে সরঞ্জাম-বিকল্প একটাই: Hugging Face Datasets; ছোট কাজে সাধারণ ফাইল পড়ার কোডও চলে।",
            "kind": "decision",
            "pick": "one",
+           "need": "optional",
+           "needWhy": "data পড়ার জন্য আলাদা tool না নিলেও নিজের code দিয়ে চলে",
            "children": [
             {
              "id": "tool-hf-datasets",
@@ -7348,6 +7436,8 @@
            "definition": "নতুন data-র সঠিক উত্তর (label) কীভাবে বানানো হবে, আর বানানো উত্তর কীভাবে যাচাই হবে, সেই প্রশ্ন। বিকল্প: দলে বসে label দেওয়ার tool (Label Studio), আর স্বয়ংক্রিয়ভাবে বানানো data থেকে নমুনা তুলে মানুষকে দিয়ে ভুল ধরানো।",
            "kind": "decision",
            "pick": "one",
+           "need": "optional",
+           "needWhy": "লেবেল দেওয়া বা যাচাইয়ের tool ছাড়াও পথ চলে",
            "children": [
             {
              "id": "tool-label-studio",
@@ -7382,6 +7472,8 @@
            "definition": "মানুষের লেখা উদাহরণ কম পড়লে data-র সংখ্যা কীভাবে বাড়ানো হবে, সেই প্রশ্ন। এখানে বিকল্প একটা: শক্ত একটা model দিয়ে নতুন উদাহরণ বানিয়ে নেওয়া (synthetic data)।",
            "kind": "decision",
            "pick": "one",
+           "need": "optional",
+           "needWhy": "বাড়তি (synthetic) data ছাড়াও training চলে",
            "children": [
             {
              "id": "synthetic-data",
@@ -7399,6 +7491,8 @@
            "definition": "data কীভাবে train (শেখার), validation (বাছাইয়ের) আর test (শেষ পরীক্ষার) ভাগে যাবে, সেই নিয়ম। উদ্দেশ্য leakage ঠেকানো, অর্থাৎ শেখার সময় দেখা তথ্য পরীক্ষায় ঢুকে ফল ফাঁপিয়ে না দেওয়া। বিকল্প: এলোমেলো ভাগ, বা group অথবা সময় ধরে ভাগ।",
            "kind": "decision",
            "pick": "one",
+           "need": "required",
+           "needWhy": "train/validation/test ভাগ না করলে ফল যাচাই করা যায় না, leakage-এর ঝুঁকি থাকে",
            "children": [
             {
              "id": "opt-split-random",
@@ -7442,6 +7536,8 @@
            },
            "kind": "decision",
            "pick": "one",
+           "need": "required",
+           "needWhy": "কোন parameter বদলাবে তা fine-tuning-এর মূল সিদ্ধান্ত",
            "children": [
             {
              "id": "full-fine-tuning",
@@ -7527,6 +7623,8 @@
                "definition": "PEFT-এর পরিবারের কোন সদস্য নেওয়া হবে, সেই প্রশ্ন। LoRA সবচেয়ে প্রচলিত; QLoRA, rsLoRA, AdaLoRA, DoRA, PiSSA, LoftQ তারই কোনো একটা অংশ (base-এর precision, scale, rank-এর বণ্টন, শুরুর মান ইত্যাদি) বদলায়। Adapter layer, Soft Prompt ও Prefix Tuning, IA³ model-এর অন্য জায়গায় বসে।",
                "kind": "decision",
                "pick": "one",
+               "need": "required",
+               "needWhy": "PEFT বাছলে তার কোন রূপ নেবে তা বলতেই হয়",
                "children": [
                 {
                  "id": "lora-low-rank-update",
@@ -7633,6 +7731,8 @@
                    "definition": "LoRA চালানোর আগে যে সংখ্যাগুলো ঠিক করতে হয়, তার প্রথম বাছাই: কোন module-এ বসাবে, r আর α কত, learning rate কত। বিকল্প তিনটা পরিচিত শুরুর বিন্দু: মূল LoRA paper-এর শুধু Wq ও Wv, QLoRA paper-এর সব linear layer, আর ছোট r দিয়ে সস্তা প্রথম পরীক্ষা।",
                    "kind": "decision",
                    "pick": "one",
+                   "need": "required",
+                   "needWhy": "LoRA চালাতে কোথায় বসাবে, r আর α কত তা ঠিক করতেই হয়; তিনটা শুরুর বিন্দুর একটা নেওয়া যায়",
                    "children": [
                     {
                      "id": "opt-lora-qv",
@@ -7694,6 +7794,8 @@
                    "definition": "এই প্রশ্নটা হলো: QLoRA-য় আটকে রাখা (frozen) base model-এর weight কোন উপায়ে ৪ bit-এ নামানো হবে। QLoRA-র কাঠামো একই থাকে (base আটকানো, শেখে শুধু ছোট LoRA অংশ); এখানে শুধু ঠিক করতে হয় কোন library এই কম-bit রূপটা বানিয়ে চালাবে।",
                    "kind": "decision",
                    "pick": "one",
+                   "need": "required",
+                   "needWhy": "QLoRA মানেই base model কম bit-এ রাখা; কীভাবে রাখবে তা বলতে হয়",
                    "children": [
                     {
                      "id": "tool-bnb",
@@ -7814,6 +7916,9 @@
            "definition": "এই প্রশ্নটা হলো: gradient পাওয়ার পর weight কীভাবে বদলাবে, সেই নিয়ম কোনটা। SGD, Adam আর AdamW কীভাবে সরবে তার কৌশল ঠিক করে; Paged / 8-bit optimizer আলাদা দিকের: নিয়মটা প্রায় একই রেখে optimizer-এর জমানো তথ্যের memory কমায়।",
            "kind": "decision",
            "pick": "one",
+           "need": "optional",
+           "needWhy": "না বাছলে বড় model-এর fine-tuning-এর প্রচলিত ডিফল্ট AdamW ধরা হয়",
+           "defaultOption": "opt-adamw",
            "children": [
             {
              "id": "opt-adamw",
@@ -7873,6 +7978,8 @@
            "definition": "এই প্রশ্নটা হলো: training চলতে চলতে learning rate (প্রতি ধাপে weight কতটা সরবে) একই থাকবে, না সময়ের সাথে বদলাবে। বিকল্প: শুরুতে ধীরে বাড়ানো (warmup), পরে ক্রমে কমানো (decay), বা সারা সময় স্থির (constant)। Warmup আর decay একসাথেও চলে।",
            "kind": "decision",
            "pick": "many",
+           "need": "required",
+           "needWhy": "learning rate সময়ের সাথে কীভাবে চলবে তা ঠিক করা দরকার (স্থির রাখাও একটা উত্তর)",
            "children": [
             {
              "id": "opt-warmup",
@@ -7906,6 +8013,8 @@
            "definition": "এই প্রশ্নটা হলো: learning rate-এর মূল মান (schedule যেটা ধরে চলে) কত ধরা হবে। তিন রকম উত্তর: LoRA/QLoRA-র প্রচলিত মান দিয়ে শুরু, full fine-tuning-এর জন্য অনেক ছোট একটা পরিসরে খোঁজা, বা নিজের কাজে কয়েকটা মান চালিয়ে validation দিয়ে বাছা।",
            "kind": "decision",
            "pick": "one",
+           "need": "required",
+           "needWhy": "learning rate-এর শুরুর মান ছাড়া training চালানো যায় না",
            "children": [
             {
              "id": "opt-lr-lora",
@@ -7939,6 +8048,9 @@
            "definition": "এই প্রশ্নটা হলো: training কখন শেষ হবে। এক উত্তর: validation loss (training-এ না-দেখা data-য় ভুলের মাপ) দেখে, যখন আর ভালো হচ্ছে না তখন থামা। অন্য উত্তর: আগে থেকে ঠিক করা epoch-সংখ্যা পুরো হলে থামা।",
            "kind": "decision",
            "pick": "one",
+           "need": "optional",
+           "needWhy": "না বাছলে সাধারণ মান ধরা হয়: validation loss দেখে থামা",
+           "defaultOption": "opt-stop-val",
            "children": [
             {
              "id": "opt-stop-val",
@@ -7982,6 +8094,8 @@
            "definition": "এই প্রশ্নটা হলো: model GPU memory-তে না আঁটলে কোন কৌশল দিয়ে চাপ কমানো হবে। চারটাই আলাদা দিক ধরে: কম bit-এ হিসাব, মাঝের মান আবার হিসাব করা, বড় batch-কে টুকরো করা, আর attention-এর হিসাব memory-সাশ্রয়ীভাবে করা। কয়েকটা একসাথে জোড়া যায়।",
            "kind": "decision",
            "pick": "many",
+           "need": "optional",
+           "needWhy": "model আঁটলে memory কৌশল ছাড়াই training চলে; না আঁটলে তখন লাগে",
            "children": [
             {
              "id": "opt-amp",
@@ -8023,6 +8137,8 @@
                "definition": "এই প্রশ্নটা হলো: FlashAttention-এর ধারণাটা কোন পথে চালানো হবে। একই ধারণা দু-জায়গায় পাওয়া যায়: আলাদা একটা library (flash-attn) হিসেবে, অথবা PyTorch-এর নিজের ভেতরে-থাকা attention ফাংশনের (SDPA) মাধ্যমে।",
                "kind": "decision",
                "pick": "one",
+               "need": "optional",
+               "needWhy": "FlashAttention-এর নির্দিষ্ট implementation জানাতে চাইলে বাছো; না বাছলেও পথ চলে",
                "children": [
                 {
                  "id": "tool-flash-attn",
@@ -8085,6 +8201,9 @@
            "definition": "এই প্রশ্নটা হলো: কাজটা একটা GPU-তেই হবে, নাকি model বা data একাধিক GPU-তে ভাগ হবে। বিকল্পগুলো আলাদা: একটা GPU (ভাগ নেই), DDP (data ভাগ, model-এর পূর্ণ কপি প্রতি GPU-তে), আর FSDP ও ZeRO (model-এর অংশও ভাগ করে রাখা)।",
            "kind": "decision",
            "pick": "one",
+           "need": "optional",
+           "needWhy": "ভাগ না করা (একটা GPU) এখানে ভিত্তি; বাকিগুলো বাড়তি",
+           "defaultOption": "opt-single-gpu",
            "children": [
             {
              "id": "opt-single-gpu",
@@ -8146,6 +8265,8 @@
            "definition": "এই প্রশ্নটা হলো: training script একটা GPU থেকে একাধিক GPU-তে চালানোর ঝামেলা কোনো সহায়ক tool সামলাবে কি না। এটা ঐচ্ছিক: tool ছাড়াও script হাতে লেখা যায়, কিন্তু একই script সহজে এক বা একাধিক GPU-তে চালাতে চাইলে এমন tool কাজে আসে।",
            "kind": "decision",
            "pick": "one",
+           "need": "optional",
+           "needWhy": "launch tool ঐচ্ছিক; ছাড়াও training শুরু করা যায়",
            "children": [
             {
              "id": "tool-accelerate",
@@ -8172,6 +8293,9 @@
            "definition": "এই প্রশ্নটা হলো: data সাজানো থেকে training পর্যন্ত পুরোটা একটা কনফিগ-চালিত tool-এর হাতে ছেড়ে দেবে কি না। এখানে চারটা tool আছে (Unsloth, Axolotl, LlamaFactory, torchtune), প্রতিটা LoRA/QLoRA-সহ কয়েকটা পদ্ধতি এক জায়গা থেকে চালায়।",
            "kind": "decision",
            "pick": "one",
+           "need": "required",
+           "needWhy": "training চালানোর একটা উপায় লাগে: এটা অথবা 'নিজে জুড়ে', দুটোর একটা বাছলেই হয়",
+           "group": "ft-run",
            "children": [
             {
              "id": "tool-unsloth",
@@ -8273,6 +8397,9 @@
            "definition": "এই প্রশ্নটা হলো: আলাদা আলাদা library জুড়ে নিজের training script বানাবে কি না। এতে নিয়ন্ত্রণ বেশি। বিকল্পগুলো কাজ অনুযায়ী আলাদা: সাধারণ loop (Transformers, Lightning, নিজের loop), পদ্ধতি (TRL, PEFT), আর ছবি বা speech-এর জন্য নির্দিষ্ট library (timm, torchvision, Whisper)। কয়েকটা একসাথে জোড়া যায়।",
            "kind": "decision",
            "pick": "many",
+           "need": "required",
+           "needWhy": "training চালানোর একটা উপায় লাগে: এটা অথবা 'সব-একসঙ্গে tool', দুটোর একটা বাছলেই হয়",
+           "group": "ft-run",
            "children": [
             {
              "id": "tool-transformers",
@@ -8415,6 +8542,8 @@
            "definition": "এই প্রশ্নটা হলো: প্রতিটা run-এর loss, সেটিং আর ফল কোথাও লিখে রাখা হবে কি না, যাতে পরে run-গুলো পাশাপাশি তুলনা করা যায়। বিকল্পগুলো (Weights & Biases, TensorBoard, MLflow) আলাদা ধরনের; কয়েকটা একসাথেও চালানো যায়।",
            "kind": "decision",
            "pick": "many",
+           "need": "optional",
+           "needWhy": "experiment tracking ছাড়াও training চলে",
            "children": [
             {
              "id": "tool-wandb",
@@ -8471,6 +8600,9 @@
            "definition": "এই প্রশ্নটা হলো: training চলার সময় কোন মুহূর্তগুলোর model সংরক্ষণ (checkpoint) করে রাখা হবে। এক নীতি: যে মুহূর্তে validation-এর ফল সেরা, সেটা রাখা। অন্য নীতি: নিয়মিত ব্যবধানে রাখা, যাতে মাঝপথে থেমে গেলে আবার সেখান থেকে চালানো যায়।",
            "kind": "decision",
            "pick": "one",
+           "need": "optional",
+           "needWhy": "না বাছলে সাধারণ নীতি ধরা হয়: সেরা validation-এর checkpoint রাখা",
+           "defaultOption": "opt-ckpt-best",
            "children": [
             {
              "id": "opt-ckpt-best",
@@ -8514,6 +8646,8 @@
            "definition": "প্রশ্ন: tuning-এর ফল কোন আকারে সংরক্ষণ করবে। এক পথে adapter আর base মিশিয়ে একটাই model-ফাইল হয়; আরেক পথে ছোট adapter আলাদা থাকে আর চালানোর সময় base-এর সঙ্গে জোড়া লাগে।",
            "kind": "decision",
            "pick": "one",
+           "need": "required",
+           "needWhy": "ফল কোন আকারে রাখবে তা না ঠিক করলে output-এর রূপই অজানা থাকে",
            "children": [
             {
              "id": "opt-deploy-merge",
@@ -8557,6 +8691,8 @@
            "definition": "প্রশ্ন: তৈরি model চালিয়ে ব্যবহারকারীকে উত্তর দেবে কোন সফটওয়্যার (serving engine)। Engine model-টাকে memory-তে তুলে অনুরোধ নেয় ও উত্তর ফেরত দেয়; বিকল্পগুলো আলাদা হয় চালানোর জায়গায় (GPU-সার্ভার, CPU, ডেস্কটপ) আর ব্যবহারের ধরনে।",
            "kind": "decision",
            "pick": "one",
+           "need": "optional",
+           "needWhy": "শুধু মেপে বা নিজের code-এ চালালে serving engine লাগে না",
            "children": [
             {
              "id": "tool-vllm",
@@ -8653,6 +8789,8 @@
            "definition": "প্রশ্ন: চালানোর জন্য model-এর weight-কে কম bit-এ নামিয়ে (যেমন ১৬ থেকে ৪ bit) ছোট ও দ্রুত করবে কোন পথে। কম bit মানে কম memory। তিন বিকল্পের মধ্যে GGUF একটা ফাইল-ফরম্যাট, আর GPTQ ও AWQ দুটো আলাদা quantization-অ্যালগরিদম।",
            "kind": "decision",
            "pick": "one",
+           "need": "optional",
+           "needWhy": "quantization ছাড়াও serve করা যায়",
            "children": [
             {
              "id": "opt-gguf",
@@ -8711,6 +8849,8 @@
            "definition": "প্রশ্ন: base আর tuned model-কে একই test-এ মেপে তুলনা করতে কোন সফটওয়্যার চালাবে। কোনোটা ভাষা-model-এর benchmark-এর সেট চালায়, কোনোটা শুধু metric হিসাব করে, একটা OCR বা speech-এর ভুলের হার মাপে। একাধিকও নেওয়া যায়।",
            "kind": "decision",
            "pick": "many",
+           "need": "optional",
+           "needWhy": "নির্দিষ্ট মাপার tool ছাড়াও নিজের হিসাবে মাপা যায়",
            "children": [
             {
              "id": "tool-lm-eval",
@@ -8777,6 +8917,8 @@
            "definition": "প্রশ্ন: যে উত্তরের একটাই সঠিক রূপ নেই (chat, রচনা, সারাংশ), তার মান কীভাবে মাপবে। সংখ্যার metric এখানে সহজে খাটে না, তাই বিচারক লাগে: আরেকটা শক্ত model, নাকি মানুষ। দুটো একসঙ্গেও নেওয়া যায়।",
            "kind": "decision",
            "pick": "many",
+           "need": "optional",
+           "needWhy": "খোলা-ধরনের উত্তর না থাকলে এটা লাগে না",
            "children": [
             {
              "id": "llm-as-judge",
@@ -8802,6 +8944,8 @@
            "definition": "প্রশ্ন: নতুন কাজ শেখানোর পর model আগে যা পারত তা এখনো পারে কি না, তা কীভাবে দেখবে। নতুন data-য় শেখাতে গিয়ে পুরোনো দক্ষতা নষ্ট হওয়ার ঝুঁকি থাকে (forgetting), তাই আলাদা করে মাপতে হয়।",
            "kind": "decision",
            "pick": "one",
+           "need": "optional",
+           "needWhy": "না করলে পথ চলে, তবে পুরোনো ক্ষমতা নষ্ট হলে ধরা পড়বে না",
            "children": [
             {
              "id": "opt-regress-set",
@@ -8830,6 +8974,8 @@
          "definition": "প্রশ্ন: ব্যবহারে ধরা ভুল থেকে পরের চক্রের data কীভাবে বানাবে। এক পথে ভুল output আর যাচাই-করা সঠিক উত্তরের জোড়া থেকে সরাসরি data হয়; আরেক পথে সপ্তাহে কিছু ভুল পড়ে ভুলের ধরন বোঝা হয়, যা data-র দিক ঠিক করে।",
          "kind": "decision",
          "pick": "one",
+         "need": "optional",
+         "needWhy": "প্রথম চক্রে লাগে না; এটা পরের চক্রে ভুল থেকে data বাড়ানোর কাজ",
          "children": [
           {
            "id": "correction-dataset",
@@ -9114,6 +9260,8 @@
      "definition": "প্রশ্ন: আগে-শেখা model থেকে শুরু করবে, না একদম শূন্য থেকে model বানাবে। এই এক সিদ্ধান্তে পরের ধাপের তালিকাই বদলে যায়: প্রথমটায় পাঁচ ধাপ, দ্বিতীয়টায় আট ধাপ।",
      "kind": "decision",
      "pick": "one",
+     "need": "required",
+     "needWhy": "পথের ধরনই ঠিক করে কোন ধাপগুলো আসবে",
      "children": [
       {
        "id": "mode-finetune",

@@ -124,6 +124,8 @@ li.picked>.row>.term{background:var(--soft);border-color:var(--hover-line)}
 .kchip.basis.paper{color:var(--link)}
 .kchip.basis.experience{box-shadow:inset 0 0 0 1px var(--btn-line);background:transparent}
 .kchip.mode{background:var(--accent);color:var(--on-accent)}
+.kchip.req{background:transparent;color:var(--ink);font-weight:700;box-shadow:inset 0 0 0 1.5px var(--accent)}
+.kchip.opt{background:transparent;color:var(--muted);box-shadow:none;outline:1px dashed var(--muted);outline-offset:-1px}
 .kchip.info{margin-inline-start:8px;background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
 /* tree-র "বাছো": হালকা pill, বাছা হলে নরম সবুজ */
 .selbtn{margin-inline-start:auto;height:28px;padding:0 13px;border:1px solid var(--btn-line);background:transparent;color:var(--muted);border-radius:99px;font-size:12.5px;font-weight:600;white-space:nowrap}
@@ -428,3 +430,16 @@ details.pend>summary:hover{color:var(--ink)}
   .cmp-table th.corner,.cmp-table th.rl{width:96px}
 }
 @media print{.cmpbtn,#cmp-entry,#compare{display:none!important}}
+
+/* "পড়ে বোঝো": বিকল্পের পাশে মেশা ব্যাখ্যা-node ভাঁজ করা থাকে */
+.rg-label{list-style:none;display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;min-height:36px;margin-top:4px}
+.rg-toggle{border:0;background:transparent;color:var(--muted);font:600 13px system-ui;padding:4px 8px;border-radius:8px;cursor:pointer}
+.rg-toggle:hover{background:var(--chip);color:var(--ink)}
+.rg-hint{color:var(--muted);font-size:12.5px}
+.rg-closed>.rg-info{display:none}
+body.searching .rg-label{display:none}
+body.searching .rg-closed>.rg-info{display:list-item}
+.rg-info>.row>.term{color:var(--muted)}
+.pdef{display:block;color:var(--muted);font-size:11.5px;margin-top:1px}
+details.pend.opt>summary{color:var(--muted)}
+.pd{color:var(--muted);font-style:italic}

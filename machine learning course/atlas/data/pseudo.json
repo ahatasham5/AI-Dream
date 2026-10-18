@@ -391,6 +391,7 @@
   "mode-finetune": [
    "# ===== আমার পথ: Fine-tune (আগে-শেখা model থেকে) — pseudo-code =====",
    "# ‹? …› মানে এই সিদ্ধান্ত এখনও বাছোনি; বাছলে লেখাটা নিজে বদলে যাবে।",
+   "# ‹সাধারণ মান› মানে বাছোনি বলে প্রচলিত ডিফল্ট ধরা হয়েছে; নিজে বাছলে বদলে যাবে।",
    "",
    "# ধাপ ১ — লক্ষ্য ও মাপকাঠি",
    "metrics  = {{metrics}}",
@@ -446,15 +447,16 @@
    "?eval_open open_ended_check = {{eval_open}}",
    "?regress old_abilities_check = {{regress}}",
    "package = {{deploy_form}}",
-   "serve_with {{engine}}",
+   "?engine serve_with {{engine}}",
    "?quant quantize_for_serving = {{quant}}",
    "",
    "# ধাপ ৫ — ভুল থেকে আবার",
-   "{{iterate}}"
+   "?iterate {{iterate}}"
   ],
   "mode-scratch": [
    "# ===== আমার পথ: শূন্য থেকে Train — pseudo-code =====",
    "# ‹? …› মানে এই সিদ্ধান্ত এখনও বাছোনি; বাছলে লেখাটা নিজে বদলে যাবে।",
+   "# ‹সাধারণ মান› মানে বাছোনি বলে প্রচলিত ডিফল্ট ধরা হয়েছে; নিজে বাছলে বদলে যাবে।",
    "",
    "# ধাপ ১ — দরকার যাচাই ও লক্ষ্য",
    "justify = {{need}}",
@@ -471,7 +473,8 @@
    "?tokenizer tokenizer = {{tokenizer}}",
    "?tok_lib tokenizer_library = {{tok_lib}}",
    "?corpus clean(data, steps = {{corpus}})",
-   "data = load({{data_tool}})",
+   "?data_tool data = load({{data_tool}})",
+   "!data_tool data = load(your_dataset)",
    "train, val, test = split(data, by = {{split}})   # test তুলে রাখো",
    "",
    "# ধাপ ৪ — Initialization ও hyperparameter",
@@ -506,7 +509,7 @@
    "?eval_tools measure_with {{eval_tools}}",
    "",
    "# ধাপ ৮ — Deploy",
-   "serve_with {{engine}}",
+   "?engine serve_with {{engine}}",
    "?quant quantize_for_serving = {{quant}}"
   ]
  }
