@@ -77,10 +77,11 @@ const AtlasEngine = (function () {
       return out;
     }
     const filled = (r) => r.children.some((c) => selected.has(c.node.id));
-    /** বাকি আবশ্যক সিদ্ধান্ত। একই group-এর যেকোনো একটা পূরণ হলে পুরো group পূর্ণ; অপূর্ণ group-এ একটাই দেখায়। */
-    function pending() {
+    /** বাকি আবশ্যক সিদ্ধান্ত। একই group-এর যেকোনো একটা পূরণ হলে পুরো group পূর্ণ; অপূর্ণ group-এ একটাই দেখায়।
+     *  steps (ধাপ-record-এর Set) না দিলে শুধু যেসব ধাপে কিছু বাছা আছে। */
+    function pending(steps) {
       const out = [], seenGroup = new Set();
-      for (const r of unfilled()) {
+      for (const r of unfilled(steps)) {
         if (needOf(r.node) !== 'required') continue;
         const g = r.node.group;
         if (g) {
@@ -92,7 +93,25 @@ const AtlasEngine = (function () {
       return out;
     }
     /** চাইলে ঠিক করার মতো ঐচ্ছিক সিদ্ধান্ত (এখনো অবাছা)। */
-    const optionalOpen = () => unfilled().filter((r) => needOf(r.node) === 'optional');
+    const optionalOpen = (steps) => unfilled(steps).filter((r) => needOf(r.node) === 'optional');
+    /** বাছা পথের-ধরনের (মোডের) সব ধাপ, কিছু বাছা না থাকলেও: গাইডের জন্য। মোড না বাছলে null। */
+    const modeSteps = () => { const m = activeMode(); return m ? new Set(m.node.steps.map((sid) => byId.get(sid)).filter(Boolean)) : null; };
+    /** মোডের সব ধাপ জুড়ে বাকি আবশ্যক সিদ্ধান্ত, গাছের ক্রমে। শর্তসাপেক্ষ সিদ্ধান্ত (যেমন LoRA বাছলে তার সেটিং) তার parent বাছার পরই আসে, তাই সংখ্যা বাড়তে পারে। */
+    const remaining = () => { const st = modeSteps(); return st ? pending(st) : []; };
+    /** মোডের সব ধাপ জুড়ে এখনো অবাছা ঐচ্ছিক সিদ্ধান্ত। */
+    const optionalRemaining = () => { const st = modeSteps(); return st ? optionalOpen(st) : []; };
+    /** ধাপ-id → সেই ধাপে বাকি আবশ্যক সিদ্ধান্তের সংখ্যা (শুধু >০)। */
+    function remainingByStep() {
+      const out = new Map();
+      for (const r of remaining()) { const st = stepOf(r); if (st) out.set(st.node.id, (out.get(st.node.id) || 0) + 1); }
+      return out;
+    }
+    /** from (record বা null)-এর পরের প্রথম বাকি আবশ্যক সিদ্ধান্ত; শেষ ছাড়িয়ে গেলে প্রথমটায় ফেরে। কিছু না থাকলে null। */
+    function nextRequired(from) {
+      const list = remaining();
+      if (!list.length) return null;
+      return (from && list.find((r) => r.order > from.order)) || list[0];
+    }
     /** না বাছলে যে বিকল্প ধরা হয় (data-র defaultOption), নইলে null। */
     const defaultOf = (r) => (r.node.defaultOption && r.children.find((c) => c.node.id === r.node.defaultOption)) || null;
     /** ধাপ ধরে বাছাই। onlyChoices হলে শুধু স্বাধীন বাছাই (ওপরের নিজে-আসা বিকল্প বাদ); নইলে সব বাছা node। */
@@ -212,7 +231,7 @@ const AtlasEngine = (function () {
     }
     const link = (base) => base.split('#')[0] + '#plan=' + [...selected].join(',');
     return { set: selected, has: (id) => selected.has(id), size: () => selected.size, count: () => choiceIds().size, choiceIds, choices, ids: () => [...selected], toggle, setFrom, clear, removeWithDesc,
-      ancestors, stepOf, pathNames, ordered, activeMode, stepStat, pending, optionalOpen, defaultOf, groups, toolLine, markdown, plain, json, link, pseudo, issues };
+      ancestors, stepOf, pathNames, ordered, activeMode, stepStat, pending, optionalOpen, modeSteps, remaining, optionalRemaining, remainingByStep, nextRequired, defaultOf, groups, toolLine, markdown, plain, json, link, pseudo, issues };
   }
 
   /** DOM ছাড়া গাছ থেকে records/byId বানায় (test-এর জন্য)। app.js নিজের record বানায়, একই আকারে। */

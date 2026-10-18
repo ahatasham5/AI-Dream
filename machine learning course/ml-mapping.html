@@ -478,6 +478,22 @@ li.closed>.row .kchip.pickn.has{display:inline-block}
 .kchip.inc.on{background:var(--soft);color:var(--accent);box-shadow:none;font-weight:700}
 li.inc-on>.row>.term{background:var(--soft);border-color:var(--hover-line)}
 
+/* গাইড: বাকি আবশ্যক সিদ্ধান্ত, চাপলে পরেরটায় */
+.guide{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin:8px 0 2px}
+.guide-go{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);color:var(--ink);border-radius:99px;padding:6px 14px;font:600 13px system-ui;cursor:pointer}
+.guide-go b{color:var(--amber);font-weight:700}
+.guide-go span{color:var(--muted);font-weight:600}
+.guide-go:hover{background:color-mix(in srgb,var(--amber) 22%,transparent)}
+.guide.done b{color:var(--accent);font-size:13px}
+.guide-opt{color:var(--muted);font-size:12.5px}
+.stepchip .sr{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:color-mix(in srgb,var(--amber) 22%,transparent);color:var(--amber);font:700 11px system-ui}
+
+.guide-pill{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);color:var(--ink);border-radius:99px;padding:7px 14px;font:600 13px system-ui;cursor:pointer;white-space:nowrap}
+.guide-pill b{color:var(--amber);font-weight:700}
+.guide-pill:hover{background:color-mix(in srgb,var(--amber) 22%,transparent)}
+.guide-pill.done{border-color:var(--line);background:transparent;color:var(--accent);cursor:default}
+@media print{#guide-pill{display:none!important}}
+
 </style>
 </head>
 <body>
@@ -503,6 +519,7 @@ li.inc-on>.row>.term{background:var(--soft);border-color:var(--hover-line)}
       <button class="btn icon" id="accordion" type="button" aria-pressed="true" aria-label="একটা-একটা খোলা" title="একটা-একটা খোলা"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3.5l4 3 4-3"/><path d="M4 12.5l4-3 4 3"/></svg></button>
       <button class="btn icon" id="theme" type="button" aria-label="theme বদলাও" title="theme">☾</button>
     </div>
+    <span id="guide-pill"></span>
     <button class="btn primary" id="plan-toggle" type="button" aria-controls="plan" aria-expanded="false">আমার পথ <span class="badge" id="plan-count">০</span></button>
   </div>
   </div>
@@ -781,10 +798,11 @@ const AtlasEngine = (function () {
       return out;
     }
     const filled = (r) => r.children.some((c) => selected.has(c.node.id));
-    /** বাকি আবশ্যক সিদ্ধান্ত। একই group-এর যেকোনো একটা পূরণ হলে পুরো group পূর্ণ; অপূর্ণ group-এ একটাই দেখায়। */
-    function pending() {
+    /** বাকি আবশ্যক সিদ্ধান্ত। একই group-এর যেকোনো একটা পূরণ হলে পুরো group পূর্ণ; অপূর্ণ group-এ একটাই দেখায়।
+     *  steps (ধাপ-record-এর Set) না দিলে শুধু যেসব ধাপে কিছু বাছা আছে। */
+    function pending(steps) {
       const out = [], seenGroup = new Set();
-      for (const r of unfilled()) {
+      for (const r of unfilled(steps)) {
         if (needOf(r.node) !== 'required') continue;
         const g = r.node.group;
         if (g) {
@@ -796,7 +814,25 @@ const AtlasEngine = (function () {
       return out;
     }
     /** চাইলে ঠিক করার মতো ঐচ্ছিক সিদ্ধান্ত (এখনো অবাছা)। */
-    const optionalOpen = () => unfilled().filter((r) => needOf(r.node) === 'optional');
+    const optionalOpen = (steps) => unfilled(steps).filter((r) => needOf(r.node) === 'optional');
+    /** বাছা পথের-ধরনের (মোডের) সব ধাপ, কিছু বাছা না থাকলেও: গাইডের জন্য। মোড না বাছলে null। */
+    const modeSteps = () => { const m = activeMode(); return m ? new Set(m.node.steps.map((sid) => byId.get(sid)).filter(Boolean)) : null; };
+    /** মোডের সব ধাপ জুড়ে বাকি আবশ্যক সিদ্ধান্ত, গাছের ক্রমে। শর্তসাপেক্ষ সিদ্ধান্ত (যেমন LoRA বাছলে তার সেটিং) তার parent বাছার পরই আসে, তাই সংখ্যা বাড়তে পারে। */
+    const remaining = () => { const st = modeSteps(); return st ? pending(st) : []; };
+    /** মোডের সব ধাপ জুড়ে এখনো অবাছা ঐচ্ছিক সিদ্ধান্ত। */
+    const optionalRemaining = () => { const st = modeSteps(); return st ? optionalOpen(st) : []; };
+    /** ধাপ-id → সেই ধাপে বাকি আবশ্যক সিদ্ধান্তের সংখ্যা (শুধু >০)। */
+    function remainingByStep() {
+      const out = new Map();
+      for (const r of remaining()) { const st = stepOf(r); if (st) out.set(st.node.id, (out.get(st.node.id) || 0) + 1); }
+      return out;
+    }
+    /** from (record বা null)-এর পরের প্রথম বাকি আবশ্যক সিদ্ধান্ত; শেষ ছাড়িয়ে গেলে প্রথমটায় ফেরে। কিছু না থাকলে null। */
+    function nextRequired(from) {
+      const list = remaining();
+      if (!list.length) return null;
+      return (from && list.find((r) => r.order > from.order)) || list[0];
+    }
     /** না বাছলে যে বিকল্প ধরা হয় (data-র defaultOption), নইলে null। */
     const defaultOf = (r) => (r.node.defaultOption && r.children.find((c) => c.node.id === r.node.defaultOption)) || null;
     /** ধাপ ধরে বাছাই। onlyChoices হলে শুধু স্বাধীন বাছাই (ওপরের নিজে-আসা বিকল্প বাদ); নইলে সব বাছা node। */
@@ -916,7 +952,7 @@ const AtlasEngine = (function () {
     }
     const link = (base) => base.split('#')[0] + '#plan=' + [...selected].join(',');
     return { set: selected, has: (id) => selected.has(id), size: () => selected.size, count: () => choiceIds().size, choiceIds, choices, ids: () => [...selected], toggle, setFrom, clear, removeWithDesc,
-      ancestors, stepOf, pathNames, ordered, activeMode, stepStat, pending, optionalOpen, defaultOf, groups, toolLine, markdown, plain, json, link, pseudo, issues };
+      ancestors, stepOf, pathNames, ordered, activeMode, stepStat, pending, optionalOpen, modeSteps, remaining, optionalRemaining, remainingByStep, nextRequired, defaultOf, groups, toolLine, markdown, plain, json, link, pseudo, issues };
   }
 
   /** DOM ছাড়া গাছ থেকে records/byId বানায় (test-এর জন্য)। app.js নিজের record বানায়, একই আকারে। */
@@ -1496,6 +1532,7 @@ document.getElementById('accordion').onclick = () => setAccordion(!accordion, tr
 setAccordion(store('ml-atlas-accordion') !== '0', false);
 document.addEventListener('keydown', (e) => {
   if (e.key === '/' && !modal.open && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) { e.preventDefault(); search.focus(); }
+  if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey && !modal.open && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && plan.remaining().length) { e.preventDefault(); goNextRequired(); }
 });
 
 /* ---------- dialog-এর বোতাম ---------- */
@@ -1696,6 +1733,40 @@ function setBranchOpen(r) {
   openPath(r);
   r.li.hidden = false; setOpen(r, true);
 }
+// গাইড: মোডের সব ধাপ জুড়ে বাকি আবশ্যক সিদ্ধান্ত। চাপলে (বা N চাপলে) পরেরটায় নিয়ে গিয়ে খুলে দেখায়
+function goNextRequired() {
+  const r = plan.nextRequired(focusRec);
+  if (!r) return;
+  reveal(r); openFocused(r);
+}
+function renderGuide() {
+  if (!activeMode()) return null;
+  const rem = plan.remaining(), opt = plan.optionalRemaining().length;
+  const wrap = el('div', 'guide' + (rem.length ? '' : ' done'));
+  if (rem.length) {
+    const b = el('button', 'guide-go'); b.type = 'button';
+    b.append(el('b', '', rem.length.toLocaleString('bn-BD') + 'টা আবশ্যক বাকি'), el('span', '', 'পরেরটায় যাও →'));
+    b.title = 'পরের অবাছা আবশ্যক সিদ্ধান্তে নিয়ে যায় (কিবোর্ডে N)। কিছু বিকল্প বাছলে তার ভেতরের নতুন আবশ্যক সিদ্ধান্ত যোগ হতে পারে (যেমন LoRA বাছলে তার সেটিং), তাই সংখ্যা বাড়তেও পারে।';
+    b.onclick = goNextRequired;
+    wrap.append(b);
+  } else wrap.append(el('b', '', '✓ সব আবশ্যক সিদ্ধান্ত হয়েছে'));
+  if (opt) wrap.append(el('span', 'guide-opt', 'চাইলে ঠিক করার: ' + opt.toLocaleString('bn-BD') + 'টা ঐচ্ছিক'));
+  return wrap;
+}
+// sticky topbar-এর ছোট গাইড-pill: গাছে যত নিচেই নামি, বাকি আবশ্যক সংখ্যা আর "পরেরটায়" হাতের কাছে
+function renderGuidePill() {
+  const box = document.getElementById('guide-pill');
+  box.replaceChildren();
+  if (!activeMode()) return;
+  const n = plan.remaining().length;
+  const b = el('button', 'guide-pill' + (n ? '' : ' done')); b.type = 'button';
+  if (n) {
+    b.append(el('b', '', n.toLocaleString('bn-BD')), document.createTextNode('টা আবশ্যক বাকি →'));
+    b.title = 'পরের অবাছা আবশ্যক সিদ্ধান্তে যাও (কিবোর্ডে N)। কিছু বিকল্প বাছলে ভেতরের নতুন আবশ্যক সিদ্ধান্ত যোগ হতে পারে, তাই সংখ্যা বাড়তেও পারে।';
+    b.onclick = goNextRequired;
+  } else { b.textContent = '✓ আবশ্যক সব হয়েছে'; b.disabled = true; b.title = 'এই পথের সব আবশ্যক সিদ্ধান্ত নেওয়া হয়ে গেছে'; }
+  box.append(b);
+}
 function renderSteps(box, compact) {
   const mode = activeMode();
   box.replaceChildren();
@@ -1723,17 +1794,20 @@ function renderSteps(box, compact) {
   row.append(modes);
   box.append(row);
   if (!mode) { if (!compact) box.append(el('p', 'plan-empty', 'আগে বাছো: Fine-tune করবে, না শূন্য থেকে Train? তারপর ধাপগুলো এখানে আসবে।')); return; }
-  const lst = el('div', 'stepchips');
+  const lst = el('div', 'stepchips'), remBy = plan.remainingByStep();
   mode.node.steps.forEach((sid, i) => {
     const r = byId.get(sid), c = stepStat(sid);
     const b = el('button', 'stepchip' + (c ? ' done' : ''));
     b.type = 'button'; b.title = r.node.name;
     b.append(el('span', 'sn', (c ? '✓' : String(i + 1).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[d]))), document.createTextNode(short(r.node.name.replace(/^[০-৯]+\.\s*/, ''))));
     if (c) b.append(el('span', 'sc', c.toLocaleString('bn-BD')));
+    const rc = remBy.get(sid);
+    if (rc) { const sr = el('span', 'sr', rc.toLocaleString('bn-BD')); sr.title = 'এই ধাপে ' + rc.toLocaleString('bn-BD') + 'টা আবশ্যক সিদ্ধান্ত বাকি'; b.append(sr); }
     b.onclick = () => gotoStep(sid);
     lst.append(b);
   });
   box.append(lst);
+  const g = renderGuide(); if (g) box.append(g);
 }
 function toggleSel(id) {
   const res = plan.toggle(id);
@@ -1836,6 +1910,7 @@ function renderPlan() {
     fill.style.width = Math.round(got / total * 100) + '%'; bar.append(fill);
     meta.append(el('b', '', mode.node.name.split(' (')[0]), el('span', '', 'ধাপ ' + got.toLocaleString('bn-BD') + '/' + total.toLocaleString('bn-BD')), bar);
     top.append(meta);
+    const g = renderGuide(); if (g) top.append(g);
   }
   const acts = el('div', 'plan-bar');
   const menu = el('details', 'menu');
@@ -1938,6 +2013,7 @@ function refreshSel() {
   }
   $('#plan-count').textContent = plan.count().toLocaleString('bn-BD');
   renderSteps($('#startbar'), true);
+  renderGuidePill();
   renderPlan();
   if (modal.open && modal.dataset.nodeId) renderPick(byId.get(modal.dataset.nodeId).node, $('#pick'));
 }

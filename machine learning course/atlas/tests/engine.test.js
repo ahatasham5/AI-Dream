@@ -212,6 +212,51 @@ test('pseudo: শূন্য-থেকের নকল (-sc) সিদ্ধা
   assert.match(t, /precision = mixed/);
 });
 
+// ---------- গাইড: মোডের সব ধাপ জুড়ে বাকি আবশ্যক ----------
+test('guide: মোড না বাছলে কিছু নেই; শুধু মোড বাছলেই সব ধাপের আবশ্যক গোনা হয় (ধাপে কিছু না বেছেও)', () => {
+  const m = fresh();
+  assert.deepEqual(m.plan.remaining(), []); assert.equal(m.plan.nextRequired(null), null);
+  m.plan.toggle('mode-finetune');
+  assert.equal(m.plan.pending().length, 0, 'আগের নিয়ম (শুধু বাছা-ধাপ) অক্ষত থাকার কথা');
+  const ids = m.plan.remaining().map((r) => r.node.id);
+  assert.equal(ids.length, 12, 'আবশ্যক ১৩টা decision, training-চালানোর group ১টা ধরে ১২: ' + ids);
+  for (const id of ids) assert.equal(m.byId.get(id).node.need, 'required', id);
+  for (const id of ['goal-metric', 'goal-baseline', 'base-kind', 'data-split', 'hp-lr-value', 'deploy-form']) assert.ok(ids.includes(id), id + ' নেই');
+  assert.ok(!ids.includes('hp-optimizer') && !ids.includes('run-track'), 'ঐচ্ছিক ঢুকেছে');
+  assert.equal(ids.filter((i) => i === 'run-highlevel' || i === 'run-compose').length, 1, 'group একবারই');
+  const order = m.plan.remaining().map((r) => r.order); assert.deepEqual(order, [...order].sort((a, b) => a - b), 'গাছের ক্রম নয়');
+  assert.equal([...m.plan.remainingByStep().values()].reduce((a, b) => a + b, 0), 12);
+});
+
+test('guide: উত্তর দিলে কমে; group একটায় পূর্ণ; শর্তসাপেক্ষ সিদ্ধান্ত parent বাছার পর আসে', () => {
+  const m = fresh(); m.plan.toggle('mode-finetune');
+  m.plan.toggle('opt-accuracy');
+  assert.ok(!m.plan.remaining().some((r) => r.node.id === 'goal-metric')); assert.equal(m.plan.remaining().length, 11);
+  m.plan.toggle('tool-trl');                                                // compose-group পূর্ণ
+  assert.equal(m.plan.remaining().length, 10);
+  assert.ok(!m.plan.remaining().some((r) => r.node.id === 'base-vlm-ckpt'), 'parent না বেছেই শর্তসাপেক্ষ এসেছে');
+  m.plan.toggle('opt-base-vlm');                                            // base-kind পূর্ণ, কিন্তু checkpoint-এর সিদ্ধান্ত নতুন আসে
+  const ids = m.plan.remaining().map((r) => r.node.id);
+  assert.ok(ids.includes('base-vlm-ckpt') && !ids.includes('base-kind'), ids.join());
+  assert.equal(ids.length, 10, 'একটা গেল, একটা এল: সংখ্যা বাড়তেও পারে বলেই tooltip-এ সতর্কতা');
+});
+
+test('guide: নিজে সব সিদ্ধান্ত বাছলে বাকি ০; nextRequired ঘোরে আর শেষে প্রথমে ফেরে', () => {
+  for (const mode of ['mode-finetune', 'mode-scratch']) {
+    const m = fresh(); fillAll(m, mode);
+    assert.deepEqual(m.plan.remaining().map((r) => r.node.id), [], mode + ': সব বাছার পরও বাকি');
+    assert.equal(m.plan.nextRequired(null), null);
+  }
+  const m = fresh(); m.plan.toggle('mode-finetune');
+  const list = m.plan.remaining();
+  assert.equal(m.plan.nextRequired(null), list[0]);
+  assert.equal(m.plan.nextRequired(list[0]), list[1]);
+  assert.equal(m.plan.nextRequired(list[list.length - 1]), list[0], 'শেষের পর প্রথমে ফেরার কথা');
+  const mid = { order: (list[2].order + list[3].order) / 2 };                // যেকোনো জায়গা থেকে (focus সারি যা-ই হোক)
+  assert.equal(m.plan.nextRequired(mid), list[3]);
+  assert.ok(m.plan.optionalRemaining().length > 10 && m.plan.optionalRemaining().every((r) => r.node.need === 'optional'));
+});
+
 // ---------- স্বাধীন বাছাইয়ের সংখ্যা ----------
 test('count: একটা checkpoint বাছলে সংখ্যা ১; তার ওপরের model-ধরন নিজে বাছা হলেও আলাদা গোনা হয় না', () => {
   const m = fresh();
