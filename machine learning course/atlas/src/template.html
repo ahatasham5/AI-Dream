@@ -23,6 +23,13 @@ __CSS__
     <h1>ML · শেখার মানচিত্র</h1>
     <p>শাখা বেছে নাও, নামে ক্লিক করলে সংজ্ঞা, হিসাব আর কোর্সের পাঠ</p>
   </div>
+</header>
+<div class="topbar" id="topbar">
+  <div class="topbar-in">
+  <div id="views" class="seg" role="tablist" aria-label="দেখার ধরন">
+    <button type="button" role="tab" id="view-tree" aria-selected="true">গাছ</button>
+    <button type="button" role="tab" id="view-path" aria-selected="false">গল্পের পথ <span id="path-count"></span></button>
+  </div>
   <div class="controls">
     <input id="search" type="search" placeholder="Term খুঁজো…  ( / )" aria-label="Term খুঁজো">
     <div class="btn-group" role="group" aria-label="গাছের নিয়ন্ত্রণ">
@@ -32,11 +39,6 @@ __CSS__
     </div>
     <button class="btn primary" id="plan-toggle" type="button" aria-controls="plan" aria-expanded="false">আমার পথ <span class="badge" id="plan-count">০</span></button>
   </div>
-</header>
-<div class="subbar">
-  <div id="views" class="seg" role="tablist" aria-label="দেখার ধরন">
-    <button type="button" role="tab" id="view-tree" aria-selected="true">গাছ</button>
-    <button type="button" role="tab" id="view-path" aria-selected="false">গল্পের পথ <span id="path-count"></span></button>
   </div>
 </div>
 <main>

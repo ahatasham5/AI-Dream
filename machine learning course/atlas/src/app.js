@@ -818,6 +818,11 @@ function openPlan(open) {
   $('#plan-toggle').setAttribute('aria-expanded', String(open));
 }
 $('#plan-toggle').onclick = () => openPlan($('#plan').hidden);
+{   // sticky topbar-এর উচ্চতা মেপে CSS-এ দেওয়া: panel আর স্ক্রলের লক্ষ্য যেন তার নিচে থাকে
+  const bar = $('#topbar'), setBar = () => document.documentElement.style.setProperty('--bar', bar.offsetHeight + 'px');
+  setBar();
+  if (window.ResizeObserver) new ResizeObserver(setBar).observe(bar); else window.addEventListener('resize', setBar);
+}
 document.addEventListener('click', (e) => { document.querySelectorAll('details.menu[open]').forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.querySelectorAll('details.menu[open]').forEach((d) => { d.open = false; }); });
 function inPlanTree(r) { return r.trail.some((a) => a.node.kind === 'step') || r.node.kind === 'step'; }

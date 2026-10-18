@@ -79,7 +79,7 @@ button,input{font:inherit}button{cursor:pointer}
 .seg button[aria-selected=true],.seg button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px #0000001c}
 
 /* ---------- header ও উপরের সারি ---------- */
-header{max-width:1500px;margin:0 auto;padding:30px 24px 12px;display:flex;justify-content:space-between;gap:16px 24px;align-items:flex-end;flex-wrap:wrap}
+header{max-width:1500px;margin:0 auto;padding:30px 24px 14px}
 h1{font-size:clamp(22px,3.4vw,30px);margin:4px 0 0;font-weight:700;letter-spacing:-.01em}
 .eyebrow{font:600 10.5px system-ui;letter-spacing:.22em;color:var(--accent)}
 header p{color:var(--muted);font-size:13.5px;margin:6px 0 0}
@@ -87,7 +87,9 @@ header p{color:var(--muted);font-size:13.5px;margin:6px 0 0}
 input[type=search]{background:var(--input);border:1px solid var(--btn-line);border-radius:10px;height:34px;padding:0 13px;width:250px;max-width:100%;color:var(--ink);font-size:13.5px}
 input[type=search]::placeholder{color:var(--muted)}
 input[type=search]:focus{border-color:var(--accent);outline:0;box-shadow:0 0 0 3px var(--soft)}
-.subbar{max-width:1500px;margin:0 auto;padding:0 24px 14px;display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap}
+.topbar{position:sticky;top:0;z-index:25;margin-bottom:14px;background:color-mix(in srgb,var(--paper) 90%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1500px;margin:0 auto;padding:9px 24px;display:flex;align-items:center;justify-content:space-between;gap:8px 16px;flex-wrap:wrap}
+li[data-id]{scroll-margin-top:calc(var(--bar,56px) + 14px)}
 #views{flex:none}
 #path-count{font:12px system-ui;opacity:.7;margin-inline-start:4px}
 body.path-mode .map{display:none}
@@ -285,7 +287,7 @@ details.more .profile-section:first-child{border-top:0;margin-top:6px}
 .restore span{flex:1;min-width:180px}
 
 /* ---------- আমার পথ panel ---------- */
-#plan{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);position:sticky;top:12px;max-height:calc(100vh - 24px);display:flex;flex-direction:column;overflow:hidden}
+#plan{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);position:sticky;top:calc(var(--bar,56px) + 12px);max-height:calc(100vh - var(--bar,56px) - 24px);display:flex;flex-direction:column;overflow:hidden}
 .plan-top{padding:14px 16px 0;display:grid;gap:10px;border-bottom:1px solid var(--line)}
 .plan-head{display:flex;align-items:center;gap:8px}
 .plan-head h2{margin:0;font-size:18px;letter-spacing:-.01em}
@@ -363,9 +365,9 @@ details.pend>summary:hover{color:var(--ink)}
   #plan{position:fixed;left:8px;right:8px;bottom:8px;top:auto;max-height:72vh;z-index:30;box-shadow:0 -10px 40px #00000040}
 }
 @media(max-width:650px){
-  header{padding-top:22px}.subbar,main{padding-left:14px;padding-right:14px}
+  header{padding-top:22px}main{padding-left:14px;padding-right:14px}.topbar-in{padding:8px 14px}
   header{padding-left:16px;padding-right:16px}
-  .controls{width:100%}input[type=search]{flex:1 1 100%;width:100%}
+  .controls{display:contents}#views{order:1}#plan-toggle{order:2;margin-inline-start:auto}input[type=search]{order:3;flex:1 1 120px;width:auto;min-width:0}.controls .btn-group{order:4;flex:none}
   dialog{padding:12px 20px 28px;max-height:90dvh}dialog h2{font-size:23px}.term{font-size:15.5px}
   .reading-tools{gap:6px}ul{padding-left:18px}.map{padding:12px}.level-0>.row>.term{font-size:18px}
   .choice{grid-template-columns:1fr}.choice .arrow{display:none}.step{grid-template-columns:30px 1fr;gap:10px}.step .n{width:30px;height:30px}.step:not(:last-child):before{left:14px}
@@ -374,7 +376,7 @@ details.pend>summary:hover{color:var(--ink)}
 }
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 @media print{
-  header .controls,.subbar,.skip,footer,#plan,.selbtn,#plan-toggle,#startbar,#pathbar{display:none!important}
+  header .controls,.topbar,.skip,footer,#plan,.selbtn,#plan-toggle,#startbar,#pathbar{display:none!important}
   body{background:#fff;color:#000}.map{box-shadow:none;border:0}.pblock,.issue{break-inside:avoid}
 }
 
@@ -388,6 +390,13 @@ details.pend>summary:hover{color:var(--ink)}
     <h1>ML · শেখার মানচিত্র</h1>
     <p>শাখা বেছে নাও, নামে ক্লিক করলে সংজ্ঞা, হিসাব আর কোর্সের পাঠ</p>
   </div>
+</header>
+<div class="topbar" id="topbar">
+  <div class="topbar-in">
+  <div id="views" class="seg" role="tablist" aria-label="দেখার ধরন">
+    <button type="button" role="tab" id="view-tree" aria-selected="true">গাছ</button>
+    <button type="button" role="tab" id="view-path" aria-selected="false">গল্পের পথ <span id="path-count"></span></button>
+  </div>
   <div class="controls">
     <input id="search" type="search" placeholder="Term খুঁজো…  ( / )" aria-label="Term খুঁজো">
     <div class="btn-group" role="group" aria-label="গাছের নিয়ন্ত্রণ">
@@ -397,11 +406,6 @@ details.pend>summary:hover{color:var(--ink)}
     </div>
     <button class="btn primary" id="plan-toggle" type="button" aria-controls="plan" aria-expanded="false">আমার পথ <span class="badge" id="plan-count">০</span></button>
   </div>
-</header>
-<div class="subbar">
-  <div id="views" class="seg" role="tablist" aria-label="দেখার ধরন">
-    <button type="button" role="tab" id="view-tree" aria-selected="true">গাছ</button>
-    <button type="button" role="tab" id="view-path" aria-selected="false">গল্পের পথ <span id="path-count"></span></button>
   </div>
 </div>
 <main>
@@ -1462,6 +1466,11 @@ function openPlan(open) {
   $('#plan-toggle').setAttribute('aria-expanded', String(open));
 }
 $('#plan-toggle').onclick = () => openPlan($('#plan').hidden);
+{   // sticky topbar-এর উচ্চতা মেপে CSS-এ দেওয়া: panel আর স্ক্রলের লক্ষ্য যেন তার নিচে থাকে
+  const bar = $('#topbar'), setBar = () => document.documentElement.style.setProperty('--bar', bar.offsetHeight + 'px');
+  setBar();
+  if (window.ResizeObserver) new ResizeObserver(setBar).observe(bar); else window.addEventListener('resize', setBar);
+}
 document.addEventListener('click', (e) => { document.querySelectorAll('details.menu[open]').forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.querySelectorAll('details.menu[open]').forEach((d) => { d.open = false; }); });
 function inPlanTree(r) { return r.trail.some((a) => a.node.kind === 'step') || r.node.kind === 'step'; }
