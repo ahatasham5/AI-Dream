@@ -1,0 +1,89 @@
+# ML Learning Atlas
+
+ML-এর বিষয়গুলো এক গাছে। নামে ক্লিক করলে সংজ্ঞা, হিসাব আর কোর্সের পাঠ।
+
+**মূল পাতা এখন `../ml-mapping.html`।** ওটা এই folder থেকে তৈরি-করা ফাইল, সরাসরি বদলিও না। বদলাতে হবে `data/map.json`-এ, তারপর:
+
+```bash
+python3 atlas/build.py --out ml-mapping.html
+```
+
+পুরোনো হাতে-লেখা সংস্করণ `ml-mapping.backup.html`-এ রাখা আছে।
+
+## ফোল্ডার
+
+| পথ | কাজ |
+|---|---|
+| `data/map.json` | **মূল data।** সব node, প্রতিটার স্থির `id` সহ। বিষয় যোগ বা সংজ্ঞা বদলাতে এখানে হাত দাও |
+| `data/lessons.json` | কোন node থেকে কোর্সের কোন পাঠে যাবে। `"09/03"` = module-09-এর lecture-03 |
+| `data/stories.json` | প্রতিটা node-এর গল্প (সমস্যা → ধারণা → তারপর কী) ও "কোন ক্ষেত্রে কোনটা"; নাম ধরে বসে |
+| `data/history.json` | সূত্র-লিংকসহ যাচাই-করা ইতিহাস (https লিংক ছাড়া build থামে) |
+| `data/practice.json` | "বাস্তবে কী হয়": scenario, **সূত্রে-মেলানো facts** (https সূত্র ছাড়া build থামে), অভিজ্ঞতা-ভিত্তিক typical/pitfalls, আর কোর্সে-নেই চিহ্ন |
+| `data/path.json` | "গল্পের পথ"-এর অধ্যায় ও ধাপের ক্রম। গল্প নেই এমন node দিলে build থামে |
+| `src/` | পাতার template, `style.css`, `app.js` |
+| `build.py` | সব জুড়ে `dist/index.html` বানায় (একটাই ফাইল) |
+| `merge_from_html.py` | `ml-mapping.html`-এ (পুরোনো ধরনে) হাতে যোগ করা node `map.json`-এ আনে। শুধু যা নেই তা যোগ করে, দুবার বসায় না। আগে dry-run দেখায়, `--apply` দিলে লেখে |
+| `migrate_from_html.py` | একবারের কাজ ছিল: `ml-mapping.html` থেকে `map.json` বের করা। আবার চালালে `map.json` নতুন করে লেখা হবে (এখন `--force` ছাড়া থামে) |
+| `dist/index.html` | তৈরি পাতা; খুলে দেখো বা publish করো |
+
+## build
+
+```bash
+python3 atlas/build.py
+```
+
+publish-এর জন্য (কোর্সের `.md` ফাইল সঙ্গে না থাকলে স্থানীয় link ভেঙে যায়):
+
+```bash
+python3 atlas/build.py --lesson-base https://যেখানে-কোর্স-আছে/path   # পাঠ URL-এ যাবে
+python3 atlas/build.py --no-lesson-links                              # পাঠ শুধু লেখা হয়ে থাকবে
+```
+
+build যাচাই করে: id অনন্য কি না, প্রতিটা node-এ নাম ও সংজ্ঞা আছে কি না, `lessons.json`-এর প্রতিটা পাঠ-path সত্যিই আছে কি না, আর পাঠ-তালিকার কোনো নাম মানচিত্রে না থাকলে সতর্ক করে।
+
+## একই লেখা একাধিক জায়গায় (`ref`)
+
+কোনো node-এ `"ref": "<অন্য node-এর id>"` দিলে ওই node-এর সংজ্ঞা, `trainingDetail`, `insight`, `selection`, `mathDetail` ইত্যাদি ধার নেয় (নিজের যে field আছে সেটা বদলায় না; children নিজেরটাই)। এতে একই model Task, Setting আর Model শাখায় এলে লেখা একবারই লিখতে হয়।
+
+## নতুন node যোগ
+
+`map.json`-এ `name` আর `definition` লিখে `id` ফাঁকা রাখো (বা দিতেই পারো); `build.py` না থাকলে id বানিয়ে `map.json`-এ লিখে রাখে। এরপর id বদলিও না, বদলালে আগে শেয়ার করা `#id` link ভাঙবে।
+
+## deep link
+
+`dist/index.html#training` খুললে সরাসরি "৪. Training"-এর dialog খোলে। dialog-এর ভেতরে "link কপি" বোতাম আছে।
+
+## ক্রমিক ধাপ (`seq`)
+
+যেখানে সন্তানদের ক্রমে পড়লে বোঝা সহজ (Learning Setting-এর ধরন, Fine-tuning-এর অংশ, Architecture ইত্যাদি), সেখানে প্রতিটা সন্তানে `"seq": "১"`, `"২"`… আছে। গাছে নামের আগে নম্বর-বিল্লা দেখা যায়, dialog-এ "ধাপ ২ / ৫"। `build.py` যাচাই করে: কোনো সন্তানে `seq` থাকলে সবার থাকতে হবে, আর ১, ২, ৩… ক্রমে; নইলে build থামে। নাম বদলে নম্বর দেওয়া হয়নি, কারণ গল্প, পাঠ-link ও বাস্তব-স্তর নাম ধরে বসে।
+
+## বাছাই-গাছ ও "আমার পথ" (planner)
+
+গাছে নামতে নামতে বিকল্প বাছো, ডান পাশে পথ জমে, সেখান থেকে কপি করো। নোডের `kind` ঠিক করে সে গাছে কী:
+
+| `kind` | মানে |
+|---|---|
+| `step` | পথের একটা ধাপ (যেমন "৪. পদ্ধতি ও memory-র হিসাব") |
+| `decision` | একটা সিদ্ধান্ত। `pick`: `"one"` (একটা বাছো, অন্যটা বাছলে আগেরটা বাদ) বা `"many"` |
+| `option` | বাছার মতো একটা পথ বা technique। `when` (কখন বাছবে), `basis` (`course` / `paper` / `experience` / `tool-doc`), `docs` |
+| `info` | ব্যাখ্যামূলক node (সংজ্ঞা, গল্প); বাছা যায় না। বাছাইযোগ্য গাছের ভেতরে ধারণা-node এটাই |
+| `tool` | কংক্রিট tool বা checkpoint। `tool`: `repo` (https), `license`, `archived`, `pushed`, `checked`, `src` বাধ্যতামূলক; `docs`, `supports`, `note` ঐচ্ছিক |
+
+- option-এর সন্তান `decision` বা `tool`; tool-এর সন্তান `decision`। `build.py` এটা যাচাই করে।
+- নিচের বিকল্প বাছলে ওপরের বাছাইযোগ্য node-গুলোও নিজে থেকে বাছা হয়; `pick: one`-এ ভাই-বোনের একটা বাছলে বাকিরা বাদ।
+- ডান পাশ থেকে কপি: Markdown, JSON (id সহ, ভবিষ্যতে code তৈরির জন্য), সাধারণ লেখা, শেয়ার-লিংক (`#plan=id1,id2,...`)। বাছাই শুধু এই browser-এ জমা থাকে।
+- tool-এর তথ্য পুরোনো হয়। `python3 atlas/verify_tools.py` আবার GitHub/Hugging Face থেকে মিলিয়ে অমিল জানায় (লগইন ছাড়া ঘণ্টায় ৬০ অনুরোধ; `GITHUB_TOKEN` দিলে বেশি)।
+- নতুন tool যোগ: `map.json`-এ `kind: "tool"` node, `tool.checked` তারিখ দিয়ে। আন্দাজে licence বা "চালু আছে" লিখো না।
+
+### পথের ধরন (mode) ও ধাপ
+
+- শাখা "৭. আমার পথ বানাও" আর পাতার ওপরের শুরু-বারে প্রথম প্রশ্ন: **Fine-tune করব, না শূন্য থেকে Train?** এই দুটো `option`-এ `steps: [step-id, ...]` আছে, যার ক্রমই পথের ধাপ-তালিকা।
+- mode-option-এর নিচে `kind: "stepref"` সারি (`goto: step-id`, `seq` নম্বর): চাপলে আসল step-node-এ গিয়ে খোলে। ধাপ নকল করা হয়নি, তাই শেখার গাছ আর পথ-গাছ এক সূত্রে।
+- শুরু-বার ও ডান-তালিকায় ধাপ-চিপ: কোন ধাপে কয়টা বাছা (✓), চাপলে ওই ধাপে যায়।
+- নতুন mode বা নতুন ধাপ: step-node বানাও (`kind: "step"`), mode-option-এর `steps`-এ id বসাও, আর `stepref` সারি দাও। `build.py` যাচাই করে `goto` ও `steps` সত্যিই step-এ পৌঁছায় কি না।
+- একই বিকল্প (যেমন memory কৌশল, serving engine) দুই mode-এ দরকার হলে node-টা clone করে `-sc`-ধরনের প্রত্যয়ী id দিয়ে বসানো হয় (নাম এক, তাই গল্প ও পাঠ-link নিজে থেকে আসে)।
+
+### এক গাছ, দুই স্তর নয়
+
+Fine-tuning (আর From-scratch)-এর গাছ আলাদা "ধাপের গাছ" ছাড়া একটাই: ধাপ (`step`) → সিদ্ধান্ত (`decision`) → বিকল্প (`option`) → tool, আর পাশে ব্যাখ্যা (`info`)। নতুন বিকল্প যোগ করতে আসল ধারণা-node-কেই `kind: "option"` দাও (গল্প, পাঠ-link, বাস্তব-স্তর নাম ধরে নিজে আসে); আলাদা নকল node বানিও না।
+**বাছার নিয়ম:** `decision`-এ `pick: "one"` (ডিফল্ট ভাবো, প্রতি সিদ্ধান্ত থেকে একটাই), শুধু যেখানে সত্যিই জমা হয় (মাপকাঠি, memory কৌশল, tracking) `pick: "many"`। বাছাই-ক্রম মুক্ত; ডান-তালিকা গাছের ক্রমে সাজায়।

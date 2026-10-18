@@ -1,0 +1,43 @@
+name: atlas
+
+# ML Learning Atlas (machine learning course/atlas): build, test আর (সাপ্তাহিক) tool-তথ্য যাচাই।
+on:
+  push:
+    paths:
+      - "machine learning course/atlas/**"
+      - "machine learning course/ml-mapping.html"
+      - ".github/workflows/atlas.yml"
+  pull_request:
+    paths:
+      - "machine learning course/atlas/**"
+      - "machine learning course/ml-mapping.html"
+  schedule:
+    - cron: "17 3 * * 1"   # প্রতি সোমবার: tool-এর archived/licence বদল ধরতে
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: build ও সব test
+        run: bash "machine learning course/atlas/check.sh"
+
+  tools:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: tool-তথ্য আবার মেলানো
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 "machine learning course/atlas/verify_tools.py"

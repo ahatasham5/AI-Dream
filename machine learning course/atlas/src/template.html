@@ -1,0 +1,86 @@
+<!doctype html>
+<!-- এই ফাইল তৈরি-করা (generated)। সরাসরি বদলিও না: atlas/data/map.json বদলাও, তারপর python3 atlas/build.py --out ml-mapping.html -->
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ML · শেখার মানচিত্র</title>
+<meta name="description" content="Machine Learning-এর বিষয়গুলো একটা গাছের মতো সাজানো: কাজ, শেখার ধরন, model, training, evaluation। নামে ক্লিক করলে সংজ্ঞা, ছোট হিসাব আর কোর্সের পাঠ।">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ML · শেখার মানচিত্র">
+<meta property="og:description" content="ML-এর বিষয়গুলো এক গাছে: কাজ, শেখার ধরন, model, training, evaluation। প্রতিটা নামে সংজ্ঞা, হিসাব ও কোর্সের পাঠ।">
+<meta name="theme-color" content="#151a17">
+<link rel="icon" type="image/svg+xml" href="__FAVICON__">
+<style>
+__CSS__
+</style>
+</head>
+<body>
+<a class="skip" href="#tree">মানচিত্রে যাও</a>
+<header>
+  <div class="title">
+    <span class="eyebrow">LEARNING ATLAS / 01</span>
+    <h1>ML · শেখার মানচিত্র</h1>
+    <p>শাখা বেছে নাও → নামে ক্লিক করলে সংজ্ঞা, হিসাব আর কোর্সের পাঠ</p>
+  </div>
+  <div class="controls">
+    <input id="search" type="search" placeholder="Term খুঁজো…  ( / চাপলে এখানে আসবে )" aria-label="Term খুঁজো">
+    <button class="control" id="expand">সব খোলো</button>
+    <button class="control" id="collapse">গুটিয়ে নাও</button>
+    <button class="control" id="theme" aria-label="theme বদলাও">☾ dark</button>
+    <button class="control strong" id="plan-toggle" aria-controls="plan" aria-expanded="false">আমার পথ <span id="plan-count">০</span></button>
+  </div>
+</header>
+<div id="views" role="tablist" aria-label="দেখার ধরন">
+  <button type="button" role="tab" id="view-tree" aria-selected="true">গাছ</button>
+  <button type="button" role="tab" id="view-path" aria-selected="false">গল্পের পথ <span id="path-count"></span></button>
+</div>
+<nav id="jump" aria-label="শাখায় যাও"></nav>
+<main>
+  <div class="layout">
+    <div class="content">
+      <div id="startbar" aria-label="পথ শুরু করো"></div>
+      <section id="pathview" hidden aria-label="গল্পের পথ"></section>
+      <div class="map">
+        <ul class="root" id="tree"></ul>
+        <p id="empty" hidden>কোনো term পাওয়া যায়নি।</p>
+        <noscript><p>এই মানচিত্র দেখতে JavaScript চালু থাকতে হবে।</p></noscript>
+      </div>
+    </div>
+    <aside id="plan" aria-label="আমার পথ" hidden></aside>
+  </div>
+</main>
+<footer>তৈরি: __BUILT__ · সংজ্ঞাগুলো শেখার সহায়ক; সূত্রের link dialog-এর ভেতরে।</footer>
+
+<dialog id="definition" aria-labelledby="def-title">
+  <div class="dlg-bar">
+    <div class="reading-tools" role="group" aria-label="লেখার আকার">
+      <span>লেখার আকার</span>
+      <button type="button" id="font-smaller" aria-label="লেখা ছোট করো">অ−</button>
+      <output id="font-size" aria-live="polite">19px</output>
+      <button type="button" id="font-larger" aria-label="লেখা বড় করো">অ＋</button>
+      <button type="button" id="copy" class="textbtn">link কপি</button>
+    </div>
+    <button class="close" id="close" aria-label="সংজ্ঞা বন্ধ করো">✕</button>
+  </div>
+  <nav id="crumb" aria-label="পথ"></nav>
+  <h2 id="def-title"></h2>
+  <p id="def-text"></p>
+  <div id="pick"></div>
+  <div id="pathbar"></div>
+  <div id="story"></div>
+  <div id="choose"></div>
+  <div id="practice"></div>
+  <div id="core"></div>
+  <div id="lessons"></div>
+  <div id="related"></div>
+  <div id="more"></div>
+</dialog>
+
+<script id="map-config" type="application/json">__CONFIG__</script>
+<script id="map-data" type="application/json">__DATA__</script>
+<script>
+__JS__
+</script>
+</body>
+</html>

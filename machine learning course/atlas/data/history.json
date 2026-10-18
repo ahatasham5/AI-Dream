@@ -1,0 +1,447 @@
+{
+ "_নিয়ম": "শুধু উৎস-পাতা খুলে বা একাধিক সূত্রে মিলিয়ে নেওয়া সাল। প্রতিটার src/url আছে। যেখানে সূত্রে অমিল (যেমন Legendre ১৮০৫/১৮০৬) সেখানে সেটা লিখে দেওয়া হয়েছে, একটা সাল জোর করে বসানো হয়নি। নতুন সাল যোগ করলে আগে উৎস খুলে মিলিয়ে নাও।",
+ "entries": [
+  {
+   "names": [
+    "Linear Regression"
+   ],
+   "items": [
+    {
+     "year": "১৮০৫–০৬ (সূত্রভেদে সাল আলাদা)",
+     "text": "Legendre ধূমকেতুর কক্ষপথ নিয়ে একটা বইয়ের পরিশিষ্টে least squares (ভুলের বর্গের যোগফল কমানোর পদ্ধতি) প্রথম প্রকাশ করেন। MacTutor বলছে ১৮০৬; অন্য সূত্রে ১৮০৫, তাই একটা সাল ধরে লিখলাম না।",
+     "src": "MacTutor: Legendre",
+     "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Legendre/"
+    },
+    {
+     "year": "১৮০৯",
+     "text": "Gauss নিজের সংস্করণ প্রকাশ করেন। Legendre-এর বইয়ে এটা আগে ছাপা হয়েছে মেনে নিয়েও তিনি আগে থেকে ব্যবহারের দাবি জানান।",
+     "src": "MacTutor: Legendre",
+     "url": "https://mathshistory.st-andrews.ac.uk/Biographies/Legendre/"
+    },
+    {
+     "year": "১৮৮৬",
+     "text": "Francis Galton বাবা-মা আর সন্তানের উচ্চতা নিয়ে লেখেন: লম্বা বাবা-মায়ের সন্তান গড়ে কিছুটা কম লম্বা হয়। ঘটনাটার নাম দেন 'regression towards mediocrity' (Journal of the Anthropological Institute, খণ্ড ১৫, পৃ. ২৪৬–২৬৩)।",
+     "src": "Galton, 1886 (York)",
+     "url": "https://www.york.ac.uk/depts/maths/histstat/galton_reg.htm"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Logistic Regression"
+   ],
+   "items": [
+    {
+     "year": "১৯৪৪",
+     "text": "Joseph Berkson 'logit' শব্দ চালু করেন এবং logistic regression-কে সাধারণ statistical model হিসেবে গড়ে তোলায় বড় ভূমিকা রাখেন।",
+     "src": "Wikipedia: Logistic regression",
+     "url": "https://en.wikipedia.org/wiki/Logistic_regression"
+    },
+    {
+     "year": "১৯৫৮",
+     "text": "D. R. Cox 'The regression analysis of binary sequences' প্রকাশ করেন (Journal of the Royal Statistical Society B, খণ্ড ২০, পৃ. ২১৫–২৪২), যা দুই-উত্তরের (binary) logistic regression নিয়ে।",
+     "src": "Wikipedia: David Cox",
+     "url": "https://en.wikipedia.org/wiki/David_Cox_(statistician)"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Decision Tree"
+   ],
+   "items": [
+    {
+     "year": "১৯৮৪",
+     "text": "Breiman, Friedman, Olshen ও Stone-এর বই 'Classification and Regression Trees' (CART) প্রকাশিত হয়।",
+     "src": "UC Senate: Chuck Stone",
+     "url": "https://senate.universityofcalifornia.edu/in-memoriam/files/chuck-stone.html"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Tree Ensemble"
+   ],
+   "items": [
+    {
+     "year": "২০০১",
+     "text": "Leo Breiman 'Random Forests' প্রকাশ করেন (Machine Learning, খণ্ড ৪৫, পৃ. ৫–৩২): অনেক গাছের সমন্বয়, যেখানে প্রতিটা গাছ আলাদা স্বাধীন random নির্বাচনের উপর নির্ভর করে।",
+     "src": "ML Anthology: Breiman 2001",
+     "url": "https://mlanthology.org/mlj/2001/breiman2001mlj-random"
+    },
+    {
+     "year": "২০০১",
+     "text": "Jerome Friedman 'Greedy Function Approximation: A Gradient Boosting Machine' প্রকাশ করেন (Annals of Statistics, খণ্ড ২৯(৫), পৃ. ১১৮৯–১২৩২): boosting-কে 'ফাংশনের জগতে ঢাল বেয়ে নামা' হিসেবে দেখান।",
+     "src": "Project Euclid: Friedman 2001",
+     "url": "https://projecteuclid.org/euclid.aos/1013203451"
+    }
+   ]
+  },
+  {
+   "names": [
+    "k-Nearest Neighbors (k-NN)"
+   ],
+   "items": [
+    {
+     "year": "১৯৬৭",
+     "text": "Cover ও Hart প্রমাণ করেন, data অনেক হলে nearest-neighbor নিয়মের ভুলের হার সম্ভাব্য সর্বনিম্ন ভুলের (Bayes error) দ্বিগুণের বেশি হয় না (IEEE Transactions on Information Theory, IT-13(1), পৃ. ২১–২৭)।",
+     "src": "Stanford: Cover-এর প্রকাশনা",
+     "url": "https://isl.stanford.edu/~cover/papers/cover"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Support Vector Machine (SVM)"
+   ],
+   "items": [
+    {
+     "year": "১৯৯৫",
+     "text": "Corinna Cortes ও Vladimir Vapnik 'Support-Vector Networks' প্রকাশ করেন (Machine Learning, খণ্ড ২০, পৃ. ২৭৩–২৯৭): দুই দল আলাদা করার নতুন পদ্ধতি, যেখানে input-কে উঁচু মাত্রার feature space-এ নিয়ে সেখানে সরল সীমানা টানা হয়।",
+     "src": "ML Anthology: Cortes & Vapnik 1995",
+     "url": "https://mlanthology.org/mlj/1995/cortes1995mlj-supportvector"
+    }
+   ]
+  },
+  {
+   "names": [
+    "K-Means"
+   ],
+   "items": [
+    {
+     "year": "১৯৫৭",
+     "text": "Bell Labs-এর Stuart Lloyd pulse-code modulation-এর জন্য এই পদ্ধতি প্রস্তাব করেন; জার্নালে ছাপা হয় ১৯৮২ সালে।",
+     "src": "Wikipedia: K-means",
+     "url": "https://en.wikipedia.org/wiki/K-means_clustering"
+    },
+    {
+     "year": "১৯৬৭",
+     "text": "James MacQueen প্রথম 'k-means' নামটা ব্যবহার করেন।",
+     "src": "Wikipedia: K-means",
+     "url": "https://en.wikipedia.org/wiki/K-means_clustering"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Neural Network"
+   ],
+   "items": [
+    {
+     "year": "১৯৫৮",
+     "text": "Frank Rosenblatt 'The Perceptron' প্রকাশ করেন (Psychological Review, খণ্ড ৬৫, পৃ. ৩৮৬–৪০৮): একটা সরল neuron-মডেল যে উদাহরণ থেকে শেখে।",
+     "src": "ML Anthology: Rosenblatt 1958",
+     "url": "https://mlanthology.org/misc/1958/rosenblatt1958misc-perceptron"
+    },
+    {
+     "year": "১৯৮৬",
+     "text": "Rumelhart, Hinton ও Williams Nature-এ backpropagation বর্ণনা করেন (খণ্ড ৩২৩, পৃ. ৫৩৩–৫৩৬)। এতে hidden unit-গুলো কাজের বৈশিষ্ট্য নিজে শিখে নেয়।",
+     "src": "ML Anthology: Rumelhart et al. 1986",
+     "url": "https://mlanthology.org/misc/1986/rumelhart1986misc-learning"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Multilayer Perceptron (MLP)",
+    "Chain Rule → Backpropagation"
+   ],
+   "items": [
+    {
+     "year": "১৯৮৬",
+     "text": "Rumelhart, Hinton ও Williams Nature-এ backpropagation বর্ণনা করেন (খণ্ড ৩২৩, পৃ. ৫৩৩–৫৩৬); সঙ্গে hidden unit-এর নিজে বৈশিষ্ট্য শেখা দেখান।",
+     "src": "ML Anthology: Rumelhart et al. 1986",
+     "url": "https://mlanthology.org/misc/1986/rumelhart1986misc-learning"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Convolutional Neural Network (CNN)"
+   ],
+   "items": [
+    {
+     "year": "১৯৮৯",
+     "text": "LeCun ও সহকর্মীরা 'Backpropagation Applied to Handwritten Zip Code Recognition' প্রকাশ করেন (Neural Computation, খণ্ড ১(৪), পৃ. ৫৪১–৫৫১): network-এর গঠনের ভেতরেই কাজের সীমাবদ্ধতা ঢুকিয়ে ডাকের zip code-এর হাতে-লেখা অঙ্ক চেনা।",
+     "src": "ML Anthology: LeCun et al. 1989",
+     "url": "https://mlanthology.org/neco/1989/lecun1989neco-backpropagation"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Recurrent Neural Network (RNN)",
+    "LSTM / GRU"
+   ],
+   "items": [
+    {
+     "year": "১৯৯৭",
+     "text": "Hochreiter ও Schmidhuber 'Long Short-Term Memory' প্রকাশ করেন (Neural Computation, খণ্ড ৯(৮), পৃ. ১৭৩৫–১৭৮০): gate-যুক্ত unit দিয়ে অনেক ধাপ ধরে তথ্য মনে রাখার পথ।",
+     "src": "ML Anthology: LSTM 1997",
+     "url": "https://mlanthology.org/neco/1997/hochreiter1997neco-long"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Transformer"
+   ],
+   "items": [
+    {
+     "year": "২০১৭ (জুন)",
+     "text": "Vaswani ও সহলেখকরা 'Attention Is All You Need' প্রকাশ করেন (arXiv)।",
+     "src": "arXiv:1706.03762",
+     "url": "https://arxiv.org/abs/1706.03762"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Gradient Descent"
+   ],
+   "items": [
+    {
+     "year": "১৮৪৭",
+     "text": "Cauchy ১৮ অক্টোবর Académie des Sciences-এ gradient পদ্ধতির ছোট একটা নোট দেন ('Méthode générale pour la résolution des systèmes d'équations simultanées'), জ্যোতির্বিদ্যার হিসাব সমাধানের জন্য।",
+     "src": "Lemaréchal: Cauchy and the Gradient Method",
+     "url": "https://emis.univie.ac.at/journals/DMJDMV/vol-ismp/40_lemarechal-claude.html"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Optimizer",
+    "Adam — adaptive update"
+   ],
+   "items": [
+    {
+     "year": "২০১৪ (ডিসেম্বর)",
+     "text": "Kingma ও Ba 'Adam: A Method for Stochastic Optimization' প্রকাশ করেন (arXiv); ICLR ২০১৫-এ উপস্থাপিত।",
+     "src": "arXiv:1412.6980",
+     "url": "https://arxiv.org/abs/1412.6980"
+    }
+   ]
+  },
+  {
+   "names": [
+    "LoRA — low-rank update"
+   ],
+   "items": [
+    {
+     "year": "২০২১ (জুন)",
+     "text": "Hu ও সহলেখকরা 'LoRA: Low-Rank Adaptation of Large Language Models' প্রকাশ করেন (arXiv)।",
+     "src": "arXiv:2106.09685",
+     "url": "https://arxiv.org/abs/2106.09685"
+    }
+   ]
+  },
+  {
+   "names": [
+    "GAN — Generator ও Discriminator"
+   ],
+   "items": [
+    {
+     "year": "২০১৪ (জুন)",
+     "text": "Goodfellow ও সহলেখকরা 'Generative Adversarial Networks' প্রকাশ করেন (arXiv)।",
+     "src": "arXiv:1406.2661",
+     "url": "https://arxiv.org/abs/1406.2661"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Diffusion — ধাপে noise কমানো"
+   ],
+   "items": [
+    {
+     "year": "২০২০ (জুন)",
+     "text": "Ho, Jain ও Abbeel 'Denoising Diffusion Probabilistic Models' প্রকাশ করেন (arXiv)।",
+     "src": "arXiv:2006.11239",
+     "url": "https://arxiv.org/abs/2006.11239"
+    }
+   ]
+  },
+  {
+   "names": [
+    "HiPPO — স্মৃতি ধরে রাখার গাণিতিক ভিত্তি"
+   ],
+   "items": [
+    {
+     "year": "২০২০ (arXiv-এ প্রথম জমা)",
+     "text": "HiPPO কাঠামো প্রস্তাব।",
+     "src": "arXiv: HiPPO paper (Gu et al.), ২০২০",
+     "url": "https://arxiv.org/abs/2008.07669"
+    }
+   ]
+  },
+  {
+   "names": [
+    "S4 — Structured State Space"
+   ],
+   "items": [
+    {
+     "year": "২০২১ (arXiv-এ প্রথম জমা)",
+     "text": "S4 প্রকাশ।",
+     "src": "arXiv: S4 paper (Gu et al.), ২০২১",
+     "url": "https://arxiv.org/abs/2111.00396"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Mamba — Selective State Space"
+   ],
+   "items": [
+    {
+     "year": "২০২৩ (ডিসেম্বর, arXiv-এ প্রথম জমা)",
+     "text": "Mamba প্রকাশ।",
+     "src": "arXiv: Mamba paper (Gu & Dao), ২০২৩",
+     "url": "https://arxiv.org/abs/2312.00752"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Mamba-2 ও State Space Duality (SSD)"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (মে, arXiv-এ প্রথম জমা)",
+     "text": "Mamba-2 ও SSD কাঠামো প্রকাশ।",
+     "src": "arXiv: Mamba-2 / SSD paper (Dao & Gu), ২০২৪",
+     "url": "https://arxiv.org/abs/2405.21060"
+    }
+   ]
+  },
+  {
+   "names": [
+    "FlashAttention — IO-aware attention"
+   ],
+   "items": [
+    {
+     "year": "২০২২ (মে, arXiv-এ প্রথম জমা)",
+     "text": "FlashAttention প্রকাশ।",
+     "src": "arXiv: FlashAttention paper (Dao et al.), ২০২২",
+     "url": "https://arxiv.org/abs/2205.14135"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Multi-Query ও Grouped-Query Attention"
+   ],
+   "items": [
+    {
+     "year": "২০১৯ (MQA) ও ২০২৩ (GQA) — arXiv-এ প্রথম জমা",
+     "text": "MQA ২০১৯-এ, GQA ২০২৩-এ প্রস্তাবিত।",
+     "src": "arXiv: Multi-Query Attention paper (Shazeer), ২০১৯",
+     "url": "https://arxiv.org/abs/1911.02150"
+    }
+   ]
+  },
+  {
+   "names": [
+    "RoPE — Rotary Position Embedding"
+   ],
+   "items": [
+    {
+     "year": "২০২১ (arXiv-এ প্রথম জমা)",
+     "text": "RoPE প্রকাশ।",
+     "src": "arXiv: RoFormer / RoPE paper (Su et al.), ২০২১",
+     "url": "https://arxiv.org/abs/2104.09864"
+    }
+   ]
+  },
+  {
+   "names": [
+    "ALiBi — Attention with Linear Biases"
+   ],
+   "items": [
+    {
+     "year": "২০২১ (arXiv-এ প্রথম জমা)",
+     "text": "ALiBi প্রকাশ।",
+     "src": "arXiv: ALiBi paper (Press et al.), ২০২১",
+     "url": "https://arxiv.org/abs/2108.12409"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Linear Attention — Transformers are RNNs"
+   ],
+   "items": [
+    {
+     "year": "২০২০ (arXiv-এ প্রথম জমা)",
+     "text": "Linear attention-এর RNN-যোগসূত্র প্রকাশ।",
+     "src": "arXiv: Linear Attention paper (Katharopoulos et al.), ২০২০",
+     "url": "https://arxiv.org/abs/2006.16236"
+    }
+   ]
+  },
+  {
+   "names": [
+    "RWKV"
+   ],
+   "items": [
+    {
+     "year": "২০২৩ (arXiv-এ প্রথম জমা)",
+     "text": "RWKV প্রকাশ।",
+     "src": "arXiv: RWKV paper (Peng et al.), ২০২৩",
+     "url": "https://arxiv.org/abs/2305.13048"
+    }
+   ]
+  },
+  {
+   "names": [
+    "RetNet — Retention"
+   ],
+   "items": [
+    {
+     "year": "২০২৩ (arXiv-এ প্রথম জমা)",
+     "text": "RetNet প্রকাশ।",
+     "src": "arXiv: RetNet paper (Sun et al.), ২০২৩",
+     "url": "https://arxiv.org/abs/2307.08621"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Hybrid — Transformer + Mamba (Jamba)"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (মার্চ, arXiv-এ প্রথম জমা)",
+     "text": "Jamba প্রকাশ।",
+     "src": "arXiv: Jamba paper (Lieber et al.), ২০২৪",
+     "url": "https://arxiv.org/abs/2403.19887"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Vision Mamba (Vim)"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (জানুয়ারি, arXiv-এ প্রথম জমা)",
+     "text": "Vision Mamba প্রকাশ।",
+     "src": "arXiv: Vision Mamba paper (Zhu et al.), ২০২৪",
+     "url": "https://arxiv.org/abs/2401.09417"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Sliding-window (local) Attention"
+   ],
+   "items": [
+    {
+     "year": "২০২০ (arXiv-এ প্রথম জমা)",
+     "text": "Longformer প্রকাশ।",
+     "src": "arXiv: Longformer paper (Beltagy et al.), ২০২০",
+     "url": "https://arxiv.org/abs/2004.05150"
+    }
+   ]
+  }
+ ]
+}
