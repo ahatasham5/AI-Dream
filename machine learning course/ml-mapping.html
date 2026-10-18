@@ -1025,7 +1025,7 @@ modal.addEventListener('close', () => {
   if (location.hash) setHash('');
 });
 window.addEventListener('hashchange', () => {
-  if (location.hash.startsWith('#plan=')) { restored = false; setSelFrom(location.hash.slice(6).split(',').filter(Boolean).map(resolveId)); saveSel(); refreshSel(); openPlan(true); return; }
+  if (location.hash.startsWith('#plan=')) { setSelFrom(location.hash.slice(6).split(',').filter(Boolean).map(resolveId)); saveSel(); refreshSel(); openPlan(true); return; }
   const id = resolveId(decodeURIComponent(location.hash.slice(1)));
   if (id && byId.has(id)) openNode(id, { hash: false });
   else if (!id && modal.open) modal.close();
@@ -1224,7 +1224,8 @@ const planPlain = () => plan.plain(new Date().toISOString().slice(0, 10), cfg.ru
 const planJSON = () => plan.json(new Date().toISOString());
 const planLink = () => plan.link(location.href);
 const planPseudo = () => plan.pseudo(cfg.pseudo, cfg.rules);
-let restored = false, clearArmed = false, planTab = 'path';   // restored: আগের পথ localStorage থেকে ফিরেছে
+let clearArmed = false, planTab = 'path';
+let prevIds = [], prevDismissed = false;   // আগের সেশনের পথ: নিজে বসে না, শুধু ফিরিয়ে আনার প্রস্তাব
 const BASIS = { course: 'কোর্সে আছে', paper: 'paper থেকে মেলানো', experience: 'অভিজ্ঞতা-ভিত্তিক, নিয়ম নয়', 'tool-doc': 'tool-এর docs বা README থেকে' };
 function decorateKind(r, row, button) {
   const n = r.node;
@@ -1266,13 +1267,14 @@ function setBranchOpen(r) {
 function renderSteps(box, compact) {
   const mode = activeMode();
   box.replaceChildren();
-  if (compact && restored && selected.size) {
+  if (compact && prevIds.length && !prevDismissed) {
     const rs = el('div', 'restore');
-    rs.append(el('span', '', 'আগের পথ ফিরে এসেছে: ' + selected.size.toLocaleString('bn-BD') + 'টা বাছা আছে।'));
-    const see = el('button', 'btn sm', 'পথ দেখো'); see.type = 'button'; see.onclick = () => openPlan(true);
-    const fresh = el('button', 'btn sm danger' + (clearArmed ? ' armed' : ''), clearArmed ? 'সব ' + selected.size.toLocaleString('bn-BD') + 'টা মুছবে: নিশ্চিত?' : 'নতুন করে শুরু'); fresh.type = 'button'; fresh.onclick = clearPlan;
-    const x = el('button', 'btn ghost icon sm', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'এই বার্তা সরাও'); x.onclick = () => { restored = false; refreshSel(); };
-    rs.append(see, fresh, x);
+    rs.append(el('span', '', 'আগের একটা পথ জমা আছে: ' + prevIds.length.toLocaleString('bn-BD') + 'টা বাছা। নিজে থেকে বসানো হয়নি।'));
+    const back = el('button', 'btn sm', selected.size ? 'এটা দিয়ে বদলাও' : 'ফিরিয়ে আনো'); back.type = 'button';
+    back.onclick = () => { setSelFrom(prevIds); forgetPrev(); saveSel(); refreshSel(); if (window.innerWidth > 900) openPlan(true); };
+    const del = el('button', 'btn sm danger', 'মুছে ফেলো'); del.type = 'button'; del.onclick = () => { forgetPrev(); refreshSel(); };
+    const x = el('button', 'btn ghost icon sm', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'এখন থাক'); x.onclick = () => { prevDismissed = true; refreshSel(); };
+    rs.append(back, del, x);
     box.append(rs);
   }
   const row = el('div', 'sb-row');
@@ -1304,7 +1306,6 @@ function renderSteps(box, compact) {
 function toggleSel(id) {
   const res = plan.toggle(id);
   if (!res.ok) return;
-  restored = false;
   if (res.on) {
     const r = res.record;
     if (r.children.length) setOpen(r, true);
@@ -1314,6 +1315,7 @@ function toggleSel(id) {
   saveSel(); refreshSel();
 }
 function setSelFrom(ids) { plan.setFrom(ids); }
+function forgetPrev() { prevIds = []; store('ml-atlas-prev', '[]'); }
 function saveSel() { store('ml-atlas-plan', JSON.stringify([...selected])); }
 function toast(msg) {
   let t = $('#toast');
@@ -1340,7 +1342,7 @@ const COPY_FORMATS = [
 ];
 function clearPlan() {
   if (!clearArmed) { clearArmed = true; refreshSel(); setTimeout(() => { if (clearArmed) { clearArmed = false; refreshSel(); } }, 5000); return; }
-  clearArmed = false; restored = false; selected.clear(); saveSel(); refreshSel();
+  clearArmed = false; selected.clear(); saveSel(); refreshSel();
 }
 // pseudo-code: মন্তব্য ম্লান, ধাপের শিরোনাম গাঢ়, না-বাছা ‹? …› হলুদ
 function renderCode(pre, text) {
@@ -1548,10 +1550,11 @@ buildJump(root);
 {
   let ids = [];
   const shared = location.hash.startsWith('#plan=');
+  // আগের সেশনের বাছাই নিজে বসে না: আলাদা key-তে রেখে ওপরে "ফিরিয়ে আনো" বার দেখানো হয়
+  try { const cur = JSON.parse(store('ml-atlas-plan') || '[]'); if (Array.isArray(cur) && cur.length) { store('ml-atlas-prev', JSON.stringify(cur)); store('ml-atlas-plan', '[]'); } } catch (e) { /* জমা ছাড়াই চলবে */ }
+  try { const p = JSON.parse(store('ml-atlas-prev') || '[]'); if (Array.isArray(p)) prevIds = p.map(resolveId).filter((id) => byId.has(id)); } catch (e) { prevIds = []; }
   if (shared) ids = location.hash.slice(6).split(',').filter(Boolean).map(resolveId);
-  else { try { const a = JSON.parse(store('ml-atlas-plan') || '[]'); if (Array.isArray(a)) ids = a.map(resolveId); } catch (e) { ids = []; } }
   setSelFrom(ids);
-  restored = !shared && selected.size > 0;   // refresh-এ আগের বাছাই থাকে, কিন্তু panel নিজে খোলে না; ওপরে "ফিরে এসেছে" বার
   refreshSel();
   if (shared && selected.size && window.innerWidth > 900) openPlan(true);
 }
