@@ -102,9 +102,46 @@ const AtlasEngine = (function () {
         })
       }, null, 2);
     }
+    /** বাছা পথ থেকে framework-নিরপেক্ষ pseudo-code। spec = data/pseudo.json।
+     *  বিকল্পের লেখা তার সিদ্ধান্তের slot-এ বসে; অবাছা slot দেখায় ‹? …› চিহ্নে। */
+    function pseudo(spec) {
+      const mode = activeMode();
+      if (!mode) return spec.noMode.join('\n');
+      const tmpl = spec.templates[mode.node.id];
+      if (!tmpl) return '# এই মোডের pseudo-code ছাঁচ নেই';
+      const baseId = (id, table) => (!(id in table) && id.endsWith('-sc') && (id.slice(0, -3) in table) ? id.slice(0, -3) : id);
+      const vals = {};
+      const push = (slot, v) => { (vals[slot] = vals[slot] || []).push(...(Array.isArray(v) ? v : [v])); };
+      for (const r of ordered()) {
+        const p = r.parent;
+        if (!p || p.node.kind !== 'decision') continue;
+        const info = spec.slots[baseId(p.node.id, spec.slots)];
+        const o = spec.options[baseId(r.node.id, spec.options)];
+        if (o && typeof o === 'object' && !Array.isArray(o)) { for (const k of Object.keys(o)) push(k, o[k]); }
+        else if (info) push(info.slot, o !== undefined ? o : short(r.node.name));
+      }
+      const joinOf = (slot) => (spec.join && spec.join[slot]) || ', ';
+      const out = [];
+      for (const raw of tmpl) {
+        let line = raw;
+        const m = line.match(/^(\s*)([?!])(\w+)\s(.*)$/);
+        if (m) {
+          const has = !!vals[m[3]];
+          if ((m[2] === '?') !== has) continue;
+          line = m[1] + m[4];
+        }
+        const only = line.match(/^(\s*)\{\{(\w+)\}\}\s*$/);
+        if (only && vals[only[2]] && vals[only[2]].length > 1 && !(spec.join && spec.join[only[2]])) {
+          for (const t of vals[only[2]]) out.push(only[1] + t);
+          continue;
+        }
+        out.push(line.replace(/\{\{(\w+)\}\}/g, (_, s) => (vals[s] ? vals[s].join(joinOf(s)) : `‹? ${(spec.labels && spec.labels[s]) || s}›`)));
+      }
+      return out.join('\n');
+    }
     const link = (base) => base.split('#')[0] + '#plan=' + [...selected].join(',');
     return { set: selected, has: (id) => selected.has(id), size: () => selected.size, ids: () => [...selected], toggle, setFrom, clear, removeWithDesc,
-      ancestors, stepOf, pathNames, ordered, activeMode, stepStat, pending, groups, toolLine, markdown, plain, json, link };
+      ancestors, stepOf, pathNames, ordered, activeMode, stepStat, pending, groups, toolLine, markdown, plain, json, link, pseudo };
   }
 
   /** DOM ছাড়া গাছ থেকে records/byId বানায় (test-এর জন্য)। app.js নিজের record বানায়, একই আকারে। */

@@ -31,6 +31,7 @@ PATH = HERE / "data" / "path.json"
 PRACTICE = HERE / "data" / "practice.json"
 GUIDANCE = HERE / "data" / "guidance.json"
 ALIASES = HERE / "data" / "aliases.json"
+PSEUDO = HERE / "data" / "pseudo.json"
 SRC = HERE / "src"
 DIST = HERE / "dist"
 MAX_LESSONS = 3
@@ -450,7 +451,21 @@ def main():
             fail(f"alias-এর লক্ষ্য নেই: {old} → {new}")
         if old in ids_now:
             fail(f"alias-এর পুরোনো id এখনও আছে (alias লাগে না): {old}")
-    cfg = {"lessonLinks": not args.no_lesson_links, "path": PATH_OUT, "aliases": aliases}
+    pseudo = json.loads(PSEUDO.read_text(encoding="utf-8"))
+    base = lambda i: i[:-3] if i.endswith("-sc") else i
+    known = {base(i) for i in ids_now} | ids_now
+    for table in ("slots", "options"):
+        for k in pseudo[table]:
+            if k not in known:
+                fail(f"pseudo.json-এর {table}-এ অজানা id: {k}")
+    for mode, lines in pseudo["templates"].items():
+        if mode not in ids_now:
+            fail(f"pseudo-ছাঁচের mode নেই: {mode}")
+        for ln in lines:
+            for s_ in re.findall(r"\{\{(\w+)\}\}", ln):
+                if s_ not in pseudo["labels"]:
+                    fail(f"pseudo-ছাঁচে label-হীন slot: {s_}")
+    cfg = {"lessonLinks": not args.no_lesson_links, "path": PATH_OUT, "aliases": aliases, "pseudo": pseudo}
     page = (SRC / "template.html").read_text(encoding="utf-8")
     for key, val in {
         "__CSS__": (SRC / "style.css").read_text(encoding="utf-8"),

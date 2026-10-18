@@ -130,3 +130,84 @@ test('গাছের গঠন: প্রতিটা mode-এর steps আস�
   assert.equal(m.plan.stepStat('wf-goal'), 2);
   assert.equal(m.plan.stepStat('ft-output'), 0);
 });
+
+// ---------- pseudo-code ----------
+const spec = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'pseudo.json'), 'utf8'));
+
+/** মোডের সব সিদ্ধান্তে (ভেতরের সিদ্ধান্তসহ) প্রথম বিকল্প বাছে, যতক্ষণ না আর কিছু বাকি থাকে। */
+function fillAll(m, modeId) {
+  m.plan.toggle(modeId);
+  const steps = new Set(m.byId.get(modeId).node.steps);
+  for (let round = 0; round < 12; round++) {
+    let changed = false;
+    for (const r of m.records) {
+      if (r.node.kind !== 'decision') continue;
+      let inStep = false; for (let x = r.parent; x; x = x.parent) if (steps.has(x.node.id)) inStep = true;
+      if (!inStep) continue;
+      const anc = []; for (let x = r.parent; x; x = x.parent) if (E.SELECTABLE.has(x.node.kind)) anc.push(x);
+      if (!anc.every((a) => m.plan.has(a.node.id))) continue;
+      if (!r.children.some((c) => m.plan.has(c.node.id))) { m.plan.toggle(r.children[0].node.id); changed = true; }
+    }
+    if (!changed) break;
+  }
+}
+
+test('pseudo: মোড না বাছলে নির্দেশ-লেখা, ছাঁচের চিহ্ন নয়', () => {
+  const m = fresh();
+  const t = m.plan.pseudo(spec);
+  assert.match(t, /পথের ধরন বাছোনি/);
+  assert.ok(!t.includes('{{'));
+});
+
+test('pseudo: শুধু মোড বাছলে অবাছা সিদ্ধান্ত ‹? …› চিহ্নে, কোনো {{ }} বাকি নেই', () => {
+  const m = fresh(); m.plan.toggle('mode-finetune');
+  const t = m.plan.pseudo(spec);
+  assert.ok(t.includes('‹?'), 'অবাছা চিহ্ন নেই');
+  assert.ok(!t.includes('{{') && !t.includes('}}'), 'ছাঁচ-চিহ্ন থেকে গেছে');
+  assert.match(t, /^# ===== আমার পথ: Fine-tune/);
+});
+
+for (const mode of ['mode-finetune', 'mode-scratch']) {
+  test(`pseudo: ${mode} — সব সিদ্ধান্ত বাছলে কোনো অবাছা চিহ্ন বা ছাঁচ-চিহ্ন থাকে না`, () => {
+    const m = fresh(); fillAll(m, mode);
+    const t = m.plan.pseudo(spec);
+    const left = t.split('\n').filter((l) => l.includes('‹?') && !l.startsWith('#'));
+    assert.deepEqual(left, [], 'অবাছা থেকে গেছে:\n' + left.join('\n'));
+    assert.ok(!t.includes('{{'));
+    assert.equal(t, m.plan.pseudo(spec), 'একই বাছাইয়ে ফল আলাদা');
+    checkInvariants(m, mode);
+  });
+}
+
+test('pseudo: বাছার ফল লেখায় বসে (LoRA সূত্র, memory, accumulation শাখা)', () => {
+  const m = fresh();
+  for (const id of ['mode-finetune', 'lora-low-rank-update', 'opt-grad-accum', 'opt-amp']) m.plan.toggle(id);
+  const t = m.plan.pseudo(spec);
+  assert.match(t, /\(alpha\/r\) · B · A/);
+  assert.match(t, /accumulation_steps = N/);
+  assert.match(t, /if micro_step % N == 0/);
+  assert.match(t, /mixed_precision_context\(\)/);
+  assert.ok(!/^\s*optimizer\.step.*\n.*optimizer\.step/m.test(t), 'step দুবার');
+  const m2 = fresh(); m2.plan.toggle('mode-finetune');   // accumulation ছাড়া: সরাসরি step
+  assert.match(m2.plan.pseudo(spec), /\n\s+optimizer\.step\(trainable only\)/);
+  assert.ok(!m2.plan.pseudo(spec).includes('micro_step %'));
+});
+
+test('pseudo: সংকেত বদলালে loss বদলায়; SFT-র mask-নোট শুধু SFT-তে', () => {
+  const m = fresh();
+  m.plan.toggle('mode-finetune'); m.plan.toggle('preference-optimization');
+  assert.match(m.plan.pseudo(spec), /preference_loss\(/);
+  assert.ok(!m.plan.pseudo(spec).includes('loss_mask:'));
+  m.plan.toggle('opt-loss-answer');       // SFT-র ভেতরের বিকল্প → SFT নিজে বাছা, preference বাদ
+  assert.match(m.plan.pseudo(spec), /cross_entropy\(next_token_prediction, target tokens\)/);
+  assert.match(m.plan.pseudo(spec), /loss_mask: only answer tokens/);
+});
+
+test('pseudo: শূন্য-থেকের নকল (-sc) সিদ্ধান্তের লেখাও বসে', () => {
+  const m = fresh();
+  for (const id of ['mode-scratch', 'opt-adamw-sc', 'opt-amp-sc', 'opt-accuracy-sc']) m.plan.toggle(id);
+  const t = m.plan.pseudo(spec);
+  assert.match(t, /optimizer = AdamW/);
+  assert.match(t, /metrics = accuracy/);
+  assert.match(t, /precision = mixed/);
+});

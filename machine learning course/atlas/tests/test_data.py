@@ -113,6 +113,32 @@ class NameKeyedFiles(unittest.TestCase):
                 self.assertTrue(f["u"].startswith("https://"), f["t"][:40])
 
 
+class PseudoSpec(unittest.TestCase):
+    def test_every_template_slot_has_label_and_a_provider(self):
+        spec = load("pseudo.json")
+        provided = {v["slot"] for v in spec["slots"].values()}
+        for o in spec["options"].values():
+            if isinstance(o, dict):
+                provided |= set(o)
+        for mode, lines in spec["templates"].items():
+            for ln in lines:
+                for slot in re.findall(r"\{\{(\w+)\}\}", ln):
+                    self.assertIn(slot, spec["labels"], f"{mode}: label নেই {slot}")
+                    self.assertIn(slot, provided, f"{mode}: কেউ এই slot ভরে না: {slot}")
+                m = re.match(r"^\s*[?!](\w+)\s", ln)
+                if m:
+                    self.assertIn(m.group(1), provided, f"{mode}: শর্ত-slot ভরার কেউ নেই {m.group(1)}")
+
+    def test_every_decision_in_plan_trees_has_a_slot_or_is_structural(self):
+        spec = load("pseudo.json")
+        base = lambda i: i[:-3] if i.endswith("-sc") else i
+        skipped = {"plan-mode"}
+        missing = [n["id"] for n in NODES if n.get("kind") == "decision" and n["id"] not in skipped
+                   and base(n["id"]) not in spec["slots"]
+                   and not any(isinstance(spec["options"].get(base(c["id"])), dict) for c in n["children"])]
+        self.assertEqual(missing, [], "pseudo-code-এ বসে না এমন সিদ্ধান্ত")
+
+
 class Aliases(unittest.TestCase):
     def test_aliases_point_to_existing_nodes_and_old_ids_are_gone(self):
         ids = {n["id"] for n in NODES}

@@ -290,3 +290,9 @@ li.picked>.row>.term{background:var(--hover);border-color:var(--hover-line)}
 .kchip.info{color:var(--muted);border-style:dotted;margin-inline-start:8px}
 .plan-note{font-size:13px;line-height:1.6;color:var(--muted);border:1px dashed var(--btn-line);border-radius:10px;padding:8px 10px;margin:10px 0}
 @media(max-width:650px){.grow{grid-template-columns:1fr;gap:2px}}
+
+/* Pseudo-code */
+details.pseudo{margin:10px 0;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+details.pseudo summary{cursor:pointer;padding:8px 12px;font-weight:650;font-size:14px;color:var(--accent)}
+.pseudo-pre{margin:0;padding:10px 12px;font:12.5px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:46vh;overflow:auto;border-top:1px dashed var(--line);color:var(--ink)}
+@media print{details.pseudo{break-inside:avoid}}

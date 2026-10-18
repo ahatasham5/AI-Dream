@@ -740,6 +740,53 @@
      "u": "https://huggingface.co/docs/transformers/main_classes/trainer"
     }
    ]
+  },
+  "opt-base-vision": {
+   "why": "বড় ছবি-সংগ্রহে শেখা backbone থেকে শুরু: কম data-য় ছবি-শ্রেণিবিন্যাস সম্ভব।",
+   "tradeoff": "আপনার ছবির ধরন (যেমন চিকিৎসা, উপগ্রহ) অনেক আলাদা হলে শুরুর জ্ঞান কম কাজে লাগে।"
+  },
+  "tool-vit": {
+   "why": "Apache-2.0; ছবি patch-এ ভেঙে Transformer-এ দেওয়া (Module 11)।",
+   "tradeoff": "২২৪ মাপের ইনপুটের জন্য তৈরি: অন্য মাপে মানাতে হয়।",
+   "when": "ছবি-শ্রেণিবিন্যাস, Transformer-ভিত্তিক backbone"
+  },
+  "tool-resnet50": {
+   "why": "Apache-2.0; CNN-পরিবারের পরিচিত, সরল backbone (Module 11)।",
+   "tradeoff": "পুরোনো architecture: নতুন ViT-ধরনের সঙ্গে নিজের কাজে তুলনা করে দেখো।",
+   "when": "ছবি-শ্রেণিবিন্যাস, CNN-ভিত্তিক backbone"
+  },
+  "opt-base-speech": {
+   "why": "অডিও থেকে লেখা বের করার জন্য তৈরি checkpoint আছে।",
+   "tradeoff": "অডিওর মান, ভাষা ও উচ্চারণ ভেদে ফল আলাদা: নিজের data-য় মাপতে হয়।"
+  },
+  "tool-whisper-small": {
+   "why": "Apache-2.0; speech recognition-এর জন্য প্রকাশিত।",
+   "tradeoff": "'small' ছোট মাপ: কঠিন উচ্চারণে ও আপনার ভাষায় মান নিজে মেপে নাও।",
+   "when": "speech recognition-এর ছোট শুরু"
+  },
+  "opt-fmt-image-label": {
+   "why": "ছবি-শ্রেণিবিন্যাসের সরলতম ফরম্যাট।",
+   "tradeoff": "class-সংখ্যা অসম হলে (কিছু class বিরল) সাধারণ accuracy বিভ্রান্তিকর।"
+  },
+  "opt-fmt-audio-text": {
+   "why": "speech recognition-এর সরাসরি ফরম্যাট।",
+   "tradeoff": "transcript নির্ভুল না হলে model ভুলই শেখে; অডিও-লেখা সারিবদ্ধ থাকতে হয়।"
+  },
+  "opt-fmt-tabular": {
+   "why": "ছকের data সরাসরি, সরল।",
+   "tradeoff": "feature scaling ও leakage (Module 05) সামলাতে হয়।"
+  },
+  "opt-mse-mae": {
+   "why": "সংখ্যা অনুমানের ভুল সরাসরি, দুই রূপে (বড় ভুলে সংবেদী বনাম স্থির)।",
+   "tradeoff": "MSE outlier-এ খুব সংবেদনশীল; MAE-তে বড় ভুলের বাড়তি শাস্তি নেই (Module 06)।"
+  },
+  "opt-perplexity": {
+   "why": "label ছাড়া data-তেও মাপা যায়; model পরের token-কে কতটা ধরছে তার সরাসরি মাপ।",
+   "tradeoff": "tokenizer বদলালে সংখ্যা তুলনীয় থাকে না; উত্তরের আসল মান (সঠিকতা) মাপে না।"
+  },
+  "opt-bleu-rouge": {
+   "why": "reference-এর সঙ্গে স্বয়ংক্রিয় তুলনা, সস্তা।",
+   "tradeoff": "শব্দ-মিলের মাপ: ভিন্ন শব্দে অর্থ-সঠিক উত্তরকে কম নম্বর দেয়।"
   }
  }
 }

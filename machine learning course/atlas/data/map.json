@@ -5789,6 +5789,40 @@
                "when": "OCR বা speech আউটপুট মাপতে"
               }
              ]
+            },
+            {
+             "id": "opt-mse-mae-sc",
+             "name": "MSE / RMSE / MAE — সংখ্যা অনুমানের ভুল",
+             "definition": "সংখ্যা অনুমানের ভুল: MSE (ভুলের বর্গের গড়), RMSE (তার বর্গমূল), MAE (ভুলের পরম মানের গড়)।",
+             "kind": "option",
+             "when": "regression: সংখ্যা অনুমান",
+             "basis": "course",
+             "mathDetail": {
+              "formula": "MSE = (1/n) Σ (ŷ − y)²;  RMSE = √MSE;  MAE = (1/n) Σ |ŷ − y|",
+              "meaning": "ŷ: অনুমান, y: সঠিক মান। MSE বড় ভুলকে বেশি শাস্তি দেয়, MAE কম।",
+              "example": "ভুল 1 আর 3 হলে MSE = (1+9)/2 = 5, MAE = (1+3)/2 = 2।"
+             }
+            },
+            {
+             "id": "opt-perplexity-sc",
+             "name": "Perplexity — ভাষা-model",
+             "definition": "ভাষা-model পরের token নিয়ে কতটা অনিশ্চিত: cross-entropy-র exp।",
+             "kind": "option",
+             "when": "ভাষা-model (pretraining, continued pretraining)",
+             "basis": "experience",
+             "mathDetail": {
+              "formula": "PPL = exp( −(1/N) Σ ln p(tokenᵢ | আগের token) )",
+              "meaning": "কম মান মানে model পরের token আরও নিশ্চিতভাবে ধরছে।",
+              "example": "প্রতি token-এ গড় ঋণাত্মক-log 2.0 হলে PPL = e² ≈ 7.39।"
+             }
+            },
+            {
+             "id": "opt-bleu-rouge-sc",
+             "name": "BLEU / ROUGE — লেখার মিল",
+             "definition": "BLEU: model-এর লেখার n-gram কতটা reference-এ আছে; ROUGE: reference-এর n-gram কতটা model-এর লেখায় আছে।",
+             "kind": "option",
+             "when": "অনুবাদ, সারসংক্ষেপ",
+             "basis": "experience"
             }
            ]
           }
@@ -7102,6 +7136,40 @@
                "when": "OCR বা speech আউটপুট মাপতে"
               }
              ]
+            },
+            {
+             "id": "opt-mse-mae",
+             "name": "MSE / RMSE / MAE — সংখ্যা অনুমানের ভুল",
+             "definition": "সংখ্যা অনুমানের ভুল: MSE (ভুলের বর্গের গড়), RMSE (তার বর্গমূল), MAE (ভুলের পরম মানের গড়)।",
+             "kind": "option",
+             "when": "regression: সংখ্যা অনুমান",
+             "basis": "course",
+             "mathDetail": {
+              "formula": "MSE = (1/n) Σ (ŷ − y)²;  RMSE = √MSE;  MAE = (1/n) Σ |ŷ − y|",
+              "meaning": "ŷ: অনুমান, y: সঠিক মান। MSE বড় ভুলকে বেশি শাস্তি দেয়, MAE কম।",
+              "example": "ভুল 1 আর 3 হলে MSE = (1+9)/2 = 5, MAE = (1+3)/2 = 2।"
+             }
+            },
+            {
+             "id": "opt-perplexity",
+             "name": "Perplexity — ভাষা-model",
+             "definition": "ভাষা-model পরের token নিয়ে কতটা অনিশ্চিত: cross-entropy-র exp।",
+             "kind": "option",
+             "when": "ভাষা-model (pretraining, continued pretraining)",
+             "basis": "experience",
+             "mathDetail": {
+              "formula": "PPL = exp( −(1/N) Σ ln p(tokenᵢ | আগের token) )",
+              "meaning": "কম মান মানে model পরের token আরও নিশ্চিতভাবে ধরছে।",
+              "example": "প্রতি token-এ গড় ঋণাত্মক-log 2.0 হলে PPL = e² ≈ 7.39।"
+             }
+            },
+            {
+             "id": "opt-bleu-rouge",
+             "name": "BLEU / ROUGE — লেখার মিল",
+             "definition": "BLEU: model-এর লেখার n-gram কতটা reference-এ আছে; ROUGE: reference-এর n-gram কতটা model-এর লেখায় আছে।",
+             "kind": "option",
+             "when": "অনুবাদ, সারসংক্ষেপ",
+             "basis": "experience"
             }
            ]
           },
@@ -7291,6 +7359,89 @@
                     "license": "MIT",
                     "archived": false,
                     "pushed": "২০২২-০৮-১৩",
+                    "checked": "২০২৬-১০-১৭",
+                    "src": "Hugging Face API"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "opt-base-vision",
+               "name": "ছবি-শ্রেণিবিন্যাস backbone",
+               "definition": "ছবিকে class-এ ভাগ করার জন্য আগে-শেখা backbone (CNN বা Vision Transformer)।",
+               "kind": "option",
+               "when": "input ছবি, output একটা class",
+               "basis": "experience",
+               "children": [
+                {
+                 "id": "base-vision-ckpt",
+                 "name": "কোন checkpoint?",
+                 "definition": "উদাহরণ checkpoint (Hugging Face API থেকে মেলানো)।",
+                 "kind": "decision",
+                 "pick": "one",
+                 "children": [
+                  {
+                   "id": "tool-vit",
+                   "name": "ViT (base, patch16-224)",
+                   "definition": "ছবিকে ১৬×১৬ টুকরোয় (patch) ভেঙে Transformer-এ দেওয়া ছবি-শ্রেণিবিন্যাস model; ২২৪ মাপের ইনপুট।",
+                   "kind": "tool",
+                   "basis": "tool-doc",
+                   "tool": {
+                    "repo": "https://huggingface.co/google/vit-base-patch16-224",
+                    "license": "Apache-2.0",
+                    "archived": false,
+                    "pushed": "২০২৩-০৯-০৫",
+                    "checked": "২০২৬-১০-১৭",
+                    "src": "Hugging Face API"
+                   }
+                  },
+                  {
+                   "id": "tool-resnet50",
+                   "name": "ResNet-50",
+                   "definition": "CNN-পরিবারের পরিচিত ছবি-শ্রেণিবিন্যাস backbone।",
+                   "kind": "tool",
+                   "basis": "tool-doc",
+                   "tool": {
+                    "repo": "https://huggingface.co/microsoft/resnet-50",
+                    "license": "Apache-2.0",
+                    "archived": false,
+                    "pushed": "২০২৪-০২-১৩",
+                    "checked": "২০২৬-১০-১৭",
+                    "src": "Hugging Face API"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "opt-base-speech",
+               "name": "speech → লেখা (ASR) model",
+               "definition": "অডিও থেকে লেখা (automatic speech recognition) বের করার model।",
+               "kind": "option",
+               "when": "input অডিও, output লেখা",
+               "basis": "experience",
+               "children": [
+                {
+                 "id": "base-speech-ckpt",
+                 "name": "কোন checkpoint?",
+                 "definition": "উদাহরণ checkpoint (Hugging Face API থেকে মেলানো)।",
+                 "kind": "decision",
+                 "pick": "one",
+                 "children": [
+                  {
+                   "id": "tool-whisper-small",
+                   "name": "Whisper (small)",
+                   "definition": "OpenAI Whisper-এর small মাপ, speech recognition।",
+                   "kind": "tool",
+                   "basis": "tool-doc",
+                   "tool": {
+                    "repo": "https://huggingface.co/openai/whisper-small",
+                    "license": "Apache-2.0",
+                    "archived": false,
+                    "pushed": "২০২৪-০২-২৯",
                     "checked": "২০২৬-১০-১৭",
                     "src": "Hugging Face API"
                    }
@@ -7563,6 +7714,30 @@
                "definition": "একই প্রশ্নের দুই উত্তর, কোনটা পছন্দের তা চিহ্নিত।",
                "kind": "option",
                "when": "Preference optimization চাই",
+               "basis": "course"
+              },
+              {
+               "id": "opt-fmt-image-label",
+               "name": "ছবি + class label",
+               "definition": "প্রতি সারি: একটা ছবি আর তার class।",
+               "kind": "option",
+               "when": "ছবি-শ্রেণিবিন্যাস",
+               "basis": "experience"
+              },
+              {
+               "id": "opt-fmt-audio-text",
+               "name": "অডিও + transcript",
+               "definition": "প্রতি সারি: একটা অডিও আর তার সঠিক লেখা।",
+               "kind": "option",
+               "when": "speech recognition",
+               "basis": "experience"
+              },
+              {
+               "id": "opt-fmt-tabular",
+               "name": "ছক: feature + target",
+               "definition": "প্রতি সারি: কয়েকটা feature আর target (সংখ্যা বা class)।",
+               "kind": "option",
+               "when": "ছকে-সাজানো data, regression বা classification",
                "basis": "course"
               }
              ]

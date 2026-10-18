@@ -573,6 +573,7 @@ const planMarkdown = () => plan.markdown(new Date().toISOString().slice(0, 10));
 const planPlain = () => plan.plain(new Date().toISOString().slice(0, 10));
 const planJSON = () => plan.json(new Date().toISOString());
 const planLink = () => plan.link(location.href);
+const planPseudo = () => plan.pseudo(cfg.pseudo);
 const BASIS = { course: 'কোর্সে আছে', paper: 'paper থেকে মেলানো', experience: 'অভিজ্ঞতা-ভিত্তিক, নিয়ম নয়', 'tool-doc': 'tool-এর docs বা README থেকে' };
 function decorateKind(r, row, button) {
   const n = r.node;
@@ -677,8 +678,12 @@ function renderPlan() {
   }
   const acts = el('div', 'plan-acts');
   const mk = (label, fn) => { const b = el('button', 'control', label); b.type = 'button'; b.onclick = () => copyText(fn(), b); acts.append(b); };
-  mk('Markdown কপি', planMarkdown); mk('JSON কপি', planJSON); mk('লেখা কপি', planPlain); mk('লিংক কপি', planLink);
+  mk('Pseudo-code কপি', planPseudo); mk('Markdown কপি', planMarkdown); mk('JSON কপি', planJSON); mk('লেখা কপি', planPlain); mk('লিংক কপি', planLink);
   box.append(acts);
+  const det = el('details', 'pseudo'); det.open = true;
+  det.append(el('summary', '', 'Pseudo-code দেখো (বাছা পথ থেকে)'));
+  const pre = el('pre', 'pseudo-pre', planPseudo()); pre.tabIndex = 0;
+  det.append(pre); box.append(det);
   for (const g of planGroups()) {
     const sec = el('section', 'plan-step');
     sec.append(el('h3', '', g.step ? g.step.node.name : 'পথের ধরন'));

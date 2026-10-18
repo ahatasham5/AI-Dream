@@ -1,5 +1,16 @@
 # Changelog — ML Learning Atlas
 
+## ২০২৬-১০-১৮ — pseudo-code ও সার্বজনীনতা
+
+### নতুন
+- **Pseudo-code:** বাছা পথ থেকে framework-নিরপেক্ষ pseudo-code (Fine-tune ও শূন্য-থেকে-train দুই ছাঁচ)। অবাছা সিদ্ধান্ত `‹? …›` চিহ্নে। ডান-তালিকায় দেখা ও কপি। `data/pseudo.json`, `engine.pseudo()`।
+- **সার্বজনীন বিকল্প (OCR-কেন্দ্রিকতা ঠেকাতে):** model-এর ধরনে ছবি-শ্রেণিবিন্যাস (ViT, ResNet-50) ও speech (Whisper small); data-format-এ ছবি+label, অডিও+transcript, ছক; মাপকাঠিতে MSE/RMSE/MAE, Perplexity, BLEU/ROUGE। সব tool Hugging Face API-তে মেলানো।
+- **Test:** pseudo-র ১০টা নতুন test (সব সিদ্ধান্ত বাছলে কোনো অবাছা চিহ্ন থাকে না, -sc নকল, accumulation শাখা, সংকেত-ভেদে loss, ছাঁচ-চিহ্ন বাকি থাকে না) আর slot-মিলের data test।
+
+### সংশোধন
+- শূন্য-থেকে-train ছাঁচে 'implementation' সব architecture-এ অবাছা দেখাত (MLP/CNN/RNN-এ বাছার কিছু নেই); এখন ঐচ্ছিক লাইন।
+- ছাঁচের ধাপ-শিরোনাম গাছের ধাপের সঙ্গে মেলানো।
+
 ## ২০২৬-১০-১৭ — production-grade ভিত্তি
 
 ### নতুন
