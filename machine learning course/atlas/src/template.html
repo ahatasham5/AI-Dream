@@ -35,11 +35,13 @@ __CSS__
     <div class="btn-group" role="group" aria-label="গাছের নিয়ন্ত্রণ">
       <button class="btn icon" id="expand" type="button" aria-label="সব শাখা খোলো" title="সব খোলো"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/><path d="M4 2.5l4 4 4-4" opacity=".45"/></svg></button>
       <button class="btn icon" id="collapse" type="button" aria-label="সব শাখা গুটিয়ে নাও" title="গুটিয়ে নাও"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/><path d="M4 13.5l4-4 4 4" opacity=".45"/></svg></button>
+      <button class="btn icon" id="accordion" type="button" aria-pressed="true" aria-label="একটা-একটা খোলা" title="একটা-একটা খোলা"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3.5l4 3 4-3"/><path d="M4 12.5l4-3 4 3"/></svg></button>
       <button class="btn icon" id="theme" type="button" aria-label="theme বদলাও" title="theme">☾</button>
     </div>
     <button class="btn primary" id="plan-toggle" type="button" aria-controls="plan" aria-expanded="false">আমার পথ <span class="badge" id="plan-count">০</span></button>
   </div>
   </div>
+  <div class="fcrumb" id="focus-crumb" aria-label="এখন কোথায় আছো" hidden></div>
 </div>
 <main>
   <div class="layout">

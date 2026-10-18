@@ -28,9 +28,59 @@ const trailText = (r, n) => r.trail.filter((a) => a.depth > 0 && !GENERIC.has(a.
 function setOpen(r, open) {
   if (!r.list) return;
   r.list.hidden = !open;
+  r.li.classList.toggle('closed', !open);
   r.toggle.textContent = open ? '−' : '+';
   r.toggle.setAttribute('aria-expanded', String(open));
   r.toggle.setAttribute('aria-label', r.node.name + (open ? ' — শাখা বন্ধ করো' : ' — শাখা খোলো'));
+}
+
+/* ---------- একটা-একটা খোলা (accordion), খোলা-পথ হাইলাইট, breadcrumb ---------- */
+// যুক্তি src/js/focus.js-এ (Node-এ test করা)। এখানে শুধু DOM-এ বসানো।
+let accordion = true, focusRec = null;
+const isOpenRec = (r) => !!r.list && !r.list.hidden;
+const searching = () => document.body.classList.contains('searching');
+function setFocus(r) {
+  if (focusRec) for (let x = focusRec; x; x = x.parent) x.li.classList.remove('on-path');
+  focusRec = r;
+  if (r) for (let x = r; x; x = x.parent) x.li.classList.add('on-path');
+  renderFocusCrumb();
+}
+// r খোলো; accordion চালু থাকলে (আর খোঁজা না চললে) ভাইদের মধ্যে খোলাগুলো গোটে
+function openFocused(r) {
+  if (accordion && !searching()) for (const s of AtlasFocus.siblingsToClose(r, isOpenRec)) setOpen(s, false);
+  setOpen(r, true);
+  setFocus(r);
+}
+// r-এ পৌঁছানোর পথ খোলো; পথের প্রতিটা স্তরে ভাইরা গোটে
+function openPath(r) {
+  const p = AtlasFocus.planReveal(r, isOpenRec);
+  if (accordion && !searching()) for (const s of p.close) setOpen(s, false);
+  for (const a of p.open) { a.li.hidden = false; setOpen(a, true); }
+  setFocus(r);
+}
+function renderFocusCrumb() {   // topbar-এর breadcrumb (dialog-এর renderCrumb(r) থেকে আলাদা)
+  const bar = document.getElementById('focus-crumb');
+  if (!bar) return;
+  bar.replaceChildren();
+  const cs = focusRec ? AtlasFocus.crumbs(focusRec) : [];
+  bar.hidden = cs.length < 2;
+  cs.forEach((c, i) => {
+    if (i) bar.append(el('span', 'sep', '›'));
+    const b = el('button', 'crumb-b' + (i === cs.length - 1 ? ' cur' : ''), c.name);
+    b.type = 'button'; b.title = c.rec.node.name;
+    if (i === cs.length - 1) b.setAttribute('aria-current', 'true');
+    b.onclick = () => focusAt(c.rec);
+    bar.append(b);
+  });
+  bar.scrollLeft = bar.scrollWidth;   // পথ লম্বা হলে বর্তমান (শেষ) অংশ দেখা যায়
+}
+// breadcrumb-এর একটা অংশে ক্লিক: ওই স্তরে ফেরা: তার নিচের সব গোটে, নিজে খোলে, দেখা যায়
+function focusAt(r) {
+  (function shut(x) { for (const c of x.children) { if (c.list) setOpen(c, false); shut(c); } })(r);
+  openPath(r);
+  setOpen(r, true);
+  r.li.scrollIntoView({ block: 'start' });
+  r.li.classList.remove('pulse'); void r.li.offsetWidth; r.li.classList.add('pulse');
 }
 
 function build(node, parent, depth, trail) {
@@ -67,6 +117,8 @@ function build(node, parent, depth, trail) {
     const count = el('span', 'count', String(node.children.length));
     count.setAttribute('aria-hidden', 'true');
     button.append(count);
+    r.pickChip = el('span', 'kchip pickn');   // গোটানো শাখার ভেতরে কয়টা বাছা; refreshSel ভরে
+    button.append(r.pickChip);
     const ul = el('ul');
     ul.id = 'branch-' + seq++;
     r.list = ul;
@@ -83,7 +135,7 @@ function build(node, parent, depth, trail) {
       cb.onclick = (e) => { e.stopPropagation(); openCompare(r); };
       row.insertBefore(cb, r.selBtn || null);
     }
-    indicator.onclick = () => setOpen(r, r.list.hidden);
+    indicator.onclick = () => { if (r.list.hidden) openFocused(r); else { setOpen(r, false); setFocus(r); } };
     setOpen(r, depth === 0);
   }
   parent.append(li);
@@ -348,10 +400,11 @@ function clearSearch() {
   document.body.classList.remove('searching');
   empty.hidden = true;
   filter(root, '');
+  setFocus(null);
 }
 function reveal(r) {
   if (search.value) clearSearch();
-  for (let a = r.parent; a; a = a.parent) { a.li.hidden = false; setOpen(a, true); }
+  openPath(r);
   if (r.parent && r.parent.list) r.parent.list.classList.remove('rg-closed');   // "পড়ে বোঝো" ভাঁজে থাকলে খোলে
   r.li.hidden = false;
   r.li.scrollIntoView({ block: 'center' });
@@ -425,12 +478,24 @@ search.addEventListener('input', () => {
   const q = search.value.trim().toLocaleLowerCase();
   document.body.classList.toggle('searching', !!q);
   empty.hidden = filter(root, q, false);
+  if (!q) setFocus(null);
 });
 for (const [id, open] of [['expand', true], ['collapse', false]])
   document.getElementById(id).onclick = () => {
     clearSearch();
     records.forEach((r) => { r.li.hidden = false; setOpen(r, open || r.depth === 0); if (r.rgSet) r.rgSet(open); });
+    if (open && accordion) setAccordion(false, true);   // "সব খোলো"-র পর accordion চললে পরের ক্লিকে সব গুটিয়ে যেত
   };
+function setAccordion(on, say) {
+  accordion = on;
+  store('ml-atlas-accordion', on ? '1' : '0');
+  const b = document.getElementById('accordion');
+  b.setAttribute('aria-pressed', String(on));
+  b.title = on ? 'একটা-একটা খোলা চালু: একটা শাখা খুললে ভাইরা গুটিয়ে যায় (চাপলে বন্ধ)' : 'একটা-একটা খোলা বন্ধ: যত খুশি একসাথে খোলা থাকবে (চাপলে চালু)';
+  if (say) toast(on ? 'একটা-একটা খোলা চালু: একটা শাখা খুললে ভাইরা গুটিয়ে যাবে' : 'একটা-একটা খোলা বন্ধ: যত খুশি একসাথে খোলা থাকবে');
+}
+document.getElementById('accordion').onclick = () => setAccordion(!accordion, true);
+setAccordion(store('ml-atlas-accordion') !== '0', false);
 document.addEventListener('keydown', (e) => {
   if (e.key === '/' && !modal.open && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) { e.preventDefault(); search.focus(); }
 });
@@ -628,7 +693,7 @@ function gotoStep(sid) {
   r.li.classList.remove('pulse'); void r.li.offsetWidth; r.li.classList.add('pulse');
 }
 function setBranchOpen(r) {
-  for (let a = r.parent; a; a = a.parent) { a.li.hidden = false; setOpen(a, true); }
+  openPath(r);
   r.li.hidden = false; setOpen(r, true);
 }
 function renderSteps(box, compact) {
@@ -675,7 +740,7 @@ function toggleSel(id) {
   if (!res.ok) return;
   if (res.on) {
     const r = res.record;
-    if (r.children.length) setOpen(r, true);
+    if (r.children.length) openFocused(r);
     if (window.innerWidth > 900) openPlan(true);   // ছোট পর্দায় তালিকা গাছ ঢেকে দেয়, তাই নিজে খোলে না
     if (r.node.steps) { const first = r.node.steps.find((sid) => !stepStat(sid)); if (first) setTimeout(() => gotoStep(first), 50); }
   }
@@ -858,6 +923,12 @@ function refreshSel() {
     r.selBtn.textContent = on ? '✓ বাছা' : 'বাছো';
     r.selBtn.setAttribute('aria-pressed', String(on));
     r.li.classList.toggle('picked', on);
+  }
+  const counts = AtlasFocus.pickedCounts(records, byId, selected);
+  for (const r of records) if (r.pickChip) {
+    const n = counts.get(r.node.id) || 0;
+    r.pickChip.classList.toggle('has', n > 0);
+    r.pickChip.textContent = n ? '✓ ' + n.toLocaleString('bn-BD') + 'টা বাছা' : '';
   }
   $('#plan-count').textContent = selected.size.toLocaleString('bn-BD');
   renderSteps($('#startbar'), true);

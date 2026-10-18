@@ -317,6 +317,36 @@ class NeedAndDefaults(unittest.TestCase):
                                     f"{mode}: `{slot}` সোজা লাইনে, অথচ খাওয়ানো সব decision ঐচ্ছিক ও default-হীন")
 
 
+class PageSource(unittest.TestCase):
+    """সংঘর্ষ ঠেকাতে: একই id দুই element-এ, বা একই নামের function দুবার থাকলে পরেরটা আগেরটাকে চুপচাপ ঢেকে দেয়
+    (breadcrumb-এ ঠিক এটাই ঘটেছিল: browser-এ ত্রুটি, অথচ build ও Node test পাস)।"""
+    SRC = HERE / "src"
+
+    def test_template_ids_are_unique(self):
+        ids = re.findall(r'\sid="([^"]+)"', (self.SRC / "template.html").read_text(encoding="utf-8"))
+        dup = sorted({i for i in ids if ids.count(i) > 1})
+        self.assertEqual(dup, [], f"একই id একাধিক element-এ: {dup}")
+
+    def test_no_function_declared_twice_in_a_script(self):
+        scripts = [self.SRC / "app.js"] + sorted((self.SRC / "js").glob("*.js"))
+        seen = {}
+        for f in scripts:
+            names = re.findall(r"^function\s+(\w+)", f.read_text(encoding="utf-8"), re.M)   # বাইরের স্তরের function (column 0)
+            for n in names:
+                self.assertNotIn(n, seen.get(f.name, set()), f"{f.name}: function {n} দুবার ঘোষিত")
+                seen.setdefault(f.name, set()).add(n)
+
+    def test_app_ids_used_exist_in_template(self):
+        tpl = (self.SRC / "template.html").read_text(encoding="utf-8")
+        ids = set(re.findall(r'\sid="([^"]+)"', tpl))
+        app = (self.SRC / "app.js").read_text(encoding="utf-8")
+        used = set(re.findall(r"getElementById\('([\w-]+)'\)", app)) | set(re.findall(r"\$\('#([\w-]+)'\)", app))
+        # app.js নিজেই যে id-র element বানায় (toast ইত্যাদি) তা বাদ
+        made = set(re.findall(r"\.id\s*=\s*'([\w-]+)'", app))
+        missing = sorted(used - ids - made)
+        self.assertEqual(missing, [], f"app.js যে id খোঁজে অথচ template-এ নেই: {missing}")
+
+
 if __name__ == "__main__":
     unittest.main()
 

@@ -443,3 +443,18 @@ body.searching .rg-closed>.rg-info{display:list-item}
 .pdef{display:block;color:var(--muted);font-size:11.5px;margin-top:1px}
 details.pend.opt>summary{color:var(--muted)}
 .pd{color:var(--muted);font-style:italic}
+
+/* একটা-একটা খোলা: খোলা পথ হাইলাইট, breadcrumb, গোটানো শাখার বাছার সংখ্যা */
+li.on-path:before{border-left-color:var(--accent)}
+li.on-path:after{border-top-color:var(--accent)}
+li.on-path>.row>.toggle{border-color:var(--accent)}
+.fcrumb{max-width:1500px;margin:0 auto;padding:0 24px 8px;display:flex;align-items:center;gap:2px 4px;overflow-x:auto;white-space:nowrap;scrollbar-width:thin}
+.fcrumb .sep{color:var(--muted);font-size:12px}
+.crumb-b{border:0;background:transparent;color:var(--muted);font:600 13px system-ui;padding:3px 8px;border-radius:8px;cursor:pointer;flex:0 0 auto}
+.crumb-b:hover{background:var(--chip);color:var(--ink)}
+.crumb-b.cur{color:var(--ink);background:var(--soft)}
+body.searching .fcrumb{display:none}
+.kchip.pickn{display:none;background:var(--soft);color:var(--accent)}
+li.closed>.row .kchip.pickn.has{display:inline-block}
+#accordion[aria-pressed=true]{background:var(--soft);color:var(--accent)}
+@media (max-width:700px){.fcrumb{padding:0 14px 8px}}
