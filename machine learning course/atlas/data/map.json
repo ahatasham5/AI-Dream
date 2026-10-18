@@ -8781,6 +8781,57 @@
                "kind": "option",
                "when": "পুরো নিয়ন্ত্রণ বা শেখার জন্য",
                "basis": "course"
+              },
+              {
+               "id": "tool-timm",
+               "name": "timm (PyTorch Image Models)",
+               "definition": "ছবির encoder ও backbone-এর বড় সংগ্রহ।",
+               "kind": "tool",
+               "basis": "tool-doc",
+               "tool": {
+                "repo": "https://github.com/huggingface/pytorch-image-models",
+                "license": "Apache-2.0",
+                "archived": false,
+                "pushed": "২০২৬-১০-১৭",
+                "checked": "২০২৬-১০-১৭",
+                "src": "GitHub API ও README",
+                "docs": "https://github.com/huggingface/pytorch-image-models#readme"
+               },
+               "when": "ছবি-model-এর backbone নিয়ে training"
+              },
+              {
+               "id": "tool-torchvision",
+               "name": "torchvision",
+               "definition": "PyTorch-এর ছবি-নির্দিষ্ট dataset, transform ও model।",
+               "kind": "tool",
+               "basis": "tool-doc",
+               "tool": {
+                "repo": "https://github.com/pytorch/vision",
+                "license": "BSD-3-Clause",
+                "archived": false,
+                "pushed": "২০২৬-১০-১৭",
+                "checked": "২০২৬-১০-১৭",
+                "src": "GitHub API ও README",
+                "docs": "https://github.com/pytorch/vision#readme"
+               },
+               "when": "ছবির data-প্রক্রিয়া ও পরিচিত ছবি-model"
+              },
+              {
+               "id": "tool-whisper-lib",
+               "name": "Whisper (openai/whisper)",
+               "definition": "Whisper speech-recognition model-এর repository।",
+               "kind": "tool",
+               "basis": "tool-doc",
+               "tool": {
+                "repo": "https://github.com/openai/whisper",
+                "license": "MIT",
+                "archived": false,
+                "pushed": "২০২৬-০৮-৩১",
+                "checked": "২০২৬-১০-১৭",
+                "src": "GitHub API ও README",
+                "docs": "https://github.com/openai/whisper#readme"
+               },
+               "when": "speech recognition-এর Whisper model নিয়ে কাজ"
               }
              ]
             },

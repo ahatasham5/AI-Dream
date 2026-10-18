@@ -5,6 +5,7 @@
 ### নতুন
 - **Pseudo-code:** বাছা পথ থেকে framework-নিরপেক্ষ pseudo-code (Fine-tune ও শূন্য-থেকে-train দুই ছাঁচ)। অবাছা সিদ্ধান্ত `‹? …›` চিহ্নে। ডান-তালিকায় দেখা ও কপি। `data/pseudo.json`, `engine.pseudo()`।
 - **সার্বজনীন বিকল্প (OCR-কেন্দ্রিকতা ঠেকাতে):** model-এর ধরনে ছবি-শ্রেণিবিন্যাস (ViT, ResNet-50) ও speech (Whisper small); data-format-এ ছবি+label, অডিও+transcript, ছক; মাপকাঠিতে MSE/RMSE/MAE, Perplexity, BLEU/ROUGE। সব tool Hugging Face API-তে মেলানো।
+- **ছবি ও speech-এর training tool:** timm, torchvision, Whisper (সব GitHub API-তে মেলানো), যাতে tool-তালিকা শুধু LLM-মুখী না থাকে।
 - **Test:** pseudo-র ১০টা নতুন test (সব সিদ্ধান্ত বাছলে কোনো অবাছা চিহ্ন থাকে না, -sc নকল, accumulation শাখা, সংকেত-ভেদে loss, ছাঁচ-চিহ্ন বাকি থাকে না) আর slot-মিলের data test।
 
 ### সংশোধন

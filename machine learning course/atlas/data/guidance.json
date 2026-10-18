@@ -787,6 +787,18 @@
   "opt-bleu-rouge": {
    "why": "reference-এর সঙ্গে স্বয়ংক্রিয় তুলনা, সস্তা।",
    "tradeoff": "শব্দ-মিলের মাপ: ভিন্ন শব্দে অর্থ-সঠিক উত্তরকে কম নম্বর দেয়।"
+  },
+  "tool-timm": {
+   "why": "ছবি-backbone-এর বড় সংগ্রহ; ছবি-শ্রেণিবিন্যাসে একই কাঠামোয় অনেক model তুলনা করা যায়।",
+   "tradeoff": "শুধু ছবির জন্য; লেখা বা speech-এ কাজে লাগে না। মালিক Hugging Face।"
+  },
+  "tool-torchvision": {
+   "why": "PyTorch-এর নিজস্ব ছবি-সরঞ্জাম: dataset, transform ও model একসঙ্গে।",
+   "tradeoff": "শুধু ছবির জন্য; লেখা বা speech-এ কাজে লাগে না।"
+  },
+  "tool-whisper-lib": {
+   "why": "Whisper model-এর মূল repository, MIT licence; speech recognition-এ সরাসরি।",
+   "tradeoff": "এই repo-র লক্ষ্য model ও তার ব্যবহার: fine-tuning-এর ধাপ README-তে আলাদা করে দেখে নাও।"
   }
  }
 }
