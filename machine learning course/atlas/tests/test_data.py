@@ -26,7 +26,10 @@ def walk(n):
         yield from walk(c)
 
 
-NODES = list(walk(MAP))
+import copy as _copy
+EXPANDED = _copy.deepcopy(MAP)
+build.expand_includes(EXPANDED)   # include-node-গুলো ছড়ানো: অ্যাপ যে গাছ দেখে সেটাই test হয়
+NODES = list(walk(EXPANDED))
 NAMES = {n["name"] for n in NODES}
 KNOWN_PLAIN_LINKS = {"MAE বা RMSE", "সীমা কমাও", "সীমা বাড়াও"}   # link-হীন সাধারণ লেখা হিসেবে ইচ্ছে করে রাখা
 
@@ -219,3 +222,48 @@ class OptionQuality(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SharedIncludes(unittest.TestCase):
+    """Training-এর উপাদান shared.json-এ একবারই লেখা; তিন ধরনের ভেতরে কপি হয়ে বসে।"""
+    SHARED = load("shared.json")["training-components"]
+    GROUPS = {"from-scratch-training": ("sc-components", ""), "pretraining": ("pt-components", "-in-pt"), "fine-tuning": ("ft-components", "-in-ft")}
+
+    def test_each_stage_has_all_components(self):
+        by_id = {n["id"]: n for n in NODES}
+        want = [c["name"] for c in self.SHARED]
+        for stage, (gid, _) in self.GROUPS.items():
+            g = by_id[gid]
+            self.assertIn(g, by_id[stage]["children"], stage)
+            self.assertEqual([c["name"] for c in g["children"]], want, stage)
+
+    def test_copies_have_same_names_and_unique_ids(self):
+        ids = [n["id"] for n in NODES]
+        self.assertEqual(len(ids), len(set(ids)))
+        by_id = {n["id"]: n for n in NODES}
+        def names(n):
+            return [n["name"]] + [x for c in n.get("children") or [] for x in names(c)]
+        base = names(by_id["sc-components"])
+        for gid in ("pt-components", "ft-components"):
+            self.assertEqual(names(by_id[gid]), base, gid)
+
+    def test_first_copy_keeps_original_ids(self):
+        """গল্পের পথ, ref, alias মূল id ধরে আছে; সেগুলো from-scratch-এর কপিতে পৌঁছায়।"""
+        by_id = {n["id"]: n for n in NODES}
+        for c in self.SHARED:
+            self.assertEqual(by_id[c["id"]]["name"], c["name"])
+            self.assertIn(by_id[c["id"]], by_id["sc-components"]["children"])
+
+    def test_components_are_info_and_not_selectable(self):
+        for n in NODES:
+            if n["id"].endswith("-in-pt") or n["id"].endswith("-in-ft"):
+                self.assertEqual(n.get("kind"), "info", n["id"])
+
+    def test_include_nodes_stay_out_of_output(self):
+        for n in NODES:
+            self.assertNotIn("include", n)
+            self.assertNotIn("id_suffix", n)
+
+    def test_training_branch_lists_three_ways_only(self):
+        by_id = {n["id"]: n for n in NODES}
+        self.assertEqual([c["id"] for c in by_id["training"]["children"]], ["from-scratch-training", "pretraining", "fine-tuning"])

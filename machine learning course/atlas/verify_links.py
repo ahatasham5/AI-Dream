@@ -30,6 +30,9 @@ def collect():
         if u and str(u).startswith("https://"):
             urls.setdefault(u.split("#")[0], where)
     root = json.loads((DATA / "map.json").read_text(encoding="utf-8"))
+    sys.path.insert(0, str(DATA.parent))
+    import build
+    build.expand_includes(root)   # shared.json-এর উপাদানের সূত্রও যাচাইয়ে ধরা পড়ুক
     for n in walk(root):
         add(n.get("docs"), n["name"])
         for h in n.get("how", []):

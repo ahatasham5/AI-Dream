@@ -15,6 +15,7 @@ python3 atlas/build.py --out ml-mapping.html
 | পথ | কাজ |
 |---|---|
 | `data/map.json` | **মূল data।** সব node, প্রতিটার স্থির `id` সহ। বিষয় যোগ বা সংজ্ঞা বদলাতে এখানে হাত দাও |
+| `data/shared.json` | একবারই-লেখা উপগাছ (এখন: Training-এর ১০ উপাদান)। `map.json`-এর `include` node এগুলো build-সময়ে ধরনে ধরনে কপি করে বসায়। **বদলাতে হলে শুধু এখানে** |
 | `data/lessons.json` | কোন node থেকে কোর্সের কোন পাঠে যাবে। `"09/03"` = module-09-এর lecture-03 |
 | `data/stories.json` | প্রতিটা node-এর গল্প (সমস্যা → ধারণা → তারপর কী) ও "কোন ক্ষেত্রে কোনটা"; নাম ধরে বসে |
 | `data/history.json` | সূত্র-লিংকসহ যাচাই-করা ইতিহাস (https লিংক ছাড়া build থামে) |
@@ -44,6 +45,17 @@ build যাচাই করে: id অনন্য কি না, প্রত�
 ## একই লেখা একাধিক জায়গায় (`ref`)
 
 কোনো node-এ `"ref": "<অন্য node-এর id>"` দিলে ওই node-এর সংজ্ঞা, `trainingDetail`, `insight`, `selection`, `mathDetail` ইত্যাদি ধার নেয় (নিজের যে field আছে সেটা বদলায় না; children নিজেরটাই)। এতে একই model Task, Setting আর Model শাখায় এলে লেখা একবারই লিখতে হয়।
+
+## একই উপগাছ একাধিক ধরনের ভেতরে (`include`)
+
+Training-এর ১০ উপাদান (Target থেকে Learning Rate) From-scratch, Pretraining আর Fine-tuning, তিন ধরনেরই অংশ। পাঠক যাতে link ধরে ধরে হারিয়ে না যায়, তাই তিন জায়গাতেই গাছে দেখা যায়। কিন্তু লেখা আছে **একবারই**, `data/shared.json`-এ।
+
+- `map.json`-এ ধরনের শেষে একটা node: `{"id": "ft-components", "include": "training-components", "id_suffix": "-in-ft", …}`। এতে নিজের `children` থাকতে পারে না।
+- `build.py`-এর `expand_includes()` (`prepare()`-এর প্রথম কাজ) উৎসের কপি বসায়; কপির প্রতিটা id-র শেষে `id_suffix` জোড়ে। **`map.json` বদলায় না**, কপি শুধু memory-তে।
+- `id_suffix` খালি (`""`) = মূল id। ওই কপিই "মূল" (এখন from-scratch-এরটা): গল্পের পথ, `ref`, alias, `#id` link মূল id ধরে থাকে।
+- নাম একই, তাই নাম-ধরা গল্প, বাস্তব-স্তর আর পাঠ সব কপিতে একসাথে পৌঁছায়।
+- উপাদানগুলো `kind: "info"` (ব্যাখ্যা, বাছার বিষয় নয়): পথ-গাছের "প্রতিটা leaf টাইপ-করা" নিয়ম মানে।
+- নতুন উপাদান যোগ করতে `shared.json`-এ লেখো। তিন ধরনেই নিজে থেকে আসবে, আলাদা করে কিছু করতে হয় না।
 
 ## নতুন node যোগ
 

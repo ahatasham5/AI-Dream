@@ -1,5 +1,15 @@
 # Changelog — ML Learning Atlas
 
+## ২০২৬-১০-১৮ (৩) — Training-এর উপাদান প্রতিটা ধরনের ভেতরে
+
+### পরিবর্তন
+- **Training শাখা:** আগে ১–১০ (Target … Learning Rate) বাইরে আলাদা পড়ে ছিল, আর ১১-তে তিন ধরন। এখন শাখার সরাসরি সন্তান শুধু তিন ধরন: From-scratch, Pretraining, Fine-tuning। প্রতিটার শেষে "Training-এর উপাদান" গোষ্ঠী; পড়তে পড়তে অন্য শাখায় যেতে হয় না।
+- **`include` ব্যবস্থা** (`data/shared.json`, `build.expand_includes()`): উপাদানের লেখা একবারই, build-সময়ে তিন জায়গায় কপি; একটা ঠিক করলে সবখানে ঠিক (drift নেই)। node ৮৯২ → ৯৮৮। মূল id from-scratch-এর কপিতে, অন্য দুটো `-in-pt`, `-in-ft`।
+- পুরোনো `#training-model` link `training`-এ যায় (alias)। "শূন্য থেকে, নাকি আগে শেখা model থেকে" গল্প Training-এর গল্পে মেলানো; বাস্তব-স্তর Training শাখায় সরানো।
+
+### Test
+- ৬টা নতুন test (`SharedIncludes`): তিন ধরনেই ১০টা উপাদান, নাম এক, id অনন্য, মূল id প্রথম কপিতে, কপি `info`, `include` চিহ্ন আউটপুটে নেই। test আর `verify_links.py` এখন ছড়ানো গাছ দেখে।
+
 ## ২০২৬-১০-১৮ (২) — বিরোধ-শনাক্ত ও লিংক-যাচাই
 
 ### নতুন

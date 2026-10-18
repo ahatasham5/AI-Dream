@@ -12,6 +12,7 @@ lessons.json-এর প্রতিটা পাঠ-path সত্যিই আ�
 কোনো node-এ id না থাকলে বানিয়ে map.json-এ লিখে রাখে (স্থির থাকে বলে deep link ভাঙে না)।
 """
 import argparse
+import copy
 import datetime
 import hashlib
 import json
@@ -29,6 +30,7 @@ STORIES = HERE / "data" / "stories.json"
 HISTORY = HERE / "data" / "history.json"
 PATH = HERE / "data" / "path.json"
 PRACTICE = HERE / "data" / "practice.json"
+SHARED = HERE / "data" / "shared.json"
 GUIDANCE = HERE / "data" / "guidance.json"
 ALIASES = HERE / "data" / "aliases.json"
 PSEUDO = HERE / "data" / "pseudo.json"
@@ -175,8 +177,37 @@ def attach_guidance(root):
     return len(used)
 
 
+def expand_includes(root):
+    """`"include": "<কী>"` থাকলে data/shared.json-এর ওই উপগাছ (একবারই লেখা) সন্তান হিসেবে কপি হয়ে বসে।
+    `"id_suffix"` প্রতিটা কপির id-তে জোড়া লাগে (খালি = মূল id), নইলে id দুবার পড়ত। নাম একই থাকে, তাই নাম-ধরা
+    গল্প/পাঠ/ইতিহাস সব কপিতে একসাথে পৌঁছায়। শুধু memory-তে হয়; map.json বদলায় না।"""
+    lib, n = None, 0
+    def suffix(node, sfx):
+        node["id"] += sfx
+        for c in node.get("children") or []:
+            suffix(c, sfx)
+    for node, _, _ in list(walk(root)):
+        key = node.pop("include", None)
+        sfx = node.pop("id_suffix", "")
+        if not key:
+            continue
+        if lib is None:
+            lib = json.loads(SHARED.read_text(encoding="utf-8"))
+        if key.startswith("_") or key not in lib:
+            fail(f"include-এর উৎস shared.json-এ নেই: {key} (node {node['id']})")
+        if node.get("children"):
+            fail(f"include-node-এ নিজস্ব children থাকতে পারে না: {node['id']}")
+        kids = copy.deepcopy(lib[key])
+        for k in kids:
+            suffix(k, sfx)
+        node["children"] = kids
+        n += 1
+    return n
+
+
 def prepare(root):
-    """resolve_refs + attach_guidance: build ও test একই পথে root বানায়।"""
+    """expand_includes + resolve_refs + attach_guidance: build ও test একই পথে root বানায়।"""
+    expand_includes(root)
     refs = resolve_refs(root)
     attach_guidance(root)
     return refs

@@ -1,0 +1,489 @@
+{
+ "_নিয়ম": "এখানকার উপাদান একবারই লেখা। map.json-এর include-নোড এগুলোকে build-এর সময় প্রতিটা ধরনের (from-scratch, pretraining, fine-tuning) ভেতরে কপি করে বসায়। বদলাতে হলে শুধু এখানে বদলাও; কপি আলাদা করে ঠিক করার দরকার নেই।",
+ "training-components": [
+  {
+   "id": "target",
+   "name": "Target",
+   "definition": "কোনো training উদাহরণের জন্য কাঙ্ক্ষিত output।",
+   "insight": {
+    "fact": "Target-এ ভুল থাকলে model সেটিও শেখার চেষ্টা করতে পারে। তাই label-এর মান model-এর আকারের মতোই গুরুত্বপূর্ণ।"
+   },
+   "seq": "১",
+   "children": [
+    {
+     "id": "numerical-target",
+     "name": "Numerical Target",
+     "definition": "কাঙ্ক্ষিত output একটি সংখ্যা বা সংখ্যার vector; regression-এ ব্যবহার হয়।",
+     "insight": {
+      "fact": "বাড়ির দাম y=50 হলে model-এর prediction সেই একই unit-এ তুলনা করতে হবে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "class-label-one-hot-target",
+     "name": "Class Label ও One-hot Target",
+     "definition": "Class index একটি label; one-hot-এ সঠিক class-এর জায়গায় 1, অন্য জায়গায় 0।",
+     "insight": {
+      "fact": "তিন class-এ দ্বিতীয়টি সঠিক হলে t=[0,1,0]। Label-এর index বড় মানেই বেশি পরিমাণ নয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "soft-target",
+     "name": "Soft Target",
+     "definition": "একটি class-কে সম্পূর্ণ 1 না দিয়ে probability distribution target হিসেবে দেওয়া।",
+     "insight": {
+      "fact": "t=[0.1,0.8,0.1] একটি soft target। Teacher model বা label smoothing থেকে আসতে পারে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "sequence-target-loss-mask",
+     "name": "Sequence Target ও Loss Mask",
+     "definition": "Sequence-এর বিভিন্ন অবস্থানে target থাকে; loss mask বলে কোন অবস্থান loss-এ গণনা হবে।",
+     "insight": {
+      "fact": "Padding বা prompt-এর অংশ বাদ দেওয়া যেতে পারে; attention mask আর loss mask-এর কাজ আলাদা।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "feedback",
+   "name": "Feedback",
+   "definition": "Model-এর ফল বা কাজ সম্পর্কে শেখার উপযোগী তথ্য; যেমন target, preference বা reward।",
+   "insight": {
+    "fact": "সঠিক উত্তর, কোন উত্তর ভালো তার preference এবং reward—সব feedback, কিন্তু একই training objective তৈরি করে না।"
+   },
+   "seq": "২",
+   "children": [
+    {
+     "id": "output-correction",
+     "name": "সঠিক Output / Correction",
+     "definition": "সঠিক উত্তর দেওয়া হলে supervised target হিসেবে ব্যবহার করা যায়।",
+     "insight": {
+      "fact": "ভুল OCR text-এর সংশোধন দেওয়া নিজে RL নয়; corrected text দিয়ে SFT-ও করা যায়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "preference-pair",
+     "name": "Preference Pair",
+     "definition": "একই input-এর দুটি output-এর মধ্যে কোনটি ভালো সেই তথ্য।",
+     "insight": {
+      "fact": "ভালো output-এর exact probability দেওয়া হয় না; chosen/rejected তুলনা থেকে objective তৈরি হয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "reward-signal",
+     "name": "Reward Signal",
+     "definition": "Action বা output-এর কাম্যতার সংখ্যাভিত্তিক feedback।",
+     "insight": {
+      "fact": "Immediate reward ও বহু ধাপের মোট return আলাদা; reward পেয়ে শেখার algorithm-ও নির্দিষ্ট করতে হয়।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "objective",
+   "name": "Objective",
+   "definition": "Training-এ যে সংখ্যাভিত্তিক লক্ষ্য কমাতে বা বাড়াতে চাই।",
+   "insight": {
+    "fact": "Objective সবসময় শুধু prediction error নয়। জটিলতা কমানোর penalty-ও থাকতে পারে; তাই loss কমানোর লক্ষ্য কী, তা আগে দেখা দরকার।"
+   },
+   "seq": "৩",
+   "children": [
+    {
+     "id": "data-fit-objective",
+     "name": "Data-fit Objective",
+     "definition": "Observed target বা data-র সঙ্গে model কতটা মেলে, সেই লক্ষ্য।",
+     "insight": {
+      "fact": "Regression-এ squared error কমানো; probabilistic model-এ likelihood বাড়ানো হতে পারে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "regularized-objective",
+     "name": "Regularized Objective",
+     "definition": "Data fit-এর সঙ্গে parameters বা model-এর ওপর একটি পছন্দ যোগ করা।",
+     "mathDetail": {
+      "formula": "J(θ)=L_data(θ)+λR(θ)",
+      "meaning": "R: penalty; λ: penalty-এর গুরুত্ব; θ: model parameters।",
+      "example": "L_data=0.4,R=2,λ=0.1 হলে J=0.6। λ learning rate নয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "minimize-loss-maximize-return",
+     "name": "Minimize Loss / Maximize Return",
+     "definition": "সব learning objective minimization আকারে শুরু হয় না।",
+     "insight": {
+      "fact": "RL-এ expected return বাড়াতে চাই। Minimizing −J এবং maximizing J গাণিতিকভাবে একই লক্ষ্য প্রকাশ করতে পারে।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "loss",
+   "name": "Loss",
+   "definition": "Output ও target-এর অমিলের মতো training-এর খারাপ ফল মাপার রাশি; সাধারণত এটি কমানো হয়।",
+   "insight": {
+    "fact": "একটি ভুলের সংখ্যা জানানোর পাশাপাশি differentiable loss gradient বের করতে সাহায্য করে। মানুষের পছন্দের evaluation metric সবসময় সরাসরি train করা সহজ নয়।"
+   },
+   "seq": "৪",
+   "children": [
+    {
+     "id": "mse-squared-error",
+     "name": "MSE — squared error",
+     "definition": "Regression-এ বড় error-কে বেশি penalty দেওয়া।",
+     "mathDetail": {
+      "formula": "MSE=(1/N)Σᵢ(ŷᵢ−yᵢ)²",
+      "meaning": "N: উদাহরণ সংখ্যা; y: target; ŷ: prediction।",
+      "example": "Errors=[1,−3] → MSE=(1+9)/2=5। Half-MSE নিলে gradient-এর factor বদলায়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "mae-absolute-error",
+     "name": "MAE — absolute error",
+     "definition": "Regression-এ error-এর magnitude সরাসরি মাপা।",
+     "mathDetail": {
+      "formula": "MAE=(1/N)Σᵢ|ŷᵢ−yᵢ|",
+      "meaning": "| | হলো absolute value।",
+      "example": "Errors=[1,−3] → MAE=(1+3)/2=2। MSE-এর তুলনায় বড় error-এর প্রভাব কম; zero-তে derivative-এর বিশেষ নিয়ম লাগে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "loss--binary-cross-entropy",
+     "name": "Binary Cross-entropy",
+     "definition": "দুই class-এর সঠিক target-এ probability বাড়াতে শেখানো।",
+     "mathDetail": {
+      "formula": "L=−[y ln(p)+(1−y)ln(1−p)]",
+      "meaning": "y: 0 বা 1; p: class 1-এর probability estimate।",
+      "example": "y=1,p=0.8 → L≈0.2231। এটি threshold দিয়ে পাওয়া class label-এর ওপর হিসাব নয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "multiclass-cross-entropy",
+     "name": "Multiclass Cross-entropy",
+     "definition": "বহু class-এর probability distribution target-এর সঙ্গে মেলানো।",
+     "mathDetail": {
+      "formula": "L=−Σₖ tₖ ln(pₖ)",
+      "meaning": "t: target distribution; p: predicted distribution।",
+      "example": "t=[0,1,0],p=[0.1,0.7,0.2] → L=−ln(0.7)≈0.3567।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "reduction-sum-mean",
+     "name": "Reduction — sum না mean?",
+     "definition": "অনেক example/token-এর loss একত্র করার নিয়ম।",
+     "insight": {
+      "fact": "Sum ও mean-এর gradient scale আলাদা। Padding বাদ দিলে mean-এর denominator-এ বৈধ token সংখ্যা ব্যবহার হতে পারে।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "training--parameters",
+   "name": "Parameters",
+   "definition": "Model-এর শেখা অভ্যন্তরীণ মান; যেমন neural network-এর weight ও bias।",
+   "insight": {
+    "fact": "Inference-এ input বদলালে output বদলায়, অথচ শেখা parameters সাধারণত অপরিবর্তিত থাকে। নতুন উত্তর মানেই model আবার training করল—এমন নয়।"
+   },
+   "seq": "৫",
+   "children": [
+    {
+     "id": "training--parameters--trainable-parameters",
+     "name": "Trainable Parameters",
+     "definition": "যে parameters-এর মান এই training run-এ update করার জন্য নির্বাচন করা হয়েছে।",
+     "insight": {
+      "fact": "Full fine-tuning-এ অনেক parameter; head-only বা LoRA-তে নির্বাচিত অংশ শেখে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "training--parameters--frozen-parameters",
+     "name": "Frozen Parameters",
+     "definition": "মান update হয় না, তবে forward computation-এ ব্যবহৃত হতে পারে।",
+     "insight": {
+      "fact": "Frozen layer দিয়ে gradient আগের trainable অংশে পৌঁছানোর প্রয়োজন থাকতে পারে; freeze মানে computation বাতিল নয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "training--parameters--initialization",
+     "name": "Initialization",
+     "definition": "Training শুরুর parameters-এর মান নির্ধারণ।",
+     "insight": {
+      "fact": "সমান মানে সব hidden unit শুরু করলে symmetry সমস্যা হতে পারে; random initialization unit-গুলোকে আলাদা শেখার সুযোগ দেয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "training--parameters--parameter-hyperparameter",
+     "name": "Parameter বনাম Hyperparameter",
+     "definition": "Weights data থেকে শেখে; learning rate, layer count বা batch size training/configuration-এর পছন্দ।",
+     "insight": {
+      "fact": "Hyperparameter validation দিয়ে বাছা যায়; সাধারণ gradient update-এ সব hyperparameter নিজে শেখে না।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "parameter-update",
+   "name": "Parameter Update",
+   "definition": "Training-এর সময় parameters-এর মান পরিবর্তন করা।",
+   "insight": {
+    "fact": "একটি example-এর forward pass হলেই সঙ্গে সঙ্গে weights বদলাতে হবে না। অনেক example-এর gradient জমিয়েও update করা যায়।"
+   },
+   "seq": "৬",
+   "children": [
+    {
+     "id": "gradient-step",
+     "name": "একটি Gradient Step",
+     "definition": "Gradient থেকে parameters-এর নতুন মান পাওয়া।",
+     "mathDetail": {
+      "formula": "θ_new=θ_old−ηg",
+      "meaning": "g: পুরোনো θ-তে gradient; η: learning rate।",
+      "example": "θ=2,g=3,η=0.1 → θ_new=1.7। Loss কমবে কি না তা step size ও objective-এর ওপর নির্ভর করে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "batch-step-epoch",
+     "name": "Batch → Step → Epoch",
+     "definition": "Batch একবারে নেওয়া উদাহরণ; step সাধারণত optimizer update; epoch পুরো training dataset একবার ঘোরা।",
+     "insight": {
+      "fact": "100 উদাহরণ, batch 20, accumulation নেই → এক epoch-এ 5 update।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "gradient-accumulation",
+     "name": "Gradient Accumulation",
+     "definition": "ছোট micro-batch-এর gradient জমিয়ে পরে একটি optimizer step নেওয়া।",
+     "insight": {
+      "fact": "সমান মাপের 4 micro-batch-এর গড় gradient চাইলে সঠিক scaling দরকার। সব operation-এ এটি বড় batch-এর হুবহু সমতুল্য নয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "zero-grad-backward-step",
+     "name": "Zero Grad → Backward → Step",
+     "definition": "পুরোনো gradient পরিষ্কার, বর্তমান loss থেকে gradient হিসাব, তারপর update—একটি সাধারণ loop।",
+     "insight": {
+      "fact": "Backward gradient বের করে; optimizer step মান বদলায়। Accumulation করলে প্রতি micro-batch-এ zero করা হয় না।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "training--gradient",
+   "name": "Gradient",
+   "definition": "প্রতিটি parameter বদলালে objective স্থানীয়ভাবে কোন দিকে ও কত দ্রুত বদলায়, তার হিসাব।",
+   "insight": {
+    "fact": "Gradient loss-এর মান নয়; parameters বদলালে loss স্থানীয়ভাবে কীভাবে বদলায় তার নির্দেশ। বড় loss থাকলেও কোনো parameter-এর gradient ছোট হতে পারে।",
+    "history": "Rumelhart, Hinton ও Williams-এর ১৯৮৬ paper multilayer network-এ error backpropagation দিয়ে representation শেখানোর গুরুত্বপূর্ণ milestone। Gradient ধারণা অবশ্য calculus থেকে অনেক পুরোনো।",
+    "sources": [
+     {
+      "title": "Backpropagation, 1986",
+      "url": "https://doi.org/10.1038/323533a0"
+     }
+    ]
+   },
+   "seq": "৭",
+   "children": [
+    {
+     "id": "derivative",
+     "name": "Derivative — এক মানের পরিবর্তন",
+     "definition": "w একটু বাড়লে loss কোন দিকে কত দ্রুত বদলায় তা দেখা।",
+     "mathDetail": {
+      "formula": "L(w)=w² ⇒ dL/dw=2w",
+      "meaning": "Derivative হলো স্থানীয় পরিবর্তনের হার।",
+      "example": "w=3-এ derivative=6। এটি loss নয়; loss তখন 9।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "partial-derivative-gradient-vector",
+     "name": "Partial Derivative → Gradient Vector",
+     "definition": "বহু parameter-এর প্রভাব একসঙ্গে রাখা।",
+     "mathDetail": {
+      "formula": "L(w,b)=w²+3b²; ∇L=[2w,6b]",
+      "meaning": "Partial derivative-এ অন্য variable স্থির; gradient সব partial-এর vector।",
+      "example": "w=2,b=1 → gradient=[4,6]।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "chain-rule-backpropagation",
+     "name": "Chain Rule → Backpropagation",
+     "definition": "Network-এর শেষ loss থেকে আগের parameters-এর প্রভাব দক্ষভাবে হিসাব করা।",
+     "mathDetail": {
+      "formula": "∂L/∂w=(∂L/∂z)(∂z/∂w)",
+      "meaning": "z একটি মধ্যবর্তী হিসাব; একাধিক path থাকলে তাদের contribution যোগ হয়।",
+      "example": "z=wx,L=z²,x=2,w=1 → z=2; gradient=(2z)x=8।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "vanishing-exploding-gradient",
+     "name": "Vanishing / Exploding Gradient",
+     "definition": "বহু operation পেরিয়ে gradient অত্যন্ত ছোট বা বড় হতে পারে।",
+     "insight": {
+      "fact": "ছোট gradient learning ধীর করে; বড় gradient অস্থির করে। Activation, initialization, residual path ও clipping বিভিন্নভাবে সাহায্য করতে পারে।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "gradient-descent",
+   "name": "Gradient Descent",
+   "definition": "Objective কমাতে gradient-এর বিপরীত দিকে parameters অল্প করে বদলানোর পদ্ধতি।",
+   "insight": {
+    "fact": "এটি স্থানীয় ঢাল ব্যবহার করে; এক ধাপে পুরো landscape দেখে না। Step অতিরিক্ত বড় হলে loss কমার বদলে বেড়েও যেতে পারে।"
+   },
+   "seq": "৮",
+   "children": [
+    {
+     "id": "full-batch-gradient-descent",
+     "name": "Full-batch Gradient Descent",
+     "definition": "প্রতি update-এ পুরো training dataset-এর gradient ব্যবহার।",
+     "insight": {
+      "fact": "Gradient স্থিরতর হতে পারে, কিন্তু বড় dataset-এ প্রতিটি step ব্যয়বহুল।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "stochastic-gradient-descent",
+     "name": "Stochastic Gradient Descent",
+     "definition": "কঠোর অর্থে একটি random example-এর gradient দিয়ে update।",
+     "insight": {
+      "fact": "প্রচলিত কথায় mini-batch update-কেও SGD বলা হয়; context দেখে বুঝতে হয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "mini-batch-gradient-descent",
+     "name": "Mini-batch Gradient Descent",
+     "definition": "অল্প কয়েকটি example-এর গড় gradient দিয়ে update।",
+     "insight": {
+      "fact": "Compute efficiency ও gradient noise-এর মধ্যে ভারসাম্য; batch size বদলালে training আচরণ বদলায়।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "optimizer",
+   "name": "Optimizer",
+   "definition": "Gradient ব্যবহার করে parameters বদলানোর নিয়ম; SGD ও Adam পরিচিত উদাহরণ।",
+   "insight": {
+    "fact": "Gradient বলে স্থানীয় পরিবর্তনের দিক; optimizer নির্ধারণ করে কীভাবে সেই তথ্য দিয়ে step নেওয়া হবে।"
+   },
+   "seq": "৯",
+   "children": [
+    {
+     "id": "sgd-plain-update",
+     "name": "SGD — plain update",
+     "definition": "Gradient-এর বিপরীতে সরাসরি step নেওয়া।",
+     "mathDetail": {
+      "formula": "θₜ₊₁=θₜ−ηgₜ",
+      "meaning": "gₜ: বর্তমান batch-এর gradient।",
+      "example": "θ=1,g=0.5,η=0.1 → θ_new=0.95।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "momentum-gradient",
+     "name": "Momentum — gradient-এর স্মৃতি",
+     "definition": "পরপর gradient-এর দিক মিলিয়ে oscillation কমানো ও অগ্রগতি সাহায্য করা।",
+     "mathDetail": {
+      "formula": "vₜ=βvₜ₋₁+gₜ; θₜ₊₁=θₜ−ηvₜ",
+      "meaning": "v: জমা direction; β: আগের direction-এর গুরুত্ব। এটি momentum-এর একটি convention।",
+      "example": "v_old=1,g=2,β=0.9 → v=2.9। θ=3,η=0.1 → θ_new=2.71।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "adam-adaptive-update",
+     "name": "Adam — adaptive update",
+     "definition": "Gradient ও squared gradient-এর চলমান গড়, bias correction ও প্রতি parameter-এর scaling ব্যবহার করে।",
+     "insight": {
+      "fact": "প্রথম ধাপে চলমান গড় শূন্য থেকে শুরু হওয়ায় correction লাগে। এটি সব task-এ SGD-এর চেয়ে ভালো—এমন নিয়ম নেই।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "adamw-decoupled-weight-decay",
+     "name": "AdamW — decoupled weight decay",
+     "definition": "Adam update থেকে আলাদা করে weights-এর decay প্রয়োগ করে।",
+     "insight": {
+      "fact": "Adam-এ loss-এর L2 penalty আর decoupled weight decay সাধারণভাবে একই update নয়।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "learning-rate",
+   "name": "Learning Rate",
+   "definition": "Update-এর step কত বড় হবে তা নিয়ন্ত্রণ করে।",
+   "mathDetail": {
+    "formula": "θ_new = θ_old − η × gradient",
+    "meaning": "θ হলো parameter; η (eta) হলো learning rate।",
+    "example": "θ=2, gradient=4, η=0.1 হলে θ_new=1.6। খুব বড় step loss বাড়াতে পারে।"
+   },
+   "seq": "১০",
+   "children": [
+    {
+     "id": "constant-learning-rate",
+     "name": "Constant Learning Rate",
+     "definition": "পুরো নির্ধারিত সময় একই learning rate রাখা।",
+     "insight": {
+      "fact": "সহজ baseline; বেশি হলে unstable, খুব কম হলে শেখা ধীর হতে পারে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "learning-rate-decay",
+     "name": "Learning-rate Decay",
+     "definition": "Training এগোলে নির্দিষ্ট schedule অনুযায়ী learning rate কমানো।",
+     "insight": {
+      "fact": "Step বা cosine schedule ভিন্নভাবে rate বদলায়; schedule optimizer-এর বদলি নয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "warmup",
+     "name": "Warmup",
+     "definition": "শুরুতে ছোট learning rate থেকে ধীরে নির্ধারিত rate-এ ওঠা।",
+     "insight": {
+      "fact": "শুরুর update স্থিতিশীল করতে সাহায্য করতে পারে; পরে constant বা decay schedule আসতে পারে।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  }
+ ]
+}
