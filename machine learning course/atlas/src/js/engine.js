@@ -74,9 +74,29 @@ const AtlasEngine = (function () {
       const t = n.tool;
       return `${t.repo} · licence: ${t.license}${t.archived ? ' · ⚠ archived' : ''}`;
     }
-    function markdown(dateStr) {
+    /** বাছার বিরোধ ও নির্ভরতা (data/rules.json)। বিশুদ্ধ: শুধু কোন id বাছা তা দেখে।
+     *  @returns {{rule:string, kind:string, text:string, src:string, nodes:string[]}[]} */
+    function issues(rules) {
+      const out = [];
+      const has = (id) => selected.has(id);
+      for (const r of (rules && rules.rules) || []) {
+        if (!r.if.every(has)) continue;
+        if (r.kind === 'requires') {
+          if (r.anyOf.some(has)) continue;
+          out.push({ rule: r.id, kind: r.kind, text: r.text, src: r.src, nodes: r.if.slice() });
+        } else {
+          const hit = (r.with || []).filter(has);
+          if (!hit.length) continue;
+          out.push({ rule: r.id, kind: r.kind, text: r.text, src: r.src, nodes: r.if.concat(hit) });
+        }
+      }
+      return out;
+    }
+    function markdown(dateStr, rules) {
       const md = activeMode();
       const lines = ['# আমার পথ' + (md ? ': ' + short(md.node.name) : ''), '', `> ML Learning Atlas থেকে · ${dateStr} · ${selected.size}টা বাছাই`, ''];
+      const iss = issues(rules);
+      if (iss.length) { lines.push('## সতর্কতা ও বিরোধ'); for (const i of iss) lines.push(`- ${i.kind === 'conflict' ? '✗' : i.kind === 'requires' ? '!' : '⚠'} ${i.text} (${i.src})`); lines.push(''); }
       for (const g of groups()) {
         lines.push('## ' + (g.step ? g.step.node.name : 'পথের ধরন'));
         for (const r of g.items) {
@@ -90,7 +110,7 @@ const AtlasEngine = (function () {
       }
       return lines.join('\n');
     }
-    const plain = (dateStr) => markdown(dateStr).replace(/^#+ /gm, '').replace(/^> /gm, '');
+    const plain = (dateStr, rules) => markdown(dateStr, rules).replace(/^#+ /gm, '').replace(/^> /gm, '');
     function json(createdIso) {
       return JSON.stringify({
         version: 1, source: 'ML Learning Atlas', created: createdIso,
@@ -104,7 +124,7 @@ const AtlasEngine = (function () {
     }
     /** বাছা পথ থেকে framework-নিরপেক্ষ pseudo-code। spec = data/pseudo.json।
      *  বিকল্পের লেখা তার সিদ্ধান্তের slot-এ বসে; অবাছা slot দেখায় ‹? …› চিহ্নে। */
-    function pseudo(spec) {
+    function pseudo(spec, rules) {
       const mode = activeMode();
       if (!mode) return spec.noMode.join('\n');
       const tmpl = spec.templates[mode.node.id];
@@ -137,11 +157,17 @@ const AtlasEngine = (function () {
         }
         out.push(line.replace(/\{\{(\w+)\}\}/g, (_, s) => (vals[s] ? vals[s].join(joinOf(s)) : `‹? ${(spec.labels && spec.labels[s]) || s}›`)));
       }
+      const iss = issues(rules);
+      if (iss.length) {
+        const note = ['# সতর্কতা ও বিরোধ (বাছাইয়ে মিলছে না):'].concat(iss.map((i) => `#   ${i.kind === 'conflict' ? '✗' : i.kind === 'requires' ? '!' : '⚠'} ${i.text}`));
+        const at = out.indexOf('');
+        out.splice(at < 0 ? out.length : at, 0, ...note);
+      }
       return out.join('\n');
     }
     const link = (base) => base.split('#')[0] + '#plan=' + [...selected].join(',');
     return { set: selected, has: (id) => selected.has(id), size: () => selected.size, ids: () => [...selected], toggle, setFrom, clear, removeWithDesc,
-      ancestors, stepOf, pathNames, ordered, activeMode, stepStat, pending, groups, toolLine, markdown, plain, json, link, pseudo };
+      ancestors, stepOf, pathNames, ordered, activeMode, stepStat, pending, groups, toolLine, markdown, plain, json, link, pseudo, issues };
   }
 
   /** DOM ছাড়া গাছ থেকে records/byId বানায় (test-এর জন্য)। app.js নিজের record বানায়, একই আকারে। */

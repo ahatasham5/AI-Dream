@@ -211,3 +211,64 @@ test('pseudo: শূন্য-থেকের নকল (-sc) সিদ্ধা
   assert.match(t, /metrics = accuracy/);
   assert.match(t, /precision = mixed/);
 });
+
+// ---------- বিরোধ ও নির্ভরতা ----------
+const rules = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'rules.json'), 'utf8'));
+const issueIds = (m) => m.plan.issues(rules).map((i) => i.rule);
+
+test('rules: কিছু না বাছলে কোনো সতর্কতা নেই', () => { assert.deepEqual(issueIds(fresh()), []); });
+
+test('rules: merge + merge-হয়-না adapter = বিরোধ; আলাদা adapter বাছলে মিটে যায়', () => {
+  const m = fresh();
+  m.plan.toggle('opt-deploy-merge'); m.plan.toggle('adapter-layer');
+  const i = m.plan.issues(rules).find((x) => x.rule === 'merge-vs-nonmergeable');
+  assert.ok(i && i.kind === 'conflict');
+  assert.ok(i.nodes.includes('opt-deploy-merge') && i.nodes.includes('adapter-layer'));
+  m.plan.toggle('opt-deploy-adapter');           // pick:one → merge বাদ
+  assert.ok(!issueIds(m).includes('merge-vs-nonmergeable'));
+});
+
+test('rules: QLoRA + merge = সতর্কতা (দ্বিতীয় rounding)', () => {
+  const m = fresh(); m.plan.toggle('qlora'); m.plan.toggle('opt-deploy-merge');
+  assert.ok(issueIds(m).includes('merge-on-quantized'));
+  const m2 = fresh(); m2.plan.toggle('lora-low-rank-update'); m2.plan.toggle('opt-deploy-merge');
+  assert.ok(!issueIds(m2).includes('merge-on-quantized'), 'সাধারণ LoRA-তে এই সতর্কতা নয়');
+});
+
+test('rules: সংকেত ও data-ছাঁচের মিল (SFT, CPT, preference)', () => {
+  const m = fresh(); m.plan.toggle('preference-optimization');
+  assert.ok(issueIds(m).includes('pref-needs-pairs'));
+  m.plan.toggle('opt-fmt-pref'); assert.ok(!issueIds(m).includes('pref-needs-pairs'));
+  const a = fresh(); a.plan.toggle('supervised-fine-tuning-sft'); assert.ok(issueIds(a).includes('sft-needs-pairs'));
+  a.plan.toggle('opt-fmt-chat'); assert.ok(!issueIds(a).includes('sft-needs-pairs'));
+  const c = fresh(); c.plan.toggle('continued-pretraining'); assert.ok(issueIds(c).includes('cpt-needs-text'));
+  c.plan.toggle('opt-fmt-text'); assert.ok(!issueIds(c).includes('cpt-needs-text'));
+  const t = fresh(); t.plan.toggle('opt-fmt-text'); assert.ok(issueIds(t).includes('raw-text-needs-cpt'));
+});
+
+test('rules: learning rate ও পদ্ধতির অমিল, GGUF ও engine', () => {
+  const m = fresh(); m.plan.toggle('full-fine-tuning'); m.plan.toggle('opt-lr-lora');
+  assert.ok(issueIds(m).includes('lora-lr-on-full'));
+  const n = fresh(); n.plan.toggle('lora-low-rank-update'); n.plan.toggle('opt-lr-full');
+  assert.ok(issueIds(n).includes('full-lr-on-peft'));
+  const g = fresh(); g.plan.toggle('opt-gguf'); assert.ok(issueIds(g).includes('gguf-needs-llamacpp'));
+  g.plan.toggle('tool-ollama'); assert.ok(!issueIds(g).includes('gguf-needs-llamacpp'));
+});
+
+test('rules: সতর্কতা pseudo-code ও markdown-এ আসে, না থাকলে আসে না', () => {
+  const m = fresh();
+  for (const id of ['mode-finetune', 'opt-deploy-merge', 'soft-prompt-prefix']) m.plan.toggle(id);
+  assert.match(m.plan.pseudo(spec, rules), /# সতর্কতা ও বিরোধ/);
+  assert.match(m.plan.markdown('2026-01-01', rules), /## সতর্কতা ও বিরোধ/);
+  const clean = fresh(); clean.plan.toggle('mode-finetune');
+  assert.ok(!clean.plan.pseudo(spec, rules).includes('সতর্কতা ও বিরোধ'));
+});
+
+test('rules: এলোমেলো ক্লিকে সতর্কতা শুধু বাছা node নিয়ে, আর কখনো ভাঙে না', () => {
+  const m = fresh(), rnd = rng(77);
+  const pool = m.records.filter((r) => E.SELECTABLE.has(r.node.kind)).map((r) => r.node.id);
+  for (let i = 0; i < 4000; i++) {
+    m.plan.toggle(pool[Math.floor(rnd() * pool.length)]);
+    if (i % 40 === 0) for (const x of m.plan.issues(rules)) for (const id of x.nodes) assert.ok(m.plan.has(id), `${x.rule}: ${id} বাছা নয়`);
+  }
+});

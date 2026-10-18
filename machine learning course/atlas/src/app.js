@@ -569,11 +569,11 @@ const SELECTABLE = AtlasEngine.SELECTABLE;
 const selected = plan.set;
 const { stepOf, pathNames, activeMode, stepStat, toolLine } = plan;
 const orderedSel = plan.ordered, pendingDecisions = plan.pending, planGroups = plan.groups;
-const planMarkdown = () => plan.markdown(new Date().toISOString().slice(0, 10));
-const planPlain = () => plan.plain(new Date().toISOString().slice(0, 10));
+const planMarkdown = () => plan.markdown(new Date().toISOString().slice(0, 10), cfg.rules);
+const planPlain = () => plan.plain(new Date().toISOString().slice(0, 10), cfg.rules);
 const planJSON = () => plan.json(new Date().toISOString());
 const planLink = () => plan.link(location.href);
-const planPseudo = () => plan.pseudo(cfg.pseudo);
+const planPseudo = () => plan.pseudo(cfg.pseudo, cfg.rules);
 const BASIS = { course: 'কোর্সে আছে', paper: 'paper থেকে মেলানো', experience: 'অভিজ্ঞতা-ভিত্তিক, নিয়ম নয়', 'tool-doc': 'tool-এর docs বা README থেকে' };
 function decorateKind(r, row, button) {
   const n = r.node;
@@ -680,6 +680,20 @@ function renderPlan() {
   const mk = (label, fn) => { const b = el('button', 'control', label); b.type = 'button'; b.onclick = () => copyText(fn(), b); acts.append(b); };
   mk('Pseudo-code কপি', planPseudo); mk('Markdown কপি', planMarkdown); mk('JSON কপি', planJSON); mk('লেখা কপি', planPlain); mk('লিংক কপি', planLink);
   box.append(acts);
+  const iss = plan.issues(cfg.rules);
+  if (iss.length) {
+    const sec = el('section', 'issues');
+    sec.append(el('h3', '', 'সতর্কতা ও বিরোধ (' + iss.length.toLocaleString('bn-BD') + ')'));
+    for (const i of iss) {
+      const card = el('div', 'issue ' + i.kind);
+      card.append(el('span', 'ik', i.kind === 'conflict' ? '✗ বিরোধ' : i.kind === 'requires' ? '! দরকার' : '⚠ সতর্কতা'), el('p', '', i.text));
+      const row = el('div', 'inodes');
+      for (const id of i.nodes) { const r = byId.get(id); if (!r) continue; const b = el('button', 'pending', short(r.node.name)); b.type = 'button'; b.onclick = () => openNode(id, { reveal: true }); row.append(b); }
+      row.append(el('span', 'isrc', i.src));
+      card.append(row); sec.append(card);
+    }
+    box.append(sec);
+  }
   const det = el('details', 'pseudo'); det.open = true;
   det.append(el('summary', '', 'Pseudo-code দেখো (বাছা পথ থেকে)'));
   const pre = el('pre', 'pseudo-pre', planPseudo()); pre.tabIndex = 0;

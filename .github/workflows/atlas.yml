@@ -41,3 +41,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 "machine learning course/atlas/verify_tools.py"
+      - name: বাইরের লিংক জীবিত কি না
+        run: python3 "machine learning course/atlas/verify_links.py"

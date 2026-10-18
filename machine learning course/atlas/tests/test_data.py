@@ -139,6 +139,38 @@ class PseudoSpec(unittest.TestCase):
         self.assertEqual(missing, [], "pseudo-code-এ বসে না এমন সিদ্ধান্ত")
 
 
+class Rules(unittest.TestCase):
+    def test_rules_are_grounded_and_point_to_real_nodes(self):
+        ids = {n["id"] for n in NODES}
+        seen = set()
+        for r in load("rules.json")["rules"]:
+            self.assertNotIn(r["id"], seen); seen.add(r["id"])
+            self.assertIn(r["kind"], {"conflict", "warn", "requires"})
+            self.assertTrue(r["src"] and r["text"], r["id"])
+            for i in r["if"] + r.get("with", []) + r.get("anyOf", []):
+                self.assertIn(i, ids, f"{r['id']}: {i}")
+            self.assertTrue(r.get("path") or r.get("url"), f"{r['id']}: সূত্রের পাঠ-ফাইল বা লিংক নেই")
+            if r.get("path"):
+                self.assertTrue((HERE.parent / r["path"]).exists(), r["path"])
+            if r.get("url"):
+                self.assertTrue(r["url"].startswith("https://"))
+
+    def test_conflicts_never_contradict_pick_one(self):
+        """একই pick:one সিদ্ধান্তের দুই ভাইয়ের মধ্যে conflict-নিয়ম বানানো অর্থহীন (আগেই আটকায়)।"""
+        parent = {}
+        for n in NODES:
+            for c in n.get("children") or []:
+                parent[c["id"]] = n
+        for r in load("rules.json")["rules"]:
+            if r["kind"] == "requires":
+                continue
+            for a in r["if"]:
+                for b in r["with"]:
+                    pa, pb = parent.get(a), parent.get(b)
+                    same = pa is pb and pa and pa.get("kind") == "decision" and pa.get("pick") == "one"
+                    self.assertFalse(same, f"{r['id']}: {a} ও {b} একই one-সিদ্ধান্তে")
+
+
 class Aliases(unittest.TestCase):
     def test_aliases_point_to_existing_nodes_and_old_ids_are_gone(self):
         ids = {n["id"] for n in NODES}

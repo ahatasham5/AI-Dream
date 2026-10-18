@@ -32,6 +32,7 @@ PRACTICE = HERE / "data" / "practice.json"
 GUIDANCE = HERE / "data" / "guidance.json"
 ALIASES = HERE / "data" / "aliases.json"
 PSEUDO = HERE / "data" / "pseudo.json"
+RULES = HERE / "data" / "rules.json"
 SRC = HERE / "src"
 DIST = HERE / "dist"
 MAX_LESSONS = 3
@@ -465,7 +466,23 @@ def main():
             for s_ in re.findall(r"\{\{(\w+)\}\}", ln):
                 if s_ not in pseudo["labels"]:
                     fail(f"pseudo-ছাঁচে label-হীন slot: {s_}")
-    cfg = {"lessonLinks": not args.no_lesson_links, "path": PATH_OUT, "aliases": aliases, "pseudo": pseudo}
+    rules = json.loads(RULES.read_text(encoding="utf-8"))
+    for r in rules["rules"]:
+        if r["kind"] not in ("conflict", "warn", "requires"):
+            fail(f"নিয়মের kind অচেনা: {r['id']}")
+        if not (r.get("src") and r.get("text")):
+            fail(f"নিয়মে সূত্র বা লেখা নেই: {r['id']}")
+        rule_ids = r["if"] + r.get("with", []) + r.get("anyOf", [])
+        for i in rule_ids:
+            if i not in ids_now:
+                fail(f"নিয়ম '{r['id']}'-এ অজানা id: {i}")
+        if r["kind"] == "requires" and not r.get("anyOf"):
+            fail(f"requires-নিয়মে anyOf নেই: {r['id']}")
+        if r["kind"] != "requires" and not r.get("with"):
+            fail(f"{r['kind']}-নিয়মে with নেই: {r['id']}")
+        if r.get("path") and not (ROOT / r["path"]).exists():
+            fail(f"নিয়মের পাঠ-ফাইল নেই: {r['path']}")
+    cfg = {"lessonLinks": not args.no_lesson_links, "path": PATH_OUT, "aliases": aliases, "pseudo": pseudo, "rules": rules}
     page = (SRC / "template.html").read_text(encoding="utf-8")
     for key, val in {
         "__CSS__": (SRC / "style.css").read_text(encoding="utf-8"),
