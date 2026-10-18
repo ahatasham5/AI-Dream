@@ -220,6 +220,39 @@ class OptionQuality(unittest.TestCase):
                 self.assertIsInstance(t.get("archived", False), bool)
 
 
+class Definitions(unittest.TestCase):
+    """সংজ্ঞা শুধু "কী" বলবে: ফাঁকা নয়, ঠাসা নয়, আর কোর্স/মডিউলের লেবেল বা মানচিত্রের নিজের কথা নয়।"""
+    BANNED = re.compile(r"কোর্সে আছে|Module\s*\d|Lecture|মডিউল|লেকচার|এই মানচিত্র")
+
+    def own(self):
+        # ref-ওয়ালা node অন্যের লেখা ধার নেয়; stepref শুধু "ধাপে যাও" বোতাম
+        return [n for n in NODES if not n.get("ref") and n.get("kind") != "stepref"]
+
+    def test_every_own_definition_is_present_and_bengali(self):
+        for n in self.own():
+            d = (n.get("definition") or "").strip()
+            self.assertTrue(d, n["id"])
+            self.assertTrue(re.search(r"[\u0980-\u09FF]", d), f"বাংলা নেই: {n['id']}")
+
+    def test_definition_length_within_bounds(self):
+        for n in self.own():
+            self.assertTrue(60 <= len((n.get("definition") or "").strip()) <= 450,
+                            f"{n['id']}: {len(n.get('definition') or '')} অক্ষর")
+
+    def test_no_course_or_map_self_reference(self):
+        for n in NODES:
+            m = self.BANNED.search(n.get("definition") or "")
+            self.assertIsNone(m, f"{n['id']}: নিষিদ্ধ লেখা '{m and m.group()}'")
+
+    def test_copies_share_the_base_definition(self):
+        """শূন্য-থেকে-train পথের নকল (-sc) ভিত্তি node-এর লেখাই দেখায়: একটাই সত্য-উৎস।"""
+        by_id = {n["id"]: n for n in NODES}
+        for n in NODES:
+            base = by_id.get(n["id"][:-3]) if n["id"].endswith("-sc") else None
+            if base and base.get("definition") and not n.get("ref"):
+                self.assertEqual(n.get("definition"), base["definition"], n["id"])
+
+
 if __name__ == "__main__":
     unittest.main()
 
