@@ -90,11 +90,7 @@ input[type=search]:focus{border-color:var(--accent);outline:0;box-shadow:0 0 0 3
 .subbar{max-width:1500px;margin:0 auto;padding:0 24px 14px;display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap}
 #views{flex:none}
 #path-count{font:12px system-ui;opacity:.7;margin-inline-start:4px}
-#jump{display:flex;gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}
-#jump::-webkit-scrollbar{display:none}
-#jump button{flex:none;border:0;background:transparent;color:var(--muted);border-radius:8px;padding:6px 10px;font-size:13px;white-space:nowrap}
-#jump button:hover{background:var(--hover);color:var(--ink)}
-body.path-mode .map,body.path-mode #jump{display:none}
+body.path-mode .map{display:none}
 
 main{max-width:1500px;margin:0 auto;padding:0 24px 30px}
 .layout{display:block}
@@ -407,7 +403,6 @@ details.pend>summary:hover{color:var(--ink)}
     <button type="button" role="tab" id="view-tree" aria-selected="true">গাছ</button>
     <button type="button" role="tab" id="view-path" aria-selected="false">গল্পের পথ <span id="path-count"></span></button>
   </div>
-  <nav id="jump" aria-label="শাখায় যাও"></nav>
 </div>
 <main>
   <div class="layout">
@@ -1055,23 +1050,6 @@ document.addEventListener('keydown', (e) => {
   if (e.key === '/' && !modal.open && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) { e.preventDefault(); search.focus(); }
 });
 
-/* ---------- শাখায় লাফানো ---------- */
-function buildJump(rootRec) {
-  const nav = $('#jump');
-  for (const c of rootRec.children) {
-    const b = el('button', '', c.node.name.split(' — ')[0]);
-    b.type = 'button';
-    b.title = c.node.name;
-    b.onclick = () => {
-      clearSearch();
-      setOpen(c, true);
-      c.li.scrollIntoView({ block: 'start' });
-      c.term.focus();
-    };
-    nav.append(b);
-  }
-}
-
 /* ---------- dialog-এর বোতাম ---------- */
 $('#close').onclick = () => modal.close();
 modal.addEventListener('click', (e) => {
@@ -1546,7 +1524,6 @@ function renderPick(node, box) {
 const ALIAS = cfg.aliases || {};
 const resolveId = (id) => (byId.has(id) ? id : (ALIAS[id] && byId.has(ALIAS[id]) ? ALIAS[id] : id));
 const root = build(data, tree, 0, []);
-buildJump(root);
 {
   let ids = [];
   const shared = location.hash.startsWith('#plan=');

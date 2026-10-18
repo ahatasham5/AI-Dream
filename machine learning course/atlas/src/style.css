@@ -76,11 +76,7 @@ input[type=search]:focus{border-color:var(--accent);outline:0;box-shadow:0 0 0 3
 .subbar{max-width:1500px;margin:0 auto;padding:0 24px 14px;display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap}
 #views{flex:none}
 #path-count{font:12px system-ui;opacity:.7;margin-inline-start:4px}
-#jump{display:flex;gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}
-#jump::-webkit-scrollbar{display:none}
-#jump button{flex:none;border:0;background:transparent;color:var(--muted);border-radius:8px;padding:6px 10px;font-size:13px;white-space:nowrap}
-#jump button:hover{background:var(--hover);color:var(--ink)}
-body.path-mode .map,body.path-mode #jump{display:none}
+body.path-mode .map{display:none}
 
 main{max-width:1500px;margin:0 auto;padding:0 24px 30px}
 .layout{display:block}

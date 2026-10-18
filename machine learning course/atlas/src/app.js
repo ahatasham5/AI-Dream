@@ -406,23 +406,6 @@ document.addEventListener('keydown', (e) => {
   if (e.key === '/' && !modal.open && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) { e.preventDefault(); search.focus(); }
 });
 
-/* ---------- শাখায় লাফানো ---------- */
-function buildJump(rootRec) {
-  const nav = $('#jump');
-  for (const c of rootRec.children) {
-    const b = el('button', '', c.node.name.split(' — ')[0]);
-    b.type = 'button';
-    b.title = c.node.name;
-    b.onclick = () => {
-      clearSearch();
-      setOpen(c, true);
-      c.li.scrollIntoView({ block: 'start' });
-      c.term.focus();
-    };
-    nav.append(b);
-  }
-}
-
 /* ---------- dialog-এর বোতাম ---------- */
 $('#close').onclick = () => modal.close();
 modal.addEventListener('click', (e) => {
@@ -897,7 +880,6 @@ function renderPick(node, box) {
 const ALIAS = cfg.aliases || {};
 const resolveId = (id) => (byId.has(id) ? id : (ALIAS[id] && byId.has(ALIAS[id]) ? ALIAS[id] : id));
 const root = build(data, tree, 0, []);
-buildJump(root);
 {
   let ids = [];
   const shared = location.hash.startsWith('#plan=');
