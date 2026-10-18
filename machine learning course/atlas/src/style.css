@@ -365,3 +365,56 @@ details.pend>summary:hover{color:var(--ink)}
   header .controls,.topbar,.skip,footer,#plan,.selbtn,#plan-toggle,#startbar,#pathbar{display:none!important}
   body{background:#fff;color:#000}.map{box-shadow:none;border:0}.pblock,.issue{break-inside:avoid}
 }
+
+/* ---------- তুলনা ---------- */
+.cmpbtn{margin-inline-start:auto;height:26px;padding:0 10px;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap;opacity:0;transition:opacity .12s}
+.row:hover .cmpbtn,.row:focus-within .cmpbtn,.cmpbtn:focus-visible{opacity:1}
+.cmpbtn:hover{background:var(--soft);color:var(--accent);border-color:var(--hover-line)}
+.cmpbtn+.selbtn{margin-inline-start:0}
+@media(hover:none){.cmpbtn{opacity:.85}}
+#cmp-entry{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+#cmp-entry:empty{display:none}
+#compare{width:min(1180px,calc(100% - 24px));max-width:none;max-height:92dvh;padding:0;overflow:hidden}
+#compare[open]{display:flex;flex-direction:column}
+.cmp-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:18px 24px 10px}
+.cmp-top h2{margin:2px 0 0;font-size:22px;line-height:1.5}
+.cmp-top p{margin:2px 0 0;color:var(--muted);font-size:13px;line-height:1.6}
+.cmp-actions{display:flex;gap:6px;flex:none}
+.cmp-pick{display:flex;flex-wrap:wrap;gap:6px;padding:0 24px 10px}
+.cmp-chip{height:30px;padding:0 12px;border:1px solid var(--btn-line);background:transparent;color:var(--muted);border-radius:99px;font-size:13px;text-align:start}
+.cmp-chip:hover{background:var(--hover);color:var(--ink)}
+.cmp-chip.on{background:var(--soft);border-color:var(--accent);color:var(--accent);font-weight:650}
+.cmp-chip[aria-disabled=true]{opacity:.45;cursor:not-allowed}
+.cmp-tools{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:6px 24px 10px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+.cmp-tools label{display:inline-flex;align-items:center;gap:7px;cursor:pointer;color:var(--ink)}
+.cmp-tools input{width:16px;height:16px;padding:0;accent-color:var(--accent)}
+.cmp-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+.cmp-empty{margin:0;padding:34px 24px;color:var(--muted);line-height:1.8}
+.cmp-table{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max(100%,calc(140px + var(--n) * 270px))}
+.cmp-table th,.cmp-table td{padding:12px 16px;vertical-align:top;text-align:start;border-bottom:1px solid var(--line);font-size:14.5px;line-height:1.75;overflow-wrap:anywhere}
+.cmp-table thead th{position:sticky;top:0;z-index:3;background:var(--dlg);border-bottom:1px solid var(--btn-line)}
+.cmp-table th.corner,.cmp-table th.rl{position:sticky;left:0;width:140px;background:var(--dlg);z-index:2}
+.cmp-table thead th.corner{z-index:4}
+.cmp-table th.rl{font-size:12.5px;font-weight:650;color:var(--muted);line-height:1.6;border-inline-end:1px solid var(--line)}
+.cmp-table tr.grp th{position:static;background:var(--chip);color:var(--accent);font:650 11.5px system-ui;letter-spacing:.06em;padding:7px 16px}
+.cmp-table tr.same td{color:var(--muted)}
+.same-tag{display:block;margin-top:3px;font:600 10.5px system-ui;letter-spacing:.02em;color:var(--muted);opacity:.8}
+.cmp-colhead{display:grid;gap:8px}
+.cmp-colhead strong{font-size:16px;line-height:1.5}
+.cmp-colhead .kchip{justify-self:start;margin:0}
+.cmp-colacts{display:flex;flex-wrap:wrap;gap:6px}
+.cmp-text{margin:0}
+.cmp-list{margin:0;padding-left:18px;list-style:disc}
+.cmp-list li{padding:1px 0}.cmp-list li:before,.cmp-list li:after{display:none}
+.cmp-code{margin:0;padding:10px 12px;border-radius:10px;background:var(--code-bg);color:var(--code-ink);border:1px solid var(--code-line);font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+.cmp-table td .none{color:var(--muted);opacity:.55}
+#compare a{display:inline;padding:0;font-size:inherit}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:650px){
+  #compare{width:calc(100% - 12px);max-height:94dvh}
+  .cmp-top,.cmp-pick,.cmp-tools{padding-left:14px;padding-right:14px}
+  .cmp-table{width:max(100%,calc(96px + var(--n) * 240px))}
+  .cmp-table th,.cmp-table td{padding:10px 12px}
+  .cmp-table th.corner,.cmp-table th.rl{width:96px}
+}
+@media print{.cmpbtn,#cmp-entry,#compare{display:none!important}}

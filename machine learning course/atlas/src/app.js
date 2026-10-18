@@ -10,6 +10,7 @@ const records = [];          // সব node, গাছের ক্রমে
 const byId = new Map();      // id → record
 const byName = new Map();    // নাম → [record] (একই নাম একাধিক জায়গায় থাকতে পারে)
 let seq = 0;
+let cmpReturn = null;        // node-dialog বন্ধ হলে তুলনায় ফেরার তথ্য { parent, ids }
 
 function el(tag, cls, text) {
   const e = document.createElement(tag);
@@ -72,6 +73,14 @@ function build(node, parent, depth, trail) {
     indicator.setAttribute('aria-controls', ul.id);
     li.append(ul);
     r.children = node.children.map((n) => build(n, ul, depth + 1, [...trail, r]));
+    const kids = AtlasCompare.groupOf(r);
+    if (kids.length) {
+      const cb = el('button', 'cmpbtn', '⇄ তুলনা');
+      cb.type = 'button'; cb.title = 'ভেতরের ' + kids.length.toLocaleString('bn-BD') + 'টা পাশাপাশি তুলনা করো';
+      cb.setAttribute('aria-label', short(node.name) + '-এর ভেতরের ' + kids.length.toLocaleString('bn-BD') + 'টা তুলনা করো');
+      cb.onclick = (e) => { e.stopPropagation(); openCompare(r); };
+      row.insertBefore(cb, r.selBtn || null);
+    }
     indicator.onclick = () => setOpen(r, r.list.hidden);
     setOpen(r, depth === 0);
   }
@@ -350,6 +359,7 @@ function openNode(id, opts) {
   renderPathBar(id);
   modal.dataset.nodeId = id;
   renderPick(r.node, $('#pick'));
+  renderCmpEntry(r);
   renderStory(r.node, $('#story'));
   renderChoose(r.node, $('#choose'));
   renderPractice(r.node, $('#practice'));
@@ -373,9 +383,11 @@ function setHash(h) {
 modal.addEventListener('close', () => {
   document.title = BASE_TITLE;
   renderPath();
-  if (location.hash) setHash('');
+  if (cmpReturn) { const back = cmpReturn; cmpReturn = null; openCompare(byId.get(back.parent), back.ids); return; }
+  if (location.hash && !location.hash.startsWith('#cmp=')) setHash('');   // তুলনা খোলার সময় এই event দেরিতে আসে; তার hash মুছো না
 });
 window.addEventListener('hashchange', () => {
+  if (location.hash.startsWith('#cmp=')) { openCompareFromHash(); return; }
   if (location.hash.startsWith('#plan=')) { setSelFrom(location.hash.slice(6).split(',').filter(Boolean).map(resolveId)); saveSel(); refreshSel(); openPlan(true); return; }
   const id = resolveId(decodeURIComponent(location.hash.slice(1)));
   if (id && byId.has(id)) openNode(id, { hash: false });
@@ -560,7 +572,7 @@ const planLink = () => plan.link(location.href);
 const planPseudo = () => plan.pseudo(cfg.pseudo, cfg.rules);
 let clearArmed = false, planTab = 'path';
 let prevIds = [], prevDismissed = false;   // আগের সেশনের পথ: নিজে বসে না, শুধু ফিরিয়ে আনার প্রস্তাব
-const BASIS = { course: 'কোর্সে আছে', paper: 'paper থেকে মেলানো', experience: 'অভিজ্ঞতা-ভিত্তিক, নিয়ম নয়', 'tool-doc': 'tool-এর docs বা README থেকে' };
+const BASIS = AtlasCompare.BASIS;
 function decorateKind(r, row, button) {
   const n = r.node;
   if (!n.kind) return;
@@ -881,6 +893,125 @@ function renderPick(node, box) {
   }
   box.append(wrap);
 }
+/* ---------- তুলনা: একই parent-এর ভাইদের পাশাপাশি ---------- */
+const cmpDlg = $('#compare');
+const cmp = { parent: null, peers: [], sel: [] };   // sel: বাছা record, গাছের ক্রমে
+const bn = (n) => n.toLocaleString('bn-BD');
+const cmpHash = () => '#cmp=' + cmp.sel.map((r) => r.node.id).join(',');
+// parentRec-এর ভেতরের ভাইদের তুলনা। pickIds থাকলে ওগুলো আগে বাছা; অবৈধ হলে বর্তমান থেকে শুরুর ৪টা
+function openCompare(parentRec, pickIds) {
+  const peers = AtlasCompare.groupOf(parentRec);
+  if (!peers.length) return;
+  cmpReturn = null;
+  let sel = pickIds ? peers.filter((r) => pickIds.includes(r.node.id)) : [];
+  if (!AtlasCompare.validSelection(sel)) sel = AtlasCompare.initialPick(peers, pickIds && pickIds[0]);
+  cmp.parent = parentRec; cmp.peers = peers; cmp.sel = sel;
+  if (modal.open) modal.close();
+  renderCompare();
+  if (!cmpDlg.open) cmpDlg.showModal();
+  setHash(cmpHash());
+}
+function openCompareFromHash() {
+  const recs = location.hash.slice(5).split(',').filter(Boolean).map((id) => byId.get(resolveId(id))).filter(Boolean);
+  if (recs.length && recs[0].parent) openCompare(recs[0].parent, recs.map((r) => r.node.id));
+}
+function renderCmpEntry(r) {
+  const box = $('#cmp-entry');
+  box.replaceChildren();
+  const add = (label, fn) => { const b = el('button', 'btn sm', '⇄ ' + label); b.type = 'button'; b.onclick = fn; box.append(b); };
+  const sib = AtlasCompare.peersOf(r);
+  if (sib.length) add('ভাইদের সাথে তুলনা (' + bn(sib.length) + 'টা)', () => openCompare(r.parent, [r.node.id]));
+  const kids = AtlasCompare.groupOf(r);
+  if (kids.length) add('ভেতরের ' + bn(kids.length) + 'টা তুলনা করো', () => openCompare(r));
+}
+function cmpCell(type, v) {
+  const td = el('td');
+  if (v == null) { td.append(el('span', 'none', '—')); return td; }
+  if (type === 'code') td.append(el('pre', 'cmp-code', v));
+  else if (type === 'list') { const ul = el('ul', 'cmp-list'); for (const x of v) ul.append(el('li', '', x)); td.append(ul); }
+  else if (type === 'link') { const a = el('a', '', v.replace(/^https:\/\//, '')); a.href = v; a.target = '_blank'; a.rel = 'noopener noreferrer'; td.append(a); }
+  else if (type === 'tag') td.append(el('span', 'kchip basis', v));
+  else td.append(el('p', 'cmp-text', v));
+  return td;
+}
+function renderCompare() {
+  const { parent, peers, sel } = cmp;
+  const act = document.activeElement, keep = act && act.dataset ? act.dataset.cmpFocus : null;
+  $('#cmp-title').textContent = short(parent.node.name) + ': পাশাপাশি তুলনা';
+  $('#cmp-sub').textContent = bn(peers.length) + 'টা বিকল্পের মধ্যে ' + bn(sel.length) + 'টা বাছা আছে। ' + bn(AtlasCompare.MIN) + ' থেকে ' + bn(AtlasCompare.MAX) + 'টা একসাথে চলে।';
+  const pick = $('#cmp-pick');
+  pick.replaceChildren();
+  for (const r of peers) {
+    const on = sel.includes(r);
+    const locked = on ? sel.length <= AtlasCompare.MIN : sel.length >= AtlasCompare.MAX;
+    const b = el('button', 'cmp-chip' + (on ? ' on' : ''), (on ? '✓ ' : '') + short(r.node.name));
+    b.type = 'button'; b.dataset.cmpFocus = 'chip:' + r.node.id; b.setAttribute('aria-pressed', String(on));
+    if (locked) b.setAttribute('aria-disabled', 'true');
+    b.onclick = () => {
+      if (locked) { toast(on ? 'কমপক্ষে ' + bn(AtlasCompare.MIN) + 'টা লাগে' : 'সর্বোচ্চ ' + bn(AtlasCompare.MAX) + 'টা একসাথে'); return; }
+      cmp.sel = peers.filter((x) => (x === r ? !on : sel.includes(x)));
+      renderCompare(); setHash(cmpHash());
+    };
+    pick.append(b);
+  }
+  const rows = AtlasCompare.rows(sel);
+  const diffOnly = $('#cmp-diff').checked;
+  const shown = diffOnly ? rows.filter((x) => !x.same) : rows;
+  $('#cmp-count').textContent = bn(shown.length) + 'টা সারি' + (diffOnly && rows.length > shown.length ? ' (' + bn(rows.length - shown.length) + 'টা একই বলে লুকানো)' : '');
+  const body = $('#cmp-body');
+  body.replaceChildren();
+  const table = el('table', 'cmp-table');
+  table.style.setProperty('--n', sel.length);
+  const cap = el('caption', 'sr-only', short(parent.node.name) + '-এর বিকল্পগুলোর তুলনা'); table.append(cap);
+  const hr = el('tr');
+  hr.append(Object.assign(el('th', 'corner'), { scope: 'col' }));
+  for (const r of sel) {
+    const th = el('th', 'col'); th.scope = 'col';
+    const head = el('div', 'cmp-colhead');
+    head.append(el('strong', '', short(r.node.name)));
+    if (r.node.kind === 'tool') head.append(el('span', 'kchip tool', 'tool'));
+    const acts = el('div', 'cmp-colacts');
+    const open = el('button', 'btn sm ghost', 'খোলো'); open.type = 'button'; open.title = short(r.node.name) + '-এর পুরো পাতা';
+    open.onclick = () => { cmpReturn = { parent: parent.node.id, ids: sel.map((x) => x.node.id) }; cmpDlg.close(); openNode(r.node.id); };
+    acts.append(open);
+    if (SELECTABLE.has(r.node.kind)) {
+      const on = selected.has(r.node.id);
+      const pb = el('button', 'btn sm' + (on ? ' primary' : ''), on ? '✓ পথে আছে' : 'পথে বাছো'); pb.type = 'button'; pb.setAttribute('aria-pressed', String(on));
+      pb.dataset.cmpFocus = 'pick:' + r.node.id;
+      pb.onclick = () => { toggleSel(r.node.id); renderCompare(); };
+      acts.append(pb);
+    }
+    if (sel.length > AtlasCompare.MIN) {
+      const x = el('button', 'btn sm ghost icon', '✕'); x.type = 'button'; x.setAttribute('aria-label', 'তুলনা থেকে বাদ দাও: ' + short(r.node.name)); x.dataset.cmpFocus = 'drop:' + r.node.id;
+      x.onclick = () => { cmp.sel = sel.filter((y) => y !== r); renderCompare(); setHash(cmpHash()); };
+      acts.append(x);
+    }
+    head.append(acts); th.append(head); hr.append(th);
+  }
+  table.append(Object.assign(el('thead'), {}));
+  table.tHead.append(hr);
+  const tb = el('tbody');
+  let grp = null;
+  for (const row of shown) {
+    if (row.group !== grp) { grp = row.group; const g = el('tr', 'grp'); const gh = el('th', '', grp); gh.colSpan = sel.length + 1; g.append(gh); tb.append(g); }
+    const tr = el('tr', row.same ? 'same' : 'diff');
+    const rl = el('th', 'rl'); rl.scope = 'row'; rl.append(document.createTextNode(row.label));
+    if (row.same) rl.append(el('span', 'same-tag', 'সব একই'));
+    tr.append(rl);
+    for (const v of row.cells) tr.append(cmpCell(row.type, v));
+    tb.append(tr);
+  }
+  table.append(tb);
+  if (!shown.length) body.append(el('p', 'cmp-empty', rows.length ? 'এই বিকল্পগুলো সব সারিতে হুবহু এক। "শুধু ফারাক"-এর টিক তুলে সব দেখো।' : 'এগুলোর পাশাপাশি রাখার মতো আর কোনো তথ্য এখনও নেই।'));
+  else body.append(table);
+  if (keep) { const t = [...cmpDlg.querySelectorAll('[data-cmp-focus]')].find((n) => n.dataset.cmpFocus === keep); if (t) t.focus(); }
+}
+$('#cmp-diff').onchange = () => renderCompare();
+$('#cmp-close').onclick = () => cmpDlg.close();
+$('#cmp-link').onclick = () => copyText(location.href.split('#')[0] + cmpHash());
+cmpDlg.addEventListener('click', (e) => { if (e.target === cmpDlg) cmpDlg.close(); });
+cmpDlg.addEventListener('close', () => { if (location.hash.startsWith('#cmp=')) setHash(''); });
+
 /* ---------- শুরু ---------- */
 const ALIAS = cfg.aliases || {};
 const resolveId = (id) => (byId.has(id) ? id : (ALIAS[id] && byId.has(ALIAS[id]) ? ALIAS[id] : id));
@@ -898,5 +1029,6 @@ const root = build(data, tree, 0, []);
 }
 updateCount();
 setView(location.hash === '#path' ? 'path' : (store('ml-atlas-view') === 'path' ? 'path' : 'tree'));
-{ const id = resolveId(decodeURIComponent(location.hash.slice(1))); if (id && byId.has(id)) openNode(id, { hash: false }); }
+if (location.hash.startsWith('#cmp=')) openCompareFromHash();
+else { const id = resolveId(decodeURIComponent(location.hash.slice(1))); if (id && byId.has(id)) openNode(id, { hash: false }); }
 })();

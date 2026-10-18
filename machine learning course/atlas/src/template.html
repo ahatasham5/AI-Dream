@@ -71,6 +71,7 @@ __CSS__
   <nav id="crumb" aria-label="পথ"></nav>
   <h2 id="def-title"></h2>
   <p id="def-text"></p>
+  <div id="cmp-entry"></div>
   <div id="pick"></div>
   <div id="pathbar"></div>
   <div id="story"></div>
@@ -80,6 +81,26 @@ __CSS__
   <div id="lessons"></div>
   <div id="related"></div>
   <div id="more"></div>
+</dialog>
+
+<dialog id="compare" aria-labelledby="cmp-title">
+  <div class="cmp-top">
+    <div>
+      <span class="eyebrow">তুলনা</span>
+      <h2 id="cmp-title"></h2>
+      <p id="cmp-sub"></p>
+    </div>
+    <div class="cmp-actions">
+      <button type="button" class="btn sm" id="cmp-link">link কপি</button>
+      <button type="button" class="btn ghost icon" id="cmp-close" aria-label="তুলনা বন্ধ করো">✕</button>
+    </div>
+  </div>
+  <div id="cmp-pick" class="cmp-pick" role="group" aria-label="কোনগুলো তুলনা করবে"></div>
+  <div class="cmp-tools">
+    <label><input type="checkbox" id="cmp-diff"> শুধু যেখানে ফারাক আছে</label>
+    <span id="cmp-count" aria-live="polite"></span>
+  </div>
+  <div id="cmp-body" class="cmp-scroll"></div>
 </dialog>
 
 <script id="map-config" type="application/json">__CONFIG__</script>
