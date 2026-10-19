@@ -319,9 +319,138 @@ function renderTour(box, cur) {   // cur: যে node এখন দেখান�
     btn(readSet.has(cur) ? 'পড়া হয়েছে ✓' : 'পড়া হয়েছে চিহ্ন দাও', () => { markRead(cur, !readSet.has(cur)); renderTour(box, cur); });
     btn(i === n - 1 ? 'শেষ' : 'পরের →', () => tourStep(1), i === n - 1);
   }
+  btn(rd.auto ? 'শুনে এগোও: চালু' : 'শুনে এগোও: বন্ধ', () => { rd.auto = !rd.auto; store('ml-atlas-rd-auto', rd.auto ? '1' : '0'); renderTour(box, cur); }, 'পড়া শেষ হলে নিজে পরের ধাপে গিয়ে পড়া শুরু করে');
   btn('বন্ধ করো', () => { tour = null; renderTour(box, cur); });
   box.append(bar);
 }
+/* ---------- বাংলা audio পড়া ----------
+ * দুই উৎস: (১) আগে-বানানো audio-ফাইল (audio/manifest.js থেকে, নাম = লেখার key), (২) browser-এর বাংলা voice (speechSynthesis)।
+ * ফাইল থাকলে সেটাই, নইলে voice; দুটোই না থাকলে চুপ না থেকে কী করতে হবে বলে দেয়। ইংরেজি voice-এ বাংলা পড়ানো হয় না।
+ * পড়া শেষে tour চালু আর "শুনে এগোও" চালু থাকলে পরের ধাপে গিয়ে নিজে পড়া শুরু করে। কিছু বাছে বা মোছে না। */
+const rd = { segs: [], i: 0, state: 'idle', audio: null, token: 0, src: '', problem: '', manifest: undefined,
+  speed: Number(store('ml-atlas-rd-speed')) || 1, story: store('ml-atlas-rd-story') !== '0', auto: store('ml-atlas-rd-auto') === '1' };
+function loadAudioManifest() {   // <script> দিয়ে, কারণ file:// পাতা থেকে json fetch করা যায় না
+  if (rd.manifest !== undefined) return Promise.resolve(rd.manifest);
+  return new Promise((res) => {
+    const s = document.createElement('script');
+    s.src = (cfg.audioBase || 'audio/') + 'manifest.js';
+    s.onload = () => { rd.manifest = window.ATLAS_AUDIO && window.ATLAS_AUDIO.files ? window.ATLAS_AUDIO : null; res(rd.manifest); renderReaderBar(); };
+    s.onerror = () => { rd.manifest = null; res(null); renderReaderBar(); };
+    document.head.append(s);
+  });
+}
+const bnVoice = () => ('speechSynthesis' in window ? AtlasReader.bengaliVoice(speechSynthesis.getVoices()) : null);
+function markReading(seg) {
+  document.querySelectorAll('.reading').forEach((e) => e.classList.remove('reading'));
+  if (seg && seg.id === 'def') $('#def-text').classList.add('reading');
+}
+function readerStop() {
+  rd.token++; rd.state = 'idle'; rd.problem = '';
+  if (rd.audio) { rd.audio.pause(); rd.audio = null; }
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  markReading(null);
+  renderReaderBar();
+}
+function playAudioFile(url, token) {
+  return new Promise((res) => {
+    const a = new Audio(url);
+    a.playbackRate = rd.speed;
+    rd.audio = a;
+    a.onended = () => res('ok');
+    a.onerror = () => res('missing');
+    a.play().catch(() => res('missing'));
+    const watch = setInterval(() => { if (token !== rd.token) { clearInterval(watch); res('stopped'); } }, 200);
+    a.addEventListener('ended', () => clearInterval(watch));
+  });
+}
+function speakText(text, voice, token) {
+  return new Promise((res) => {
+    const parts = AtlasReader.chunks(text, 200);
+    let k = 0;
+    const next = () => {
+      if (token !== rd.token) return res('stopped');
+      if (k >= parts.length) return res('ok');
+      const u = new SpeechSynthesisUtterance(parts[k++]);
+      u.voice = voice; u.lang = voice.lang; u.rate = rd.speed;
+      u.onend = next; u.onerror = (e) => (e.error === 'canceled' || e.error === 'interrupted' ? res('stopped') : res('error'));
+      speechSynthesis.speak(u);
+    };
+    next();
+  });
+}
+async function readerPlay() {
+  const r = byId.get(modal.dataset.nodeId);
+  if (!r) return;
+  readerStop();
+  rd.segs = AtlasReader.segments(r.node, rd.story);
+  if (!rd.segs.length) return;
+  rd.state = 'playing'; rd.i = 0;
+  const my = rd.token;
+  const man = await loadAudioManifest();
+  if (my !== rd.token) return;
+  for (; rd.i < rd.segs.length; rd.i++) {
+    if (my !== rd.token) return;
+    const seg = rd.segs[rd.i];
+    markReading(seg); renderReaderBar();
+    let res = 'missing';
+    const file = man && man.files[seg.key];
+    if (file) { rd.src = 'audio-ফাইল'; res = await playAudioFile((cfg.audioBase || 'audio/') + file, my); }
+    if (res === 'missing') {
+      const v = bnVoice();
+      if (!v) { rd.state = 'idle'; rd.problem = 'novoice'; markReading(null); renderReaderBar(); return; }
+      rd.src = 'browser voice: ' + v.name;
+      res = await speakText(seg.speech, v, my);
+    }
+    if (res === 'stopped' || my !== rd.token) return;
+    if (res === 'error') { rd.state = 'idle'; rd.problem = 'error'; markReading(null); renderReaderBar(); return; }
+  }
+  rd.state = 'idle'; markReading(null); renderReaderBar();
+  if (rd.auto && tour) {
+    const i = tour.order.indexOf(relId(modal.dataset.nodeId));
+    if (i >= 0 && i < tour.order.length - 1) { tourStep(1); setTimeout(readerPlay, 350); }
+  }
+}
+function readerPause(on) {
+  if (rd.state === 'idle') return;
+  rd.state = on ? 'paused' : 'playing';
+  if (rd.audio) { if (on) rd.audio.pause(); else rd.audio.play(); }
+  else if ('speechSynthesis' in window) { if (on) speechSynthesis.pause(); else speechSynthesis.resume(); }
+  renderReaderBar();
+}
+function renderReaderBar() {
+  const box = $('#reader');
+  if (!box) return;
+  box.replaceChildren();
+  if (rd.manifest === undefined) loadAudioManifest();
+  const hasFiles = !!rd.manifest, voice = bnVoice();
+  const bar = el('div', 'readerbar');
+  const btn = (label, fn, title) => { const b = el('button', 'textbtn', label); b.type = 'button'; if (title) b.title = title; b.onclick = fn; bar.append(b); return b; };
+  if (rd.state === 'idle') btn('🔊 পড়ে শোনাও', readerPlay, 'এই node-এর সংজ্ঞা (আর গল্প) বাংলায় পড়ে শোনায়');
+  else {
+    btn(rd.state === 'paused' ? '▶ চালাও' : '⏸ থামাও', () => readerPause(rd.state !== 'paused'));
+    btn('⏹ বন্ধ', readerStop);
+  }
+  const sel = el('select', 'rdspeed'); sel.setAttribute('aria-label', 'পড়ার গতি');
+  for (const v of [0.8, 1, 1.25, 1.5]) { const o = el('option', '', v + '×'); o.value = String(v); if (v === rd.speed) o.selected = true; sel.append(o); }
+  sel.onchange = () => { rd.speed = Number(sel.value); store('ml-atlas-rd-speed', String(rd.speed)); if (rd.audio) rd.audio.playbackRate = rd.speed; };
+  bar.append(sel);
+  const lab = el('label', 'rdopt'); const cb = el('input'); cb.type = 'checkbox'; cb.checked = rd.story;
+  cb.onchange = () => { rd.story = cb.checked; store('ml-atlas-rd-story', cb.checked ? '1' : '0'); };
+  lab.append(cb, document.createTextNode(' গল্পসহ')); bar.append(lab);
+  if (rd.state !== 'idle' && rd.segs[rd.i]) bar.append(el('span', 'rdstat', 'এখন: ' + rd.segs[rd.i].label + ' (' + bn(rd.i + 1) + '/' + bn(rd.segs.length) + ') · ' + rd.src));
+  box.append(bar);
+  if (rd.state === 'idle' && (rd.problem || (!hasFiles && !voice && rd.manifest !== undefined))) {
+    const d = el('div', 'rdwarn');
+    d.append(el('strong', '', rd.problem === 'error' ? 'পড়তে গিয়ে ত্রুটি হয়েছে। ' : 'এখানে পড়ার মতো বাংলা voice বা audio নেই। '));
+    d.append(document.createTextNode('দুটো পথ: (১) আগে-বানানো audio-pack: `python3 atlas/audio_pack.py` চালিয়ে বানাও (README-তে ধাপ), তারপর audio/ folder এই পাতার পাশে রাখো; (২) OS বা browser-এ বাংলা (bn) text-to-speech voice যোগ করো।'));
+    box.append(d);
+  }
+}
+if ('speechSynthesis' in window) speechSynthesis.addEventListener('voiceschanged', () => { if (rd.state === 'idle') renderReaderBar(); });
+modal.addEventListener('close', readerStop);
+window.addEventListener('pagehide', readerStop);
+// dialog বন্ধ হলে পড়া থামে, event না এলেও (যেমন কিছু embedded browser 'close' পাঠায় না): খোলা আছে কি না নিজে দেখে
+setInterval(() => { if (rd.state !== 'idle' && !modal.open) readerStop(); }, 300);
 /* ---------- গল্প, "কোনটা কখন", ইতিহাস ---------- */
 function jumpButton(x) {
   if (!x.id) return el('span', 'pick plain', x.label);
@@ -543,7 +672,9 @@ function openNode(id, opts) {
   title.append(document.createTextNode(r.node.name));
   $('#def-text').textContent = r.node.definition || 'এই শাখার বিষয়গুলো খুলে দেখো।';
   renderCrumb(r);
+  readerStop();
   renderTour($('#tour'), id);
+  renderReaderBar();
   renderPathBar(id);
   modal.dataset.nodeId = id;
   renderPick(r.node, $('#pick'));

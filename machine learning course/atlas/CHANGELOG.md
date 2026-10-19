@@ -1,6 +1,31 @@
-# Changelog — ML Learning Atlas
+# Changelog — ML Learning Atlas\n\n## ২০২৬-১০-১৯ (২১) — বাংলা audio পড়া
 
-## ২০২৬-১০-১৯ (২০) — Distillation এখন From-scratch-এও (training-এর শেখার সংকেত)
+### সমস্যা
+map পড়া-নির্ভর; শুনে শেখার ব্যবস্থা ছিল না।
+
+### পরিবর্তন
+- **পাঠক (পাতার ভেতরে):** dialog-এর ওপরে "🔊 পড়ে শোনাও", থামাও/বন্ধ, গতি, "গল্পসহ", উৎস-চিহ্ন। tour-এ "শুনে এগোও"। সংজ্ঞা পড়ার সময় সেটা হাইলাইট।
+- **দুই উৎস:** আগে-বানানো audio-ফাইল, না থাকলে browser-এর বাংলা voice; দুটোই না থাকলে কী করতে হবে বলে দেয়। ইংরেজি voice-এ বাংলা পড়ানো হয় না।
+- **`atlas/audio_pack.py`:** সব পড়ার অংশ (২০১৫টা, ৩,১৬,৭০৪ অক্ষর) থেকে audio-ফাইল ও `audio/manifest.js` বানায়; resume-যোগ্য, tmp-ফাইল, `--dry-run`, `--yes` ছাড়া খরচ নেই, `--max-chars` সীমা, key কখনো ছাপে না। provider: Azure Speech REST।
+- **`src/js/reader.js` + `tools/segments.js`:** পাতা আর audio-pack একই যুক্তি আর একই key (লেখার FNV-1a hash) ব্যবহার করে, কোথাও নকল নেই। key মূল লেখার, বলার জন্য পরিষ্কার-করা লেখার নয়, তাই চিহ্ন-বদলের নিয়ম বদলালে পুরোনো audio অকেজো হয় না।
+- manifest `<script>` দিয়ে লোড হয় (file:// পাতা থেকে json fetch চলে না)।
+
+### বাগ (browser ধরেছে)
+- dialog বন্ধ করার পরও audio চলত: এই browser-এ `close` event আসে না (app-এর আগের handler-ও চলে না)। এখন একটা হালকা পাহারাদার dialog খোলা আছে কি না দেখে থামায়; পরীক্ষায় বন্ধ করার পর চলমান audio ০।
+- script-এ `pack(todo and segs, …)`: বানানোর কিছু না থাকলে manifest ফাঁকা লেখা হতো; ঠিক, আর test আছে।
+
+### যাচাই
+- `bash atlas/check.sh` পাস (৫৬টা data test, ৭৪টা Node test: নতুন `reader.test.js`, `test_audio_pack.py`)।
+- browser-এ নকল নীরব audio-pack দিয়ে: তিনটা অংশ ক্রমে ("সংজ্ঞা ১/৩ → সমস্যা ২/৩ → ধারণা ৩/৩", উৎস audio-ফাইল), থামানো, চালানো, বন্ধ, dialog বন্ধে থামা।
+- browser voice না থাকলে ঠিক বার্তা আসে।
+
+### সীমা
+- **আসল আওয়াজ শোনা হয়নি।** audio চালানোর wiring যাচাই করেছি নীরব ফাইল দিয়ে; Azure voice কেমন শোনায়, আর ইংরেজি পরিভাষা কেমন পড়ে, তা কেউ শোনেনি।
+- Azure অনুরোধ আসল key দিয়ে চালানো হয়নি; দাম যাচাই হয়নি (মাসে ৫ লাখ অক্ষর বিনামূল্যে, অফিসিয়াল পাতার লেখা)।
+- আপনার Linux Firefox-এ বাংলা voice speech-dispatcher-এর (সম্ভবত espeak) হলে যান্ত্রিক শোনাবে; আমি শুনিনি, অনুমান।
+- tree-র সারিতে audio নেই, শুধু dialog-এ।
+
+ ২০২৬-১০-১৯ (২০) — Distillation এখন From-scratch-এও (training-এর শেখার সংকেত)
 
 ### সমস্যা
 Distillation শেখার সংকেত বদলায়, তাই এটা training-এরই অংশ; কিন্তু map-এ ছিল শুধু Fine-tuning-এর নিচে। From-scratch ও Pretraining-এ কোনো teacher node ছিল না, ফলে মনে হতো distillation মানে আগে-শেখা model ছোট করা; অথচ student প্রায়ই অশিক্ষিত অবস্থা থেকে শুরু করে।
