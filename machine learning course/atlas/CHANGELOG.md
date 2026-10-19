@@ -1,4 +1,6 @@
-# Changelog — ML Learning Atlas\n\n## ২০২৬-১০-১৯ (২১) — বাংলা audio পড়া
+# Changelog — ML Learning Atlas
+
+## ২০২৬-১০-১৯ (২১) — বাংলা audio পড়া
 
 ### সমস্যা
 map পড়া-নির্ভর; শুনে শেখার ব্যবস্থা ছিল না।
@@ -25,7 +27,7 @@ map পড়া-নির্ভর; শুনে শেখার ব্যব�
 - আপনার Linux Firefox-এ বাংলা voice speech-dispatcher-এর (সম্ভবত espeak) হলে যান্ত্রিক শোনাবে; আমি শুনিনি, অনুমান।
 - tree-র সারিতে audio নেই, শুধু dialog-এ।
 
- ২০২৬-১০-১৯ (২০) — Distillation এখন From-scratch-এও (training-এর শেখার সংকেত)
+## ২০২৬-১০-১৯ (২০) — Distillation এখন From-scratch-এও (training-এর শেখার সংকেত)
 
 ### সমস্যা
 Distillation শেখার সংকেত বদলায়, তাই এটা training-এরই অংশ; কিন্তু map-এ ছিল শুধু Fine-tuning-এর নিচে। From-scratch ও Pretraining-এ কোনো teacher node ছিল না, ফলে মনে হতো distillation মানে আগে-শেখা model ছোট করা; অথচ student প্রায়ই অশিক্ষিত অবস্থা থেকে শুরু করে।
