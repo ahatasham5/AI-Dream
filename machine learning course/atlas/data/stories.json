@@ -6288,6 +6288,147 @@
      }
     ]
    }
+  },
+  {
+   "names": [
+    "Batch size ও learning rate"
+   ],
+   "story": {
+    "problem": "Batch বড় করলে training দ্রুত হয়, কিন্তু একই learning rate রাখলে প্রায়ই ফল খারাপ। কেন?",
+    "idea": "বড় batch-এর gradient কম এলোমেলো, তাই বেশি learning rate সহ্য করে। Goyal-এর নিয়ম: batch k গুণ হলে learning rate-ও k গুণ, শুরুতে warmup। কিন্তু একটা সীমার পরে batch বাড়িয়ে লাভ নেই (McCandlish-এর critical batch size)।",
+    "next": [
+     {
+      "to": "Batch → Step → Epoch",
+      "why": "step আর epoch-এর হিসাব"
+     },
+     {
+      "to": "Gradient Accumulation",
+      "why": "memory কম হলে বড় batch পাওয়ার উপায়"
+     },
+     {
+      "to": "Warmup",
+      "why": "বড় batch-এ শুরুতে কেন দরকার"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Weight Decay"
+   ],
+   "story": {
+    "problem": "Model বড় হলে training data মুখস্থ করে ফেলে। weight-কে ছোট রাখলে কি এটা কমে?",
+    "idea": "প্রতি update-এ সব weight-কে একটু শূন্যের দিকে টানো। Adam-এ এটা L2 regularization-এর সমান নয়, তাই AdamW decay-কে gradient থেকে আলাদা করে সরাসরি weight-এ বসায়। বড় model-এ প্রচলিত মান ০.১।",
+    "next": [
+     {
+      "to": "AdamW — decoupled weight decay",
+      "why": "decoupling ঠিক কী বদলায়"
+     },
+     {
+      "to": "Regularized Objective",
+      "why": "একই ধারণা loss-এর দিক থেকে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Gradient Clipping"
+   ],
+   "story": {
+    "problem": "হঠাৎ একটা বড় gradient এক step-এ weight-কে এত দূরে ছুড়ে ফেলতে পারে যে training ভেঙে যায়।",
+    "idea": "Gradient-এর দৈর্ঘ্য একটা সীমার বেশি হলে পুরোটাকে ছোট করে সীমায় আনো; দিক একই থাকে। প্রচলিত সীমা global norm ১.০।",
+    "next": [
+     {
+      "to": "Vanishing / Exploding Gradient",
+      "why": "যে সমস্যা এটা ঠেকায়"
+     },
+     {
+      "to": "Weight Decay",
+      "why": "আরেকটা স্থিতিশীলতার উপাদান"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Cosine Decay"
+   ],
+   "story": {
+    "problem": "Learning rate শেষ পর্যন্ত একই রাখলে model সেরা মানে স্থির হতে পারে না; হঠাৎ কমালে আবার ধাক্কা লাগে।",
+    "idea": "Cosine বক্ররেখায় সর্বোচ্চ থেকে সর্বোচ্চের ১০%-এ নামো: শুরু আর শেষ ধীরে, মাঝে দ্রুত। চক্রের দৈর্ঘ্য মোট step-সংখ্যার কাছাকাছি রাখতে হয়।",
+    "next": [
+     {
+      "to": "Warmup",
+      "why": "শুরুর দিকটা"
+     },
+     {
+      "to": "Warmup–Stable–Decay (WSD)",
+      "why": "মোট step আগে না জানলে বিকল্প"
+     },
+     {
+      "to": "Learning-rate Decay",
+      "why": "সাধারণ ধারণা"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Warmup–Stable–Decay (WSD)"
+   ],
+   "story": {
+    "problem": "Cosine-এ মোট step আগে জানতে হয়। training চলতে চলতে আরও চালাতে চাইলে?",
+    "idea": "লম্বা ধ্রুবক ভাগের পরে ছোট একটা decay। যেকোনো সময় ধ্রুবক ভাগের checkpoint থেকে আবার চালানো যায়। ছোট model-এ পরীক্ষিত।",
+    "next": [
+     {
+      "to": "Cosine Decay",
+      "why": "প্রচলিত schedule"
+     },
+     {
+      "to": "Warmup",
+      "why": "শুরুর অংশ"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Early Stopping"
+   ],
+   "story": {
+    "problem": "Training loss কমছে বলে model ভালো হচ্ছে, তা নয়: validation loss এক সময় ফিরে বাড়ে।",
+    "idea": "Validation loss নজরে রাখো; patience দিয়ে সামান্য ওঠানামা সহ্য করো; উন্নতি না হলে থামো আর সেরা checkpoint ফেরত নাও।",
+    "next": [
+     {
+      "to": "Hyperparameter খোঁজা — grid বনাম random",
+      "why": "validation দিয়ে আরও মান বাছা"
+     },
+     {
+      "to": "Catastrophic Forgetting",
+      "why": "ভুল থামায় যা হারাতে পারে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Hyperparameter খোঁজা — grid বনাম random"
+   ],
+   "story": {
+    "problem": "Learning rate, batch size, weight decay কত হবে, তা model নিজে শেখে না। কীভাবে খুঁজব?",
+    "idea": "Grid সব মিল পরীক্ষা করে; random প্রতিবার সব মান এলোমেলো বদলায়। যেহেতু বেশির ভাগ মানের মধ্যে দু-একটাই জরুরি, random একই খরচে সেগুলোর বেশি আলাদা মান ছোঁয়।",
+    "next": [
+     {
+      "to": "Early Stopping",
+      "why": "প্রতিটা trial কখন থামাবে"
+     },
+     {
+      "to": "Parameter বনাম Hyperparameter",
+      "why": "ধারণাটা কোথা থেকে"
+     }
+    ]
+   }
   }
  ]
 }

@@ -1,5 +1,27 @@
 # Changelog — ML Learning Atlas
 
+## ২০২৬-১০-১৯ (১৭) — Hyperparameter ও model-আকার
+
+### সমস্যা
+গুনে দেখা গেল hyperparameter-এর অনেক জরুরি বিষয় map-এ ছিল না: batch size, weight decay-এর মান, gradient clipping, cosine ও WSD schedule, early stopping (শূন্য-থেকে পথে), hyperparameter খোঁজার পদ্ধতি; আর Block-stack-এ "model কত বড়" (layer, প্রস্থ, KV head) নেই। শূন্য-থেকে পথের learning rate-এ বিকল্প ছিল মাত্র একটা।
+
+### পরিবর্তন
+- **৭টা নতুন ধারণা-node** (তিন পথেই আসে): Batch size ও learning rate, Weight Decay, Gradient Clipping, Cosine Decay, Warmup–Stable–Decay, Early Stopping, Hyperparameter খোঁজা। প্রতিটায় সংজ্ঞা, হিসাবের ছোট উদাহরণ (যেখানে সূত্র আছে), গল্প, সাল, সূত্রসহ তথ্য।
+- **বাছাইয়ে নতুন সিদ্ধান্ত (দুই পথেই, শূন্য-থেকের নকল `-sc`):** batch size, weight decay, gradient clipping, hyperparameter খোঁজার পদ্ধতি ও tool (Optuna); schedule-এ cosine ও WSD।
+- **শুধু শূন্য-থেকে পথে:** "কখন থামবে?" (validation বনাম আগে-ঠিক-করা step), learning rate-এ "প্রকাশিত recipe থেকে শুরু"।
+- **Block-stack-এর ভেতরে "model কত বড়":** layer ও প্রস্থ (Surya, Qwen3-8B, Qwen3-Next, Jamba-র আসল মাপসহ), KV head (GQA), আগে KV cache-এর হিসাব, আকার ও token সমান হারে (Chinchilla)।
+- pseudo-code-এ নতুন লাইন; `lessons.json`-এ Batch size → 10/06, Early Stopping → 07/03, Hyperparameter খোঁজা → 07/05; গল্পের পথের অধ্যায় ৫-এ ৬টা নতুন ধাপ।
+
+### যাচাই
+- `bash atlas/check.sh` পাস (৪৬টা data test, ৫৮টা engine test); `verify_tools.py`: ৫২টা repo-তে অমিল নেই (Optuna-সহ)।
+- দুই পথে বাছাই চালিয়ে দেখা: pseudo-code-এ নতুন লাইনগুলো বসে।
+- প্রতিটা তথ্য arXiv, official docs, model card ও config.json থেকে আলাদা agent দিয়ে মেলানো; Surya-র মাপ আপনার local config থেকে।
+
+### সীমা
+- যা এখনো নেই: dropout-এর মান, mixed precision, learning-rate finder, epoch/step-সংখ্যা ঠিক করার নিয়ম, initialization-এর রকম (শুধু একটা বিকল্প)।
+- Jamba-র প্রস্থ (৪০৯৬) paper-এ নেই, শুধু config-এ; Llama-3.2-1B-র মাপ mirror থেকে হওয়ায় নেওয়া হয়নি; KV cache-এর batch ও byte-এর গুণ আমার যোগ করা (সংজ্ঞায় "আমার হিসাব" লেখা)।
+- Weight Decay কোর্সে কতটা আছে, তা আলাদা যাচাই হয়নি, তাই পাঠ-link দেওয়া হয়নি।
+
 ## ২০২৬-১০-১৯ (১৬) — নতুন node-এর গল্প, ইতিহাস আর গল্পের পথ
 
 ### সমস্যা

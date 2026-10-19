@@ -185,6 +185,27 @@
   },
   "sc-linear-impl": {
    "slot": "arch_impl"
+  },
+  "hp-batch": {
+   "slot": "batch"
+  },
+  "hp-wd": {
+   "slot": "wd"
+  },
+  "hp-clip": {
+   "slot": "clip"
+  },
+  "hp-search": {
+   "slot": "hp_search"
+  },
+  "hp-search-impl": {
+   "slot": "hp_search_tool"
+  },
+  "sc-stop": {
+   "slot": "stop"
+  },
+  "sc-shape": {
+   "slot": "shape"
   }
  },
  "labels": {
@@ -242,7 +263,13 @@
   "linear_kind": "linear attention-এর রূপ",
   "ssm_kind": "SSM-এর রূপ",
   "layout": "layer সাজানোর ছক",
-  "ffn": "channel mixer"
+  "ffn": "channel mixer",
+  "batch": "batch size",
+  "wd": "weight decay",
+  "clip": "gradient clipping",
+  "hp_search": "hyperparameter খোঁজা",
+  "hp_search_tool": "খোঁজার tool",
+  "shape": "model-আকার"
  },
  "join": {
   "schedule": " + ",
@@ -254,7 +281,9 @@
   "corpus": ", ",
   "attn": ", ",
   "ckpt": ", ",
-  "mixer": " + "
+  "mixer": " + ",
+  "batch": " + ",
+  "shape": " + "
  },
  "options": {
   "opt-accuracy": "accuracy",
@@ -424,7 +453,25 @@
   "opt-sc-layout-interleave": "interleave the mixers layer by layer at a fixed ratio",
   "opt-sc-layout-parallel": "attention heads and SSM heads in parallel inside each layer",
   "opt-sc-ffn-dense": "dense FFN",
-  "opt-sc-ffn-moe": "mixture-of-experts FFN"
+  "opt-sc-ffn-moe": "mixture-of-experts FFN",
+  "opt-bs-linear": "batch × k → learning rate × k (linear scaling), with warmup",
+  "opt-bs-noise": "pick the batch near the gradient noise scale (critical batch size)",
+  "opt-bs-accum": "gradient accumulation: several small batches per update",
+  "opt-wd-01": "weight decay 0.1 (common LLM recipe)",
+  "opt-wd-search": "search weight decay on validation with small runs",
+  "opt-clip-1": "clip the global gradient norm at 1.0",
+  "opt-clip-avg": "clip at a threshold set from the average gradient norm",
+  "opt-search-random": "random search over the hyperparameters",
+  "opt-search-grid": "grid search over a few hyperparameters",
+  "opt-cosine": "cosine decay to 10% of the peak",
+  "opt-wsd": "warmup-stable-decay (WSD)",
+  "opt-sc-stop-val": "stop when validation loss stops improving (patience); keep the best weights",
+  "opt-sc-stop-budget": "fixed step or token budget matching the schedule length",
+  "opt-sc-lr-recipe": "start from a published recipe, then check with small runs",
+  "opt-sc-shape-depth-width": "layers and hidden size chosen for the parameter budget",
+  "opt-sc-shape-kv": "fewer KV heads than query heads (GQA)",
+  "opt-sc-shape-cache": "compute the KV cache first: 2 * kv_heads * head_dim * attention_layers per token",
+  "opt-sc-shape-tokens": "scale training tokens with parameters (about 20 per parameter)"
  },
  "templates": {
   "mode-finetune": [
@@ -459,6 +506,11 @@
    "lr        = {{lr}}",
    "schedule  = {{schedule}}",
    "stop_rule = {{stop}}",
+   "?batch batch_size = {{batch}}",
+   "?wd weight_decay = {{wd}}",
+   "?clip gradient_clip = {{clip}}",
+   "?hp_search hyperparameter_search = {{hp_search}}",
+   "?hp_search_tool search_with {{hp_search_tool}}",
    "",
    "# ধাপ ৩ — Model শেখা (training loop)",
    "?memory {{memory}}",
@@ -508,6 +560,7 @@
    "?ssm_kind ssm = {{ssm_kind}}",
    "?layout layer_layout = {{layout}}",
    "?ffn channel_mixer = {{ffn}}",
+   "?shape model_size = {{shape}}",
    "?arch_impl implementation = {{arch_impl}}",
    "?norm normalization = {{norm}}",
    "?position position_info = {{position}}",
@@ -526,6 +579,12 @@
    "optimizer = {{optimizer}}",
    "lr        = {{lr}}",
    "schedule  = {{schedule}}",
+   "?batch batch_size = {{batch}}",
+   "?wd weight_decay = {{wd}}",
+   "?clip gradient_clip = {{clip}}",
+   "?stop stop_rule = {{stop}}",
+   "?hp_search hyperparameter_search = {{hp_search}}",
+   "?hp_search_tool search_with {{hp_search_tool}}",
    "",
    "# ধাপ ৫ — স্কেল ও memory",
    "?memory {{memory}}",

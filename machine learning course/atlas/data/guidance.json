@@ -871,6 +871,82 @@
   "tool-fla": {
    "why": "RetNet, DeltaNet, Gated DeltaNet, RWKV6/7, Mamba2-সহ অনেক layer-এর kernel একটা library-তে।",
    "tradeoff": "মূল RWKV-4 নেই (README-র তালিকা RWKV6 থেকে শুরু); plain Linear Attention-এর জন্য README-তে আলাদা সারি নেই, যদিও কোড আছে।"
+  },
+  "opt-bs-linear": {
+   "why": "Batch k গুণ হলে learning rate k গুণ: Goyal-এ batch ৮১৯২ (learning rate ৩.২) পর্যন্ত ImageNet ResNet-50-এর মান প্রায় অপরিবর্তিত (error ২৩.৭৪% বনাম ২৩.৬০%)।",
+   "tradeoff": "শর্ত: warmup লাগে; প্রায় ৮ হাজারের পরে মান দ্রুত নামে। প্রমাণ ImageNet/ResNet-50 ও momentum SGD-র; Adam-এর জন্য McCandlish: learning rate ∝ B^α, α ০.৫ থেকে ১।"
+  },
+  "opt-bs-noise": {
+   "why": "Gradient noise scale থেকে সর্বোচ্চ কাজের batch আন্দাজ করা যায়: তার নিচে batch দ্বিগুণ করলে step প্রায় অর্ধেক, ওপরে প্রায় লাভ নেই (McCandlish et al.)।",
+   "tradeoff": "মাপা কঠিন ও আনুমানিক; training-এ noise scale বদলায় (loss কমলে বাড়ে), তাই একবারের মাপ চিরকালের নয়। paper নিজেই কয়েকটা সীমা বলেছে।"
+  },
+  "opt-bs-accum": {
+   "why": "Memory-তে যত batch আঁটে তার চেয়ে বড় effective batch পাওয়া যায়: কয়েকটা ছোট batch-এর gradient জমিয়ে একবার update।",
+   "tradeoff": "বাড়তি forward-backward পাস, তাই ধীর (Hugging Face docs); বড় batch আঁটলে দরকার নেই। Token-ভিত্তিক loss-এ ঠিক loss হলো মোট loss ÷ মোট non-padding token, ছোট batch-এর গড়ের গড় নয়।"
+  },
+  "opt-wd-01": {
+   "why": "বড় language model-এ প্রচলিত: GPT-3 ও Llama 2 দুটোই ০.১।",
+   "tradeoff": "সেরা মান training-এর মোট update-সংখ্যার ওপর নির্ভর করে, লম্বা training-এ কম decay ভালো (AdamW paper); পরীক্ষা ছবির কাজে, বাকি কাজে নিজে মিলিয়ে দেখো।"
+  },
+  "opt-wd-search": {
+   "why": "AdamW-এ decay আর learning rate প্রায় স্বাধীন (AdamW paper), তাই আলাদা করে খোঁজা যায়।",
+   "tradeoff": "খোঁজার খরচ আছে; সেরা মান training কত লম্বা তার ওপর নির্ভর করে, তাই ছোট run-এর মান বড় run-এ বদলাতে পারে।"
+  },
+  "opt-clip-1": {
+   "why": "দুটো বড় recipe-এই global norm ১.০ (GPT-3, Llama 2); এক step-এ weight ছিটকে যাওয়া ঠেকায়।",
+   "tradeoff": "সীমা কাজ-ভেদে বদলায় (Pascanu-র উদাহরণে ৬, ৮, ৪৫); শুধু exploding gradient ঠেকায়, vanishing gradient-এ কিছু করে না।"
+  },
+  "opt-clip-avg": {
+   "why": "Pascanu-র নিয়ম: গড় gradient-দৈর্ঘ্য অনেক update জুড়ে দেখে সীমা ঠিক করা; training সীমার মানের প্রতি খুব সংবেদনশীল নয়।",
+   "tradeoff": "আগে কিছু run-এ gradient-দৈর্ঘ্য মাপতে হয়; paper RNN-এর জন্য লেখা, Transformer-এর সরাসরি প্রমাণ নয়।"
+  },
+  "opt-search-random": {
+   "why": "বেশির ভাগ hyperparameter-এর মধ্যে দু-একটাই জরুরি; random একই trial-সংখ্যায় জরুরি মানের বেশি আলাদা মান ছোঁয় (Bergstra ও Bengio)।",
+   "tradeoff": "ছোট মাত্রায় grid-এর চেয়ে সামান্য কম দক্ষ; paper-এর DBN পরীক্ষায় হাতে-বাছা + grid-কে সব ক্ষেত্রে হারায়নি।"
+  },
+  "opt-search-grid": {
+   "why": "মাত্রা কম (২–৩টা hyperparameter) হলে সরল ও আবার চালানো যায়; কম মাত্রায় random-এর চেয়ে সামান্য বেশি দক্ষ (Bergstra ও Bengio)।",
+   "tradeoff": "মাত্রা বাড়লে trial-সংখ্যা ঘাতে বাড়ে, আর জরুরি নয় এমন মানও বারবার পরীক্ষা হয়।"
+  },
+  "opt-cosine": {
+   "why": "Llama 2, GPT-3 আর Chinchilla তিনটাই cosine ব্যবহার করেছে; শেষে সর্বোচ্চের ১০%-এ (Chinchilla-তে ১০ গুণ কমা)।",
+   "tradeoff": "চক্রের দৈর্ঘ্য training step-এর সাথে মেলাতে হয়: ২৫%-এর বেশি ছাড়ালে মান লক্ষণীয়ভাবে নামে (Chinchilla); মোট step আগে জানতে হয়।"
+  },
+  "opt-wsd": {
+   "why": "Stable ভাগের checkpoint থেকে চালিয়ে যাওয়া যায়; প্রায় ১০% token-এর decay-এ cosine-এর সমান বা কম loss (MiniCPM)।",
+   "tradeoff": "ছোট model-এ পরীক্ষিত, বড় LLM-এ পুরো পরীক্ষিত নয় (paper নিজেই); ২.৫% decay যথেষ্ট ছিল না।"
+  },
+  "tool-optuna": {
+   "why": "Hyperparameter খোঁজার স্বয়ংক্রিয় framework, define-by-run API (README)।",
+   "tradeoff": "tool শুধু খোঁজা চালায়; কোন মান, কত trial আর কোন মাপকাঠি, তা তুমিই ঠিক করো।"
+  },
+  "opt-sc-stop-val": {
+   "why": "Validation loss বাড়তে শুরু করলে থামে, মুখস্থ করার আগেই; patience দিয়ে সামান্য ওঠানামায় থামে না (Goodfellow et al. §7.8)।",
+   "tradeoff": "validation set লাগে, কিছু data training-এ যায় না; আবার-train করার সময় একই update না একই pass, এর কোনো ভালো উত্তর নেই (Goodfellow et al.)। Prechelt: ধীর নিয়মে ~৪% ভালো, ~৪ গুণ সময়।"
+  },
+  "opt-sc-stop-budget": {
+   "why": "Step বা token আগে ঠিক, তাই cosine বা WSD-র দৈর্ঘ্যের সাথে মেলে (Chinchilla: চক্র ≈ training step)।",
+   "tradeoff": "ভুল হিসাবে অর্ধেক-শেখা বা বাড়তি-শেখা; validation দেখে না, তাই overfit ধরা পড়ে না।"
+  },
+  "opt-sc-lr-recipe": {
+   "why": "প্রকাশিত recipe: Llama 2-তে শীর্ষ learning rate ৩e-৪ (৭B, ১৩B) আর ১.৫e-৪ (৩৪B, ৭০B), batch ৪M token।",
+   "tradeoff": "ওই model-এর data ও optimizer-এ মাপা; তোমার ক্ষেত্রে ছোট run-এ মিলিয়ে নিতে হয়।"
+  },
+  "opt-sc-shape-depth-width": {
+   "why": "মোট আকার ঠিক থাকলে depth বনাম width-এর প্রভাব loss-এ খুবই কম: (৬ layer, ৪২৮৮ প্রস্থ) ও (৪৮, ১৬০০)-এর loss ৩%-এর মধ্যে (Kaplan et al.)।",
+   "tradeoff": "এটা শুধু loss-এর কথা; গতি, memory আর cache-এ depth-width আলাদা ফল দেয়, paper এসব মাপেনি।"
+  },
+  "opt-sc-shape-kv": {
+   "why": "KV cache ছোট: MHA থেকে MQA-তে head-সংখ্যা গুণ কম। GQA-৮ মান প্রায় MHA-র সমান (T5-XXL গড় ৪৭.১ বনাম ৪৭.২) আর সময় ১.৫১ থেকে ০.২৮ সেকেন্ড (GQA paper)।",
+   "tradeoff": "পরীক্ষা encoder-decoder T5-তে, শুধু decoder self-attention-এ; বড় decoder-only model-এ একই ফল ধরে নেওয়া যায় না।"
+  },
+  "opt-sc-shape-cache": {
+   "why": "লম্বা context-এ memory-র বাধা আগেই ধরা পড়ে; hybrid-এ কত layer attention হবে, তার প্রভাব সরাসরি দেখা যায় (সূত্র: DeepSeek-V2 paper, Table 1)।",
+   "tradeoff": "সূত্রটা শুধু attention-এর cache গোনে: weight, activation আর linear layer-এর state আলাদা; batch ও byte-এর গুণ আমার যোগ করা।"
+  },
+  "opt-sc-shape-tokens": {
+   "why": "Model-আকার দ্বিগুণ হলে token-ও দ্বিগুণ: compute-সেরা ভাগ (Chinchilla)। ১B-তে প্রায় ২০.২B token।",
+   "tradeoff": "paper নিজেই: মাত্র দুটো বড় তুলনা-run, ছোট ও মাঝারি scale-এ পরীক্ষা নেই; শুধু training-খরচ, serving-খরচ ধরে না।"
   }
  }
 }

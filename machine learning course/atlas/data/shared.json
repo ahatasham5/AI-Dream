@@ -238,6 +238,21 @@
       "fact": "Hyperparameter validation দিয়ে বাছা যায়; সাধারণ gradient update-এ সব hyperparameter নিজে শেখে না।"
      },
      "kind": "info"
+    },
+    {
+     "id": "hyperparameter-search",
+     "name": "Hyperparameter খোঁজা — grid বনাম random",
+     "kind": "info",
+     "definition": "Learning rate, batch size, weight decay-এর মতো মান model নিজে শেখে না; try করে দেখতে হয়। Grid প্রতিটা মানের সব মিল পরীক্ষা করে, random প্রতিবার সব মান এলোমেলো বদলায়। যেমন ৯টা trial-এ ২টা hyperparameter: grid প্রতিটাকে মাত্র ৩টা আলাদা মানে ছোঁয়, random ৯টা আলাদা মানে।",
+     "insight": {
+      "fact": "Bergstra ও Bengio: বেশির ভাগ কাজে hyperparameter-এর মধ্যে মাত্র দু-একটা সত্যিই জরুরি, আর কোনটা জরুরি তা কাজ-ভেদে বদলায়। তাই random search কম খরচে জরুরি মানগুলো বেশি আলাদা করে ছোঁয়।",
+      "sources": [
+       {
+        "title": "Bergstra, Bengio, JMLR ২০১২",
+        "url": "https://www.jmlr.org/papers/volume13/bergstra12a/bergstra12a.pdf"
+       }
+      ]
+     }
     }
    ],
    "kind": "info"
@@ -288,6 +303,49 @@
       "fact": "Backward gradient বের করে; optimizer step মান বদলায়। Accumulation করলে প্রতি micro-batch-এ zero করা হয় না।"
      },
      "kind": "info"
+    },
+    {
+     "id": "batch-size-and-learning-rate",
+     "name": "Batch size ও learning rate",
+     "kind": "info",
+     "definition": "Batch size মানে এক step-এ কয়টা উদাহরণ দেখে gradient বের করা হয়। বড় batch-এর gradient কম এলোমেলো, তাই বেশি learning rate সহ্য করে; ছোট batch-এ gradient বেশি ওঠানামা করে। দুটো একসঙ্গে ঠিক করতে হয়, কারণ batch বদলালে learning rate-ও বদলাতে হয়।",
+     "mathDetail": {
+      "formula": "batch × k  ⇒  learning rate × k   (linear scaling rule)",
+      "meaning": "k গুণ বড় batch নিলে learning rate-ও k গুণ। শর্ত: weight decay সহ বাকি সব অপরিবর্তিত, আর শুরুতে warmup।",
+      "example": "ভিত্তি: batch 256, learning rate 0.1। batch 8192 হলে k = 8192 ÷ 256 = 32, তাই learning rate = 0.1 × 32 = 3.2 (Goyal et al., ResNet-50)।"
+     },
+     "insight": {
+      "fact": "Batch অনির্দিষ্টকাল বাড়িয়ে লাভ হয় না: ImageNet ResNet-50-এ প্রায় ৮ হাজারের পর মান দ্রুত নামে। McCandlish: critical batch size-এর অনেক নিচে batch বাড়ালে step প্রায় সেই অনুপাতে কমে, অনেক ওপরে প্রায় লাভ নেই।",
+      "sources": [
+       {
+        "title": "Goyal et al., ২০১৭",
+        "url": "https://arxiv.org/abs/1706.02677"
+       },
+       {
+        "title": "McCandlish et al., ২০১৮",
+        "url": "https://arxiv.org/abs/1812.06162"
+       }
+      ]
+     }
+    },
+    {
+     "id": "early-stopping",
+     "name": "Early Stopping",
+     "kind": "info",
+     "definition": "Training loss কমতেই থাকে, কিন্তু validation loss এক সময় আবার বাড়তে শুরু করে, তখন model মুখস্থ করছে। Early stopping validation loss নজরে রাখে, আর কিছুদিন (patience) উন্নতি না হলে থামিয়ে সবচেয়ে ভালো validation-এর weight ফেরত দেয়। যেমন validation loss ০.৯, ০.৭, ০.৬, ০.৬২, ০.৬৫, patience ২ হলে পঞ্চম epoch-এ থেমে তৃতীয় epoch-এর weight রাখা।",
+     "insight": {
+      "fact": "Prechelt-এর পরীক্ষায় ধীর থামার নিয়ম সামান্য (প্রায় ৪%) ভালো generalization দেয়, কিন্তু প্রায় ৪ গুণ লম্বা training লাগে। Goodfellow et al.: validation set লাগে, তাই কিছু data training-এ যায় না।",
+      "sources": [
+       {
+        "title": "Deep Learning (Goodfellow et al.), §7.8",
+        "url": "https://www.deeplearningbook.org/contents/regularization.html"
+       },
+       {
+        "title": "Prechelt, ১৯৯৭ technical report",
+        "url": "https://publikationen.bibliothek.kit.edu/7398/1205"
+       }
+      ]
+     }
     }
    ],
    "kind": "info"
@@ -349,6 +407,34 @@
       "fact": "ছোট gradient learning ধীর করে; বড় gradient অস্থির করে। Activation, initialization, residual path ও clipping বিভিন্নভাবে সাহায্য করতে পারে।"
      },
      "kind": "info"
+    },
+    {
+     "id": "gradient-clipping",
+     "name": "Gradient Clipping",
+     "kind": "info",
+     "definition": "Gradient খুব বড় হয়ে গেলে (exploding gradient) এক step-এ weight অনেক দূরে ছিটকে যায়। Clipping gradient-এর দৈর্ঘ্যকে একটা সীমার বেশি হতে দেয় না: বড় হলে পুরোটাকে ছোট করে সীমায় আনে, দিক বদলায় না।",
+     "mathDetail": {
+      "formula": "যদি ‖g‖ ≥ সীমা:   g ← (সীমা ÷ ‖g‖) · g",
+      "meaning": "‖g‖ হলো gradient-এর দৈর্ঘ্য। সীমার ভেতরে থাকলে কিছু বদলায় না; বাইরে গেলে পুরো gradient একই অনুপাতে ছোট হয়, তাই দিক একই থাকে।",
+      "example": "g = (3, 4), ‖g‖ = 5, সীমা = 1 হলে g ← (1 ÷ 5) · (3, 4) = (0.6, 0.8); এর দৈর্ঘ্য এখন 1, দিক একই।"
+     },
+     "insight": {
+      "fact": "GPT-3 ও Llama 2 দুটোতেই global norm ১.০-তে clip। Pascanu et al.: সীমা গড় gradient-দৈর্ঘ্য দেখে ঠিক করা যায়, আর training এই মানের প্রতি খুব সংবেদনশীল নয়; এটা শুধু exploding gradient ঠেকায়।",
+      "sources": [
+       {
+        "title": "Pascanu et al., ২০১২",
+        "url": "https://arxiv.org/abs/1211.5063"
+       },
+       {
+        "title": "GPT-3 paper, Appendix B",
+        "url": "https://arxiv.org/abs/2005.14165"
+       },
+       {
+        "title": "Llama 2 paper",
+        "url": "https://arxiv.org/abs/2307.09288"
+       }
+      ]
+     }
     }
    ],
    "kind": "info"
@@ -440,6 +526,34 @@
       "fact": "Adam-এ loss-এর L2 penalty আর decoupled weight decay সাধারণভাবে একই update নয়।"
      },
      "kind": "info"
+    },
+    {
+     "id": "weight-decay",
+     "name": "Weight Decay",
+     "kind": "info",
+     "definition": "প্রতি update-এ weight-গুলোকে একটু একটু শূন্যের দিকে টেনে ছোট রাখা, যাতে model অতি-জটিল হয়ে training data মুখস্থ না করে। SGD-তে এটা L2 regularization-এর সমান, কিন্তু Adam-এ সমান নয়, তাই AdamW decay-কে gradient থেকে আলাদা করে সরাসরি weight-এ বসায়।",
+     "mathDetail": {
+      "formula": "w ← w − lr · ( Adam-এর step + λ · w )",
+      "meaning": "λ হলো weight decay-এর মান। আলাদা পদটা λ · w সব weight-কে একই হারে ছোট করে, gradient-এর ইতিহাস যাই হোক।",
+      "example": "w = 2, lr = 0.1, λ = 0.1, Adam-এর step ০ ধরলে (শুধু decay দেখাতে): w = 2 − 0.1 × (0 + 0.1 × 2) = 1.98।"
+     },
+     "insight": {
+      "fact": "GPT-3 আর Llama 2, দুটোই weight decay ০.১ ব্যবহার করেছে। AdamW paper: সেরা মান training-এর মোট update-সংখ্যার ওপর নির্ভর করে, লম্বা training-এ কম decay ভালো।",
+      "sources": [
+       {
+        "title": "AdamW paper (Loshchilov, Hutter), ২০১৭",
+        "url": "https://arxiv.org/abs/1711.05101"
+       },
+       {
+        "title": "GPT-3 paper, Appendix B",
+        "url": "https://arxiv.org/abs/2005.14165"
+       },
+       {
+        "title": "Llama 2 paper",
+        "url": "https://arxiv.org/abs/2307.09288"
+       }
+      ]
+     }
     }
    ],
    "kind": "info"
@@ -481,6 +595,49 @@
       "fact": "শুরুর update স্থিতিশীল করতে সাহায্য করতে পারে; পরে constant বা decay schedule আসতে পারে।"
      },
      "kind": "info"
+    },
+    {
+     "id": "cosine-decay",
+     "name": "Cosine Decay",
+     "kind": "info",
+     "definition": "Learning rate শুরুতে সর্বোচ্চ, তারপর cosine বক্ররেখা ধরে নেমে শেষে সর্বোচ্চের ১০%-এ পৌঁছায়: প্রথমে ধীরে, মাঝে দ্রুত, শেষে আবার ধীরে নামে। বড় language model-এর সবচেয়ে প্রচলিত schedule, সাধারণত warmup-এর পরে।",
+     "mathDetail": {
+      "formula": "lr(t) = lr_min + ½ · (lr_max − lr_min) · (1 + cos(π · t ÷ T))",
+      "meaning": "t এখন কততম step, T মোট step। t = 0-তে lr_max, t = T-তে lr_min। এখানে এক চক্র, restart ছাড়া।",
+      "example": "lr_max = 1, lr_min = 0.1, T = 100: t = 0-তে 1.0; t = 50-এ 0.1 + 0.45 × (1 + 0) = 0.55; t = 100-এ 0.1।"
+     },
+     "insight": {
+      "fact": "Chinchilla paper: চক্রের দৈর্ঘ্য training step-এর সংখ্যার কাছাকাছি রাখা সেরা; চক্র step-সংখ্যাকে ২৫%-এর বেশি ছাড়ালে মান লক্ষণীয়ভাবে নামে।",
+      "sources": [
+       {
+        "title": "SGDR paper (Loshchilov, Hutter), ২০১৬",
+        "url": "https://arxiv.org/abs/1608.03983"
+       },
+       {
+        "title": "Chinchilla paper, Appendix D",
+        "url": "https://arxiv.org/abs/2203.15556"
+       },
+       {
+        "title": "Llama 2 paper",
+        "url": "https://arxiv.org/abs/2307.09288"
+       }
+      ]
+     }
+    },
+    {
+     "id": "wsd-schedule",
+     "name": "Warmup–Stable–Decay (WSD)",
+     "kind": "info",
+     "definition": "তিন ভাগ: শুরুতে warmup, তারপর লম্বা সময় ধ্রুবক learning rate, শেষে ছোট একটা decay। Stable ভাগের যেকোনো checkpoint থেকে training চালিয়ে যাওয়া যায়, তাই মোট কত step লাগবে আগে ঠিক করতে হয় না।",
+     "insight": {
+      "fact": "MiniCPM paper: প্রায় ১০% token-এ decay করলে cosine-এর সমান বা কম loss; ২.৫% যথেষ্ট ছিল না। লেখকরা নিজেই বলেন পরীক্ষা ছোট model-এ, বড় LLM-এ পুরো পরীক্ষিত নয়।",
+      "sources": [
+       {
+        "title": "MiniCPM paper (Hu et al.), ২০২৪",
+        "url": "https://arxiv.org/abs/2404.06395"
+       }
+      ]
+     }
     }
    ],
    "kind": "info"

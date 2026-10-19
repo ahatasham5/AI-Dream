@@ -6034,6 +6034,49 @@
                }
               }
              ]
+            },
+            {
+             "id": "sc-shape",
+             "name": "model কত বড়",
+             "definition": "প্রশ্ন: block-stack কতগুলো layer, কত চওড়া, কত head নেবে, আর কত token-এ শেখাবে? চার দিক, একাধিক একসঙ্গে: layer সংখ্যা ও প্রস্থ, KV head সংখ্যা (cache ছোট করতে), আগে cache-এর হিসাব করা, আর আকার ও token সমান হারে বাড়ানো।",
+             "kind": "decision",
+             "pick": "many",
+             "need": "optional",
+             "needWhy": "না বাছলেও পথ চলে; আকার ঠিক না করলে training-এর আগে বাছতেই হবে",
+             "children": [
+              {
+               "id": "opt-sc-shape-depth-width",
+               "name": "layer সংখ্যা ও প্রস্থ (depth, width)",
+               "kind": "option",
+               "when": "মোট parameter-এর বাজেট ঠিক হয়েছে, তাকে আকার দিতে",
+               "basis": "paper",
+               "definition": "Model কতগুলো block পরপর (depth), আর প্রতিটা block-এর ভেতরে vector কত চওড়া (width, hidden size)। বাস্তব মাপ (layer × প্রস্থ): Surya OCR 2-এর লেখা-অংশ ২৪ × ১০২৪, Qwen3-8B ৩৬ × ৪০৯৬, Qwen3-Next-80B ৪৮ × ২০৪৮, Jamba ৩২ × ৪০৯৬।"
+              },
+              {
+               "id": "opt-sc-shape-kv",
+               "name": "KV head সংখ্যা (Grouped-Query Attention)",
+               "kind": "option",
+               "when": "লম্বা context-এ KV cache ছোট চাই",
+               "basis": "paper",
+               "definition": "Attention-এ query head যত, key-value head তত না রেখে কয়েকটা query head একটা key-value head ভাগ করে। KV cache সেই অনুপাতে ছোট হয়। বাস্তব অনুপাত (query : KV head): Surya OCR 2 ৮:২, Qwen3-Next ১৬:২, Qwen3-8B ৩২:৮, Jamba ৩২:৮।"
+              },
+              {
+               "id": "opt-sc-shape-cache",
+               "name": "আগে KV cache-এর হিসাব করো",
+               "kind": "option",
+               "when": "context লম্বা বা hybrid-এ কত layer attention হবে ঠিক করছ",
+               "basis": "paper",
+               "definition": "প্রতি token-এ cache-এর সংখ্যা = ২ × KV head × head dim × attention layer সংখ্যা। Hybrid-এ শুধু attention layer গোনা হয়। Surya OCR 2: ২ × ২ × ২৫৬ × ৬ = ৬,১৪৪ সংখ্যা প্রতি token, bf16-এ ১২,২৮৮ byte; ২,৬২,১৪৪ token-এ প্রায় ৩.২ GB (আমার হিসাব)।"
+              },
+              {
+               "id": "opt-sc-shape-tokens",
+               "name": "আকার আর training token সমান হারে বাড়াও",
+               "kind": "option",
+               "when": "training-এর compute বাজেট নির্দিষ্ট",
+               "basis": "paper",
+               "definition": "Chinchilla: model-আকার দ্বিগুণ হলে training token-ও দ্বিগুণ করা উচিত। ১B model-এ প্রায় ২০.২B token (Table 3), অর্থাৎ প্রায় ২০ token প্রতি parameter (সারণি থেকে হিসাব)। এটা শুধু training-খরচে সেরা, model চালানোর (serving) খরচ ধরে না।"
+              }
+             ]
             }
            ],
            "jump": {
@@ -6364,6 +6407,22 @@
            "kind": "option",
            "when": "সরলতম; QLoRA paper constant schedule ব্যবহার করেছিলল",
            "basis": "paper"
+          },
+          {
+           "id": "opt-cosine-sc",
+           "name": "Cosine decay",
+           "kind": "option",
+           "when": "বড় model-এর প্রচলিত schedule",
+           "basis": "paper",
+           "ref": "cosine-decay"
+          },
+          {
+           "id": "opt-wsd-sc",
+           "name": "Warmup–Stable–Decay (WSD)",
+           "kind": "option",
+           "when": "মোট step আগে ঠিক না থাকলে, বা stable checkpoint থেকে চালিয়ে যেতে",
+           "basis": "paper",
+           "ref": "wsd-schedule"
           }
          ]
         },
@@ -6383,6 +6442,185 @@
            "kind": "option",
            "when": "সবসময়: বড় run-এর আগে সস্তা পরীক্ষা",
            "basis": "experience"
+          },
+          {
+           "id": "opt-sc-lr-recipe",
+           "name": "প্রকাশিত recipe থেকে শুরু, তারপর ছোট run-এ মিলিয়ে নাও",
+           "kind": "option",
+           "when": "বড় language model, আকার ও batch প্রায় প্রকাশিত recipe-র মতো",
+           "basis": "paper",
+           "definition": "Llama 2-এর শীর্ষ learning rate ৩e-৪ (৭B ও ১৩B) এবং ১.৫e-৪ (৩৪B ও ৭০B), batch ৪M token। এটা শুরুর আন্দাজ: তোমার data, optimizer আর batch আলাদা হলে ছোট কয়েকটা run-এ মিলিয়ে নিতে হয়।"
+          }
+         ]
+        },
+        {
+         "id": "hp-batch-sc",
+         "name": "batch size",
+         "definition": "প্রশ্ন: এক step-এ কয়টা উদাহরণ দেখবে, আর সেই অনুযায়ী learning rate কীভাবে বদলাবে? তিন পথ, একসঙ্গে একাধিকও নেওয়া যায়: batch বদলালে learning rate সমান হারে বদলানো, critical batch size মেপে বাছা, আর memory কম হলে gradient accumulation দিয়ে বড় batch-এর কাজ চালানো।",
+         "kind": "decision",
+         "pick": "many",
+         "need": "optional",
+         "needWhy": "না বাছলেও পথ চলে; batch বদলালে learning rate-এর সাথে মেলানো দরকার",
+         "children": [
+          {
+           "id": "opt-bs-linear-sc",
+           "name": "Batch বাড়ালে learning rate সমান হারে বাড়াও",
+           "kind": "option",
+           "when": "SGD (momentum) দিয়ে batch বদলাচ্ছ",
+           "basis": "paper",
+           "ref": "batch-size-and-learning-rate"
+          },
+          {
+           "id": "opt-bs-noise-sc",
+           "name": "Critical batch size মেপে বাছো",
+           "kind": "option",
+           "when": "কত বড় batch পর্যন্ত লাভ, তা মাপতে চাও",
+           "basis": "paper",
+           "definition": "Gradient-এর এলোমেলোভাব (noise scale) মেপে বোঝা যায় কত বড় batch পর্যন্ত training দ্রুত হয়। ওই সীমার নিচে batch দ্বিগুণ করলে step প্রায় অর্ধেক লাগে, সীমার অনেক ওপরে batch বাড়িয়ে প্রায় লাভ নেই। training চলতে চলতে এই সীমা বাড়ে, কারণ loss কমলে gradient-এর আসল সংকেত ছোট হয়।"
+          },
+          {
+           "id": "opt-bs-accum-sc",
+           "name": "Gradient accumulation",
+           "kind": "option",
+           "when": "memory-তে যে batch আঁটে তার চেয়ে বড় effective batch চাই",
+           "basis": "tool-doc",
+           "ref": "gradient-accumulation"
+          }
+         ]
+        },
+        {
+         "id": "hp-wd-sc",
+         "name": "weight decay",
+         "definition": "প্রশ্ন: weight-কে কতটা শূন্যের দিকে টানবে? দুই পথ: বড় model-এর প্রচলিত মান ০.১ দিয়ে শুরু, অথবা ছোট run-এ validation দেখে নিজে খোঁজা।",
+         "kind": "decision",
+         "pick": "one",
+         "need": "optional",
+         "needWhy": "না বাছলেও পথ চলে; AdamW-এ decay আর learning rate প্রায় স্বাধীন",
+         "children": [
+          {
+           "id": "opt-wd-01-sc",
+           "name": "০.১ দিয়ে শুরু",
+           "kind": "option",
+           "when": "বড় language model বানাচ্ছ",
+           "basis": "paper",
+           "ref": "weight-decay"
+          },
+          {
+           "id": "opt-wd-search-sc",
+           "name": "ছোট run-এ validation দেখে খোঁজো",
+           "kind": "option",
+           "when": "নিজের data বা আকারে প্রচলিত মান মানাচ্ছে না",
+           "basis": "paper",
+           "definition": "AdamW-এ weight decay আর learning rate প্রায় স্বাধীন, তাই decay-র মান আলাদা করে খোঁজা যায়। ছোট কয়েকটা run-এ কয়েকটা মান (যেমন ০.০১, ০.১) validation loss দিয়ে মিলিয়ে সেরাটা নেওয়া। সেরা মান training কত লম্বা তার ওপর নির্ভর করে, তাই বড় run-এর জন্য আবার মিলিয়ে দেখতে হয়।"
+          }
+         ]
+        },
+        {
+         "id": "hp-clip-sc",
+         "name": "gradient clipping",
+         "definition": "প্রশ্ন: gradient-এর দৈর্ঘ্যে সীমা দেবে কি, আর দিলে কত? দুই পথ: প্রকাশিত recipe-র মতো global norm ১.০, অথবা গড় gradient-দৈর্ঘ্য মেপে সীমা ঠিক করা।",
+         "kind": "decision",
+         "pick": "one",
+         "need": "optional",
+         "needWhy": "না বাছলেও পথ চলে; loss হঠাৎ লাফালে কাজে লাগে",
+         "children": [
+          {
+           "id": "opt-clip-1-sc",
+           "name": "Global norm ১.০-তে clip",
+           "kind": "option",
+           "when": "বড় language model, প্রচলিত recipe",
+           "basis": "paper",
+           "ref": "gradient-clipping"
+          },
+          {
+           "id": "opt-clip-avg-sc",
+           "name": "গড় gradient-দৈর্ঘ্য দেখে সীমা ঠিক করো",
+           "kind": "option",
+           "when": "নিজের model-এ gradient-এর সাধারণ মাপ জানা নেই",
+           "basis": "paper",
+           "definition": "কয়েকশো update জুড়ে gradient-এর গড় দৈর্ঘ্য মেপে, তার কাছাকাছি একটা সীমা বসানো। সাধারণ step-এ কিছুই বদলায় না, শুধু হঠাৎ-বড় step ছোট হয়। Pascanu-র নিয়ম এটাই; সীমার মান খুব সংবেদনশীল নয় বলে লেখকরা জানান।"
+          }
+         ]
+        },
+        {
+         "id": "sc-stop",
+         "name": "কখন থামবে?",
+         "definition": "প্রশ্ন: শূন্য-থেকে training কখন শেষ হবে? দুই উত্তর: validation loss উন্নতি বন্ধ করলে (patience দিয়ে) থামা, অথবা আগে-ঠিক-করা step বা token সংখ্যা পুরো হলে, যা schedule-এর দৈর্ঘ্যের সাথে মেলানো।",
+         "kind": "decision",
+         "pick": "one",
+         "need": "optional",
+         "needWhy": "না বাছলেও পথ চলে; schedule-এর দৈর্ঘ্যই তখন থামার নিয়ম",
+         "children": [
+          {
+           "id": "opt-sc-stop-val",
+           "name": "validation loss উন্নতি বন্ধ করলে থামো",
+           "kind": "option",
+           "when": "overfit ধরতে চাই, আর validation set আছে",
+           "basis": "paper",
+           "ref": "early-stopping"
+          },
+          {
+           "id": "opt-sc-stop-budget",
+           "name": "আগে-ঠিক-করা step বা token সংখ্যা",
+           "kind": "option",
+           "when": "cosine বা WSD-র দৈর্ঘ্য মেলাতে",
+           "basis": "paper",
+           "definition": "Training-এর মোট step বা token আগে ঠিক করে, learning-rate schedule-এর দৈর্ঘ্য তার সাথে মেলানো। Cosine-এ চক্রের দৈর্ঘ্য step-সংখ্যার কাছাকাছি হলে সেরা ফল (Chinchilla)। validation দেখে না, তাই overfit আলাদা করে ধরতে হয়।"
+          }
+         ]
+        },
+        {
+         "id": "hp-search-sc",
+         "name": "hyperparameter খোঁজার পদ্ধতি",
+         "definition": "প্রশ্ন: learning rate, batch size, weight decay-এর মতো মান কীভাবে খুঁজবে? দুই পথ: grid (সব মিল পরীক্ষা, কম মাত্রায় সরল) বা random (প্রতিবার সব মান এলোমেলো, বেশি মাত্রায় সস্তা)।",
+         "kind": "decision",
+         "pick": "one",
+         "need": "optional",
+         "needWhy": "না বাছলেও পথ চলে; খোঁজার নিয়ম না থাকলে হাতে-বাছা মানই চলে",
+         "children": [
+          {
+           "id": "opt-search-random-sc",
+           "name": "Random search",
+           "kind": "option",
+           "when": "২–৩টার বেশি hyperparameter খুঁজছ",
+           "basis": "paper",
+           "ref": "hyperparameter-search"
+          },
+          {
+           "id": "opt-search-grid-sc",
+           "name": "Grid search",
+           "kind": "option",
+           "when": "মাত্র ২–৩টা hyperparameter, কম মান",
+           "basis": "paper",
+           "definition": "প্রতিটা hyperparameter-এর কয়েকটা মান ঠিক করে সব মিল পরীক্ষা করা, যেমন learning rate-এর ৩টা আর weight decay-র ৩টা মান মিলিয়ে ৯টা run। মাত্রা কম হলে সরল ও আবার চালানো যায়; মাত্রা বাড়লে run-এর সংখ্যা দ্রুত বাড়ে।"
+          }
+         ]
+        },
+        {
+         "id": "hp-search-impl-sc",
+         "name": "খোঁজার tool",
+         "definition": "প্রশ্ন: খোঁজা চালাতে তৈরি tool নেবে কি? এখানে একটাই বিকল্প: Optuna, hyperparameter খোঁজার স্বয়ংক্রিয় framework।",
+         "kind": "decision",
+         "pick": "one",
+         "need": "optional",
+         "needWhy": "tool না নিয়ে নিজে loop লিখলেও চলে",
+         "children": [
+          {
+           "id": "tool-optuna-sc",
+           "name": "Optuna",
+           "kind": "tool",
+           "basis": "tool-doc",
+           "definition": "Hyperparameter খোঁজার স্বয়ংক্রিয় framework, define-by-run API-সহ: search space কোডের ভেতরেই লেখা যায়। নিজের training কোডের সাথে জুড়ে বহু trial চালানো যায়, আর কোন মান ভালো ফল দিল তা দেখা যায়।",
+           "tool": {
+            "repo": "https://github.com/optuna/optuna",
+            "license": "MIT",
+            "archived": false,
+            "pushed": "২০২৬-১০-১৬",
+            "checked": "২০২৬-১০-১৯",
+            "src": "GitHub API ও README",
+            "docs": "https://github.com/optuna/optuna#readme"
+           },
+           "when": "অনেক trial স্বয়ংক্রিয়ভাবে চালাতে"
           }
          ]
         }
@@ -8465,6 +8703,22 @@
              "kind": "option",
              "when": "সরলতম; QLoRA paper constant schedule ব্যবহার করেছিলল",
              "basis": "paper"
+            },
+            {
+             "id": "opt-cosine",
+             "name": "Cosine decay",
+             "kind": "option",
+             "when": "বড় model-এর প্রচলিত schedule",
+             "basis": "paper",
+             "ref": "cosine-decay"
+            },
+            {
+             "id": "opt-wsd",
+             "name": "Warmup–Stable–Decay (WSD)",
+             "kind": "option",
+             "when": "মোট step আগে ঠিক না থাকলে, বা stable checkpoint থেকে চালিয়ে যেতে",
+             "basis": "paper",
+             "ref": "wsd-schedule"
             }
            ]
           },
@@ -8504,6 +8758,95 @@
            ]
           },
           {
+           "id": "hp-batch",
+           "name": "batch size",
+           "definition": "প্রশ্ন: এক step-এ কয়টা উদাহরণ দেখবে, আর সেই অনুযায়ী learning rate কীভাবে বদলাবে? তিন পথ, একসঙ্গে একাধিকও নেওয়া যায়: batch বদলালে learning rate সমান হারে বদলানো, critical batch size মেপে বাছা, আর memory কম হলে gradient accumulation দিয়ে বড় batch-এর কাজ চালানো।",
+           "kind": "decision",
+           "pick": "many",
+           "need": "optional",
+           "needWhy": "না বাছলেও পথ চলে; batch বদলালে learning rate-এর সাথে মেলানো দরকার",
+           "children": [
+            {
+             "id": "opt-bs-linear",
+             "name": "Batch বাড়ালে learning rate সমান হারে বাড়াও",
+             "kind": "option",
+             "when": "SGD (momentum) দিয়ে batch বদলাচ্ছ",
+             "basis": "paper",
+             "ref": "batch-size-and-learning-rate"
+            },
+            {
+             "id": "opt-bs-noise",
+             "name": "Critical batch size মেপে বাছো",
+             "kind": "option",
+             "when": "কত বড় batch পর্যন্ত লাভ, তা মাপতে চাও",
+             "basis": "paper",
+             "definition": "Gradient-এর এলোমেলোভাব (noise scale) মেপে বোঝা যায় কত বড় batch পর্যন্ত training দ্রুত হয়। ওই সীমার নিচে batch দ্বিগুণ করলে step প্রায় অর্ধেক লাগে, সীমার অনেক ওপরে batch বাড়িয়ে প্রায় লাভ নেই। training চলতে চলতে এই সীমা বাড়ে, কারণ loss কমলে gradient-এর আসল সংকেত ছোট হয়।"
+            },
+            {
+             "id": "opt-bs-accum",
+             "name": "Gradient accumulation",
+             "kind": "option",
+             "when": "memory-তে যে batch আঁটে তার চেয়ে বড় effective batch চাই",
+             "basis": "tool-doc",
+             "ref": "gradient-accumulation"
+            }
+           ]
+          },
+          {
+           "id": "hp-wd",
+           "name": "weight decay",
+           "definition": "প্রশ্ন: weight-কে কতটা শূন্যের দিকে টানবে? দুই পথ: বড় model-এর প্রচলিত মান ০.১ দিয়ে শুরু, অথবা ছোট run-এ validation দেখে নিজে খোঁজা।",
+           "kind": "decision",
+           "pick": "one",
+           "need": "optional",
+           "needWhy": "না বাছলেও পথ চলে; AdamW-এ decay আর learning rate প্রায় স্বাধীন",
+           "children": [
+            {
+             "id": "opt-wd-01",
+             "name": "০.১ দিয়ে শুরু",
+             "kind": "option",
+             "when": "বড় language model বানাচ্ছ",
+             "basis": "paper",
+             "ref": "weight-decay"
+            },
+            {
+             "id": "opt-wd-search",
+             "name": "ছোট run-এ validation দেখে খোঁজো",
+             "kind": "option",
+             "when": "নিজের data বা আকারে প্রচলিত মান মানাচ্ছে না",
+             "basis": "paper",
+             "definition": "AdamW-এ weight decay আর learning rate প্রায় স্বাধীন, তাই decay-র মান আলাদা করে খোঁজা যায়। ছোট কয়েকটা run-এ কয়েকটা মান (যেমন ০.০১, ০.১) validation loss দিয়ে মিলিয়ে সেরাটা নেওয়া। সেরা মান training কত লম্বা তার ওপর নির্ভর করে, তাই বড় run-এর জন্য আবার মিলিয়ে দেখতে হয়।"
+            }
+           ]
+          },
+          {
+           "id": "hp-clip",
+           "name": "gradient clipping",
+           "definition": "প্রশ্ন: gradient-এর দৈর্ঘ্যে সীমা দেবে কি, আর দিলে কত? দুই পথ: প্রকাশিত recipe-র মতো global norm ১.০, অথবা গড় gradient-দৈর্ঘ্য মেপে সীমা ঠিক করা।",
+           "kind": "decision",
+           "pick": "one",
+           "need": "optional",
+           "needWhy": "না বাছলেও পথ চলে; loss হঠাৎ লাফালে কাজে লাগে",
+           "children": [
+            {
+             "id": "opt-clip-1",
+             "name": "Global norm ১.০-তে clip",
+             "kind": "option",
+             "when": "বড় language model, প্রচলিত recipe",
+             "basis": "paper",
+             "ref": "gradient-clipping"
+            },
+            {
+             "id": "opt-clip-avg",
+             "name": "গড় gradient-দৈর্ঘ্য দেখে সীমা ঠিক করো",
+             "kind": "option",
+             "when": "নিজের model-এ gradient-এর সাধারণ মাপ জানা নেই",
+             "basis": "paper",
+             "definition": "কয়েকশো update জুড়ে gradient-এর গড় দৈর্ঘ্য মেপে, তার কাছাকাছি একটা সীমা বসানো। সাধারণ step-এ কিছুই বদলায় না, শুধু হঠাৎ-বড় step ছোট হয়। Pascanu-র নিয়ম এটাই; সীমার মান খুব সংবেদনশীল নয় বলে লেখকরা জানান।"
+            }
+           ]
+          },
+          {
            "id": "hp-stop",
            "name": "কখন থামবে?",
            "definition": "এই প্রশ্নটা হলো: training কখন শেষ হবে। এক উত্তর: validation loss (training-এ না-দেখা data-য় ভুলের মাপ) দেখে, যখন আর ভালো হচ্ছে না তখন থামা। অন্য উত্তর: আগে থেকে ঠিক করা epoch-সংখ্যা পুরো হলে থামা।",
@@ -8528,6 +8871,61 @@
              "kind": "option",
              "when": "SFT-এ, ছোট data-র ঝুঁকি থাকলে",
              "basis": "experience"
+            }
+           ]
+          },
+          {
+           "id": "hp-search",
+           "name": "hyperparameter খোঁজার পদ্ধতি",
+           "definition": "প্রশ্ন: learning rate, batch size, weight decay-এর মতো মান কীভাবে খুঁজবে? দুই পথ: grid (সব মিল পরীক্ষা, কম মাত্রায় সরল) বা random (প্রতিবার সব মান এলোমেলো, বেশি মাত্রায় সস্তা)।",
+           "kind": "decision",
+           "pick": "one",
+           "need": "optional",
+           "needWhy": "না বাছলেও পথ চলে; খোঁজার নিয়ম না থাকলে হাতে-বাছা মানই চলে",
+           "children": [
+            {
+             "id": "opt-search-random",
+             "name": "Random search",
+             "kind": "option",
+             "when": "২–৩টার বেশি hyperparameter খুঁজছ",
+             "basis": "paper",
+             "ref": "hyperparameter-search"
+            },
+            {
+             "id": "opt-search-grid",
+             "name": "Grid search",
+             "kind": "option",
+             "when": "মাত্র ২–৩টা hyperparameter, কম মান",
+             "basis": "paper",
+             "definition": "প্রতিটা hyperparameter-এর কয়েকটা মান ঠিক করে সব মিল পরীক্ষা করা, যেমন learning rate-এর ৩টা আর weight decay-র ৩টা মান মিলিয়ে ৯টা run। মাত্রা কম হলে সরল ও আবার চালানো যায়; মাত্রা বাড়লে run-এর সংখ্যা দ্রুত বাড়ে।"
+            }
+           ]
+          },
+          {
+           "id": "hp-search-impl",
+           "name": "খোঁজার tool",
+           "definition": "প্রশ্ন: খোঁজা চালাতে তৈরি tool নেবে কি? এখানে একটাই বিকল্প: Optuna, hyperparameter খোঁজার স্বয়ংক্রিয় framework।",
+           "kind": "decision",
+           "pick": "one",
+           "need": "optional",
+           "needWhy": "tool না নিয়ে নিজে loop লিখলেও চলে",
+           "children": [
+            {
+             "id": "tool-optuna",
+             "name": "Optuna",
+             "kind": "tool",
+             "basis": "tool-doc",
+             "definition": "Hyperparameter খোঁজার স্বয়ংক্রিয় framework, define-by-run API-সহ: search space কোডের ভেতরেই লেখা যায়। নিজের training কোডের সাথে জুড়ে বহু trial চালানো যায়, আর কোন মান ভালো ফল দিল তা দেখা যায়।",
+             "tool": {
+              "repo": "https://github.com/optuna/optuna",
+              "license": "MIT",
+              "archived": false,
+              "pushed": "২০২৬-১০-১৬",
+              "checked": "২০২৬-১০-১৯",
+              "src": "GitHub API ও README",
+              "docs": "https://github.com/optuna/optuna#readme"
+             },
+             "when": "অনেক trial স্বয়ংক্রিয়ভাবে চালাতে"
             }
            ]
           }

@@ -691,6 +691,103 @@
      "url": "https://arxiv.org/abs/2606.16429"
     }
    ]
+  },
+  {
+   "names": [
+    "Batch size ও learning rate"
+   ],
+   "items": [
+    {
+     "year": "২০১৭ (জুন, arXiv-এ প্রথম জমা)",
+     "text": "Goyal et al.: batch ও learning rate-এর সরল নিয়ম, ৮১৯২ পর্যন্ত।",
+     "src": "arXiv: Accurate, Large Minibatch SGD, ২০১৭",
+     "url": "https://arxiv.org/abs/1706.02677"
+    },
+    {
+     "year": "২০১৮ (ডিসেম্বর, arXiv-এ প্রথম জমা)",
+     "text": "McCandlish et al.: gradient noise scale আর critical batch size।",
+     "src": "arXiv: An Empirical Model of Large-Batch Training, ২০১৮",
+     "url": "https://arxiv.org/abs/1812.06162"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Weight Decay"
+   ],
+   "items": [
+    {
+     "year": "২০১৭ (নভেম্বর, arXiv-এ প্রথম জমা)",
+     "text": "AdamW: weight decay আর L2 আলাদা।",
+     "src": "arXiv: Decoupled Weight Decay Regularization, ২০১৭",
+     "url": "https://arxiv.org/abs/1711.05101"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Gradient Clipping"
+   ],
+   "items": [
+    {
+     "year": "২০১২ (নভেম্বর, arXiv-এ প্রথম জমা)",
+     "text": "Pascanu et al.: gradient norm clipping।",
+     "src": "arXiv: On the difficulty of training RNNs, ২০১২",
+     "url": "https://arxiv.org/abs/1211.5063"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Cosine Decay"
+   ],
+   "items": [
+    {
+     "year": "২০১৬ (আগস্ট, arXiv-এ প্রথম জমা)",
+     "text": "SGDR: cosine learning-rate schedule (restart-সহ)।",
+     "src": "arXiv: SGDR paper, ২০১৬",
+     "url": "https://arxiv.org/abs/1608.03983"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Warmup–Stable–Decay (WSD)"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (এপ্রিল, arXiv-এ প্রথম জমা)",
+     "text": "MiniCPM-এ WSD schedule।",
+     "src": "arXiv: MiniCPM paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2404.06395"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Early Stopping"
+   ],
+   "items": [
+    {
+     "year": "১৯৯৭ (ডিসেম্বর, technical report)",
+     "text": "Prechelt-এর স্বয়ংক্রিয় early stopping-এর নিয়ম-তুলনা।",
+     "src": "KIT: Prechelt technical report, ১৯৯৭",
+     "url": "https://publikationen.bibliothek.kit.edu/7398/1205"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Hyperparameter খোঁজা — grid বনাম random"
+   ],
+   "items": [
+    {
+     "year": "২০১২ (JMLR ১৩)",
+     "text": "Bergstra ও Bengio: random search।",
+     "src": "JMLR: Random Search for Hyper-Parameter Optimization, ২০১২",
+     "url": "https://www.jmlr.org/papers/volume13/bergstra12a/bergstra12a.pdf"
+    }
+   ]
   }
  ]
 }

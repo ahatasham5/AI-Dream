@@ -1131,6 +1131,30 @@
    "lessons": [
     "12/09"
    ]
+  },
+  {
+   "names": [
+    "Batch size ও learning rate"
+   ],
+   "lessons": [
+    "10/06"
+   ]
+  },
+  {
+   "names": [
+    "Early Stopping"
+   ],
+   "lessons": [
+    "07/03"
+   ]
+  },
+  {
+   "names": [
+    "Hyperparameter খোঁজা — grid বনাম random"
+   ],
+   "lessons": [
+    "07/05"
+   ]
   }
  ]
 }

@@ -2725,6 +2725,211 @@
     ],
     "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
    }
+  },
+  {
+   "names": [
+    "Batch size ও learning rate"
+   ],
+   "practice": {
+    "scenario": "GPU-র সংখ্যা বাড়িয়ে batch ২৫৬ থেকে ৮১৯২ করলে learning rate-ও ৩২ গুণ (০.১ থেকে ৩.২) করা, শুরুর কিছু epoch warmup দিয়ে।",
+    "facts": [
+     {
+      "t": "Rule: batch k গুণ হলে learning rate k গুণ, weight decay সহ বাকি সব অপরিবর্তিত। ResNet-50, ImageNet: ৮১৯২ পর্যন্ত মান নষ্ট হয়নি (top-1 error ২৩.৭৪% ±০.০৯, baseline ২৩.৬০% ±০.১২)।",
+      "s": "Goyal et al., ২০১৭",
+      "u": "https://arxiv.org/abs/1706.02677"
+     },
+     {
+      "t": "paper নিজে: ধারণাটা শক্ত অনুমানের ওপর; শুরুতে আর খুব বড় batch-এ ভাঙে ('batch অনির্দিষ্ট বাড়ানো যায় না', ImageNet-এ ~৮k); প্রমাণ শুধু ImageNet/ResNet-50, momentum SGD-তে।",
+      "s": "Goyal et al., ২০১৭",
+      "u": "https://arxiv.org/abs/1706.02677"
+     },
+     {
+      "t": "Gradient noise scale B_noise সবচেয়ে কাজের batch-এর আন্দাজ দেয়। B ≪ B_noise-তে batch বাড়ালে প্রায় সমান অনুপাতে দ্রুত; B ≫ B_noise-তে প্রায় লাভ নেই। Adam/RMSProp-এ সেরা learning rate ∝ B^α, α ০.৫ থেকে ১।",
+      "s": "McCandlish et al., ২০১৮",
+      "u": "https://arxiv.org/abs/1812.06162"
+     },
+     {
+      "t": "Llama 2: batch ৪M token সব আকারে; শীর্ষ learning rate ৩.০e-৪ (৭B, ১৩B) আর ১.৫e-৪ (৩৪B, ৭০B)।",
+      "s": "Llama 2 paper, Table 1",
+      "u": "https://arxiv.org/abs/2307.09288"
+     }
+    ],
+    "typical": [
+     "একই GPU-তে আঁটে না এমন batch চাইলে gradient accumulation।"
+    ],
+    "pitfalls": [
+     "Adam-এ SGD-র linear rule অন্ধভাবে বসানো: McCandlish-এর মতে Adam-এ সম্পর্ক power law।"
+    ],
+    "outside": "Batch size আর epoch কোর্সে আছে; learning rate-এর সাথে সম্পর্ক ও বড় batch-এর সীমা কোর্সে নেই।"
+   }
+  },
+  {
+   "names": [
+    "Weight Decay"
+   ],
+   "practice": {
+    "scenario": "AdamW দিয়ে বড় language model train করা, weight decay ০.১।",
+    "facts": [
+     {
+      "t": "L2 regularization আর weight decay SGD-তে সমান, Adam-এ নয়। AdamW decay-কে gradient-এর adaptive scaling-এর বাইরে রাখে, তাই সব weight সমান হারে ছোট হয়। CIFAR-10 ও ImageNet32x32-এ Adam+L2-এর চেয়ে প্রায় ১৫% কম test error।",
+      "s": "AdamW paper (Loshchilov, Hutter), ICLR ২০১৯",
+      "u": "https://arxiv.org/abs/1711.05101"
+     },
+     {
+      "t": "paper নিজে: সেরা decay training-এর মোট update-সংখ্যার ওপর নির্ভর করে; ফল ছবির কাজে, আরও কাজে যাচাই বাকি।",
+      "s": "AdamW paper",
+      "u": "https://arxiv.org/abs/1711.05101"
+     },
+     {
+      "t": "GPT-3: সব model-এ weight decay ০.১। Llama 2: AdamW, β১ ০.৯, β২ ০.৯৫, weight decay ০.১।",
+      "s": "GPT-3 paper Appendix B; Llama 2 paper",
+      "u": "https://arxiv.org/abs/2307.09288"
+     }
+    ],
+    "pitfalls": [
+     "Adam-এ L2 loss যোগ করে 'weight decay' ধরে নেওয়া: দুটো এক নয়।"
+    ],
+    "outside": "সূত্র paper ও docs থেকে; কোর্সে এর কতটা আছে আলাদা করে যাচাই হয়নি।"
+   }
+  },
+  {
+   "names": [
+    "Gradient Clipping"
+   ],
+   "practice": {
+    "scenario": "Loss হঠাৎ লাফিয়ে ওঠে কারণ একটা batch-এর gradient অস্বাভাবিক বড়; clipping সেই step-কে ছোট করে।",
+    "facts": [
+     {
+      "t": "নিয়ম: ‖g‖ ≥ সীমা হলে g ← (সীমা ÷ ‖g‖) · g; পুরো gradient একই অনুপাতে ছোট হয়, দিক একই। কারণ: error-তলে খাড়া 'দেয়াল' আছে, বড় gradient সেখানে weight ছুড়ে দেয়।",
+      "s": "Pascanu et al., ২০১২",
+      "u": "https://arxiv.org/abs/1211.5063"
+     },
+     {
+      "t": "সীমা ঠিক করার উপায়: অনেক update জুড়ে গড় gradient-দৈর্ঘ্য দেখা; training এই মানের প্রতি খুব সংবেদনশীল নয়। paper-এর উদাহরণে ৬, ৮ ও ৪৫।",
+      "s": "Pascanu et al., ২০১২",
+      "u": "https://arxiv.org/abs/1211.5063"
+     },
+     {
+      "t": "GPT-3: global norm ১.০-তে clip। Llama 2: gradient clipping ১.০।",
+      "s": "GPT-3 paper Appendix B; Llama 2 paper",
+      "u": "https://arxiv.org/abs/2307.09288"
+     }
+    ],
+    "pitfalls": [
+     "Clipping vanishing gradient ঠিক করে না: paper-এ ওটার জন্য আলাদা regularization।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও docs থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Cosine Decay"
+   ],
+   "practice": {
+    "scenario": "Warmup-এর পর cosine ধরে learning rate নামিয়ে শেষে সর্বোচ্চের ১০%-এ আনা।",
+    "facts": [
+     {
+      "t": "Llama 2: cosine schedule, warmup ২০০০ step, শেষ learning rate শীর্ষের ১০%।",
+      "s": "Llama 2 paper",
+      "u": "https://arxiv.org/abs/2307.09288"
+     },
+     {
+      "t": "GPT-3: প্রথম ৩৭৫M token linear warmup, তারপর ২৬০B token ধরে cosine শীর্ষের ১০%-এ, এরপর ১০%-এই।",
+      "s": "GPT-3 paper Appendix B",
+      "u": "https://arxiv.org/abs/2005.14165"
+     },
+     {
+      "t": "Chinchilla: cosine, ১০ গুণ drop; চক্র training step-কে ২৫%-এর বেশি ছাড়ালে মান লক্ষণীয়ভাবে নামে, step-সংখ্যার কাছাকাছি রাখা সেরা।",
+      "s": "Chinchilla paper, Appendix D",
+      "u": "https://arxiv.org/abs/2203.15556"
+     },
+     {
+      "t": "সূত্র η_t = η_min + ½(η_max − η_min)(1 + cos(T_cur/T_i · π)) মূল SGDR paper-এর; সেখানে restart আছে, বড় language model-এর recipe-এ restart ছাড়া এক চক্র।",
+      "s": "SGDR paper (Loshchilov, Hutter), ২০১৬",
+      "u": "https://arxiv.org/abs/1608.03983"
+     }
+    ],
+    "pitfalls": [
+     "SGDR-এর 'warm restarts'-কে learning-rate warmup ভাবা: দুটো আলাদা জিনিস।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও docs থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Warmup–Stable–Decay (WSD)"
+   ],
+   "practice": {
+    "scenario": "মোট training-দৈর্ঘ্য আগে ঠিক নেই; ধ্রুবক learning rate-এ চলতে থাকো, শেষ হবে মনে হলে ছোট decay।",
+    "facts": [
+     {
+      "t": "তিন ভাগ: warmup (linear), ধ্রুবক, তারপর decay। Decay ভাগে loss তীব্রভাবে নামে, cosine-এর সমান বা কম স্তরে। ~১০% token-এর decay যথেষ্ট, ২.৫% নয়।",
+      "s": "MiniCPM paper (Hu et al.), ২০২৪",
+      "u": "https://arxiv.org/abs/2404.06395"
+     },
+     {
+      "t": "paper নিজে (§6.3): পরীক্ষা ছোট model-এ; বড় LLM-এ WSD পুরো পরীক্ষিত নয়।",
+      "s": "MiniCPM paper",
+      "u": "https://arxiv.org/abs/2404.06395"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও docs থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Early Stopping"
+   ],
+   "practice": {
+    "scenario": "প্রতি epoch-এ validation loss মেপে, পরপর কয়েকবার উন্নতি না হলে থেমে সেরা epoch-এর weight ফেরত নেওয়া।",
+    "facts": [
+     {
+      "t": "Training error কমতে থাকে, validation error শেষে আবার বাড়ে (U-আকার)। সেরা validation-এর parameter রেখে, patience পেরোলে থামা। সবচেয়ে প্রচলিত regularization-এর একটা; training-ধাপ সংখ্যাই hyperparameter।",
+      "s": "Deep Learning (Goodfellow et al.), §7.8",
+      "u": "https://www.deeplearningbook.org/contents/regularization.html"
+     },
+     {
+      "t": "খরচ: নিয়মিত validation মাপা, validation set আলাদা রাখা (data কমে); আবার-train করার সময় একই update না একই pass, তা জানার ভালো উপায় নেই।",
+      "s": "Deep Learning (Goodfellow et al.), §7.8",
+      "u": "https://www.deeplearningbook.org/contents/regularization.html"
+     },
+     {
+      "t": "১২টা কাজে ১৪টা থামার নিয়ম: ধীর নিয়ম প্রায় ৪% ভালো generalization, প্রায় ৪ গুণ লম্বা training। বাস্তব validation curve-এ বহু local minimum, তাই সাময়িক বাড়া মানেই শেষ নয়।",
+      "s": "Prechelt, ১৯৯৭ technical report",
+      "u": "https://publikationen.bibliothek.kit.edu/7398/1205"
+     }
+    ],
+    "pitfalls": [
+     "Prechelt-এর পরীক্ষা পুরোনো ধরনের network ও optimizer-এ; অন্য training-এ প্রযোজ্য কি না লেখক নিজেই 'খোলা প্রশ্ন' বলেছেন।"
+    ],
+    "outside": "Early stopping কোর্সে আছে; patience, খরচ আর Prechelt-এর তুলনা কোর্সে নেই।"
+   }
+  },
+  {
+   "names": [
+    "Hyperparameter খোঁজা — grid বনাম random"
+   ],
+   "practice": {
+    "scenario": "৩টা hyperparameter খুঁজছ, ৯টা run-এর সামর্থ্য: grid প্রতিটাকে ৩ মানে ছোঁয়, random ৯ মানে।",
+    "facts": [
+     {
+      "t": "Random trial grid trial-এর চেয়ে বেশি কার্যকর: neural network-এ grid-এর সমান বা ভালো মডেল ছোট ভগ্নাংশ খরচে পায়।",
+      "s": "Bergstra, Bengio, JMLR ২০১২",
+      "u": "https://www.jmlr.org/papers/volume13/bergstra12a/bergstra12a.pdf"
+     },
+     {
+      "t": "কারণ: hyperparameter থেকে validation score-এর ফাংশনের কার্যকর মাত্রা কম। বেশির ভাগ কাজে মাত্র কয়েকটা জরুরি, কিন্তু কোনগুলো তা কাজ-ভেদে আলাদা।",
+      "s": "Bergstra, Bengio, JMLR ২০১২",
+      "u": "https://www.jmlr.org/papers/volume13/bergstra12a/bergstra12a.pdf"
+     },
+     {
+      "t": "paper নিজে: random কম মাত্রায় সামান্য কম দক্ষ, বেশি মাত্রায় অনেক বেশি; DBN-এর বড় space-এ ৭টার ৪টা dataset-এ সমান, ১টায় ভালো।",
+      "s": "Bergstra, Bengio, JMLR ২০১২",
+      "u": "https://www.jmlr.org/papers/volume13/bergstra12a/bergstra12a.pdf"
+     }
+    ],
+    "outside": "Hyperparameter বাছাই ও grid কোর্সে আছে; random বনাম grid-এর যুক্তি কোর্সে নেই।"
+   }
   }
  ]
 }

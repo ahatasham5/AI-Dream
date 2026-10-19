@@ -56,7 +56,13 @@
     "Gradient",
     "Gradient Descent",
     "Learning Rate",
-    "Optimizer"
+    "Optimizer",
+    "Batch size ও learning rate",
+    "Weight Decay",
+    "Gradient Clipping",
+    "Cosine Decay",
+    "Early Stopping",
+    "Hyperparameter খোঁজা — grid বনাম random"
    ]
   },
   {
