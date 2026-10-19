@@ -1,0 +1,227 @@
+{
+ "_নিয়ম": "node-দের মধ্যে সম্পর্ক। type 'needs': from-কে বুঝতে আগে to লাগে (to হলো from-এর পূর্বশর্ত); 'contrasts': পাশাপাশি তুলনা করার মতো, দুদিকেই কাজ করে। প্রতিটার why লাগে। এখান থেকে dialog-এ 'আগে লাগে', 'এর ওপর দাঁড়ায়', 'তুলনা করো' আর 'এটা বুঝতে পড়ার ক্রম' আসে। 'needs'-এ চক্র থাকলে build থামে। ক্রম নির্ধারিত: একই from-এর কয়েকটা needs-এ আগে লেখা আগে পড়া হয়।",
+ "edges": [
+  {
+   "from": "kd-l01",
+   "to": "classification--logistic-regression--structure--softmax",
+   "type": "needs",
+   "why": "teacher-এর probability কীভাবে বের হয়"
+  },
+  {
+   "from": "kd-l01",
+   "to": "fine-tuning",
+   "type": "needs",
+   "why": "SFT কী, তা আগে জানা"
+  },
+  {
+   "from": "kd-l02",
+   "to": "kd-l01",
+   "type": "needs",
+   "why": "teacher ও student কে, তা আগে"
+  },
+  {
+   "from": "kd-l02",
+   "to": "next-token-prediction",
+   "type": "needs",
+   "why": "teacher-এর লেখা উত্তর next-token loss-এ শেখা হয়"
+  },
+  {
+   "from": "kd-l03",
+   "to": "kd-l01",
+   "type": "needs",
+   "why": "teacher ও student কে, তা আগে"
+  },
+  {
+   "from": "kd-l03",
+   "to": "classification--logistic-regression--structure--softmax",
+   "type": "needs",
+   "why": "temperature softmax-এর ভেতরে বসে"
+  },
+  {
+   "from": "kd-l04",
+   "to": "kd-l03",
+   "type": "needs",
+   "why": "soft target ছাড়া KL-এর মানে নেই"
+  },
+  {
+   "from": "kd-l04",
+   "to": "cross-entropy",
+   "type": "needs",
+   "why": "KL এসেছে cross-entropy থেকে"
+  },
+  {
+   "from": "kd-l05",
+   "to": "kd-l04",
+   "type": "needs",
+   "why": "output-loss বুঝে তারপর feature-loss যোগ"
+  },
+  {
+   "from": "kd-l05",
+   "to": "neural-network-regression-head--structure--hidden-layer",
+   "type": "needs",
+   "why": "ভেতরের layer-এর vector কী, তা আগে"
+  },
+  {
+   "from": "kd-l05",
+   "to": "mse-squared-error",
+   "type": "needs",
+   "why": "feature-loss সাধারণত MSE"
+  },
+  {
+   "from": "kd-l06",
+   "to": "kd-l02",
+   "type": "needs",
+   "why": "offline-এ teacher-এর লেখা উত্তরই উদাহরণ"
+  },
+  {
+   "from": "kd-l06",
+   "to": "kd-l04",
+   "type": "needs",
+   "why": "on-policy-তে token-স্তরের loss লাগে"
+  },
+  {
+   "from": "kd-l07",
+   "to": "kd-l02",
+   "type": "needs",
+   "why": "বাছাই হয় teacher-এর লেখা উত্তরের ওপর"
+  },
+  {
+   "from": "kd-l07",
+   "to": "leakage",
+   "type": "needs",
+   "why": "বাছাইয়ে test data ঢুকে পড়া এড়াতে"
+  },
+  {
+   "from": "kd-l08",
+   "to": "kd-l06",
+   "type": "needs",
+   "why": "সব পদ্ধতি জানার পর তুলনা"
+  },
+  {
+   "from": "kd-l08",
+   "to": "kd-l07",
+   "type": "needs",
+   "why": "সব পদ্ধতি জানার পর তুলনা"
+  },
+  {
+   "from": "kd-l08",
+   "to": "kd-l05",
+   "type": "needs",
+   "why": "সব পদ্ধতি জানার পর তুলনা"
+  },
+  {
+   "from": "kd-l08",
+   "to": "quantization",
+   "type": "needs",
+   "why": "তিন পদ্ধতির একটা"
+  },
+  {
+   "from": "kd-l08",
+   "to": "lora-low-rank-update",
+   "type": "needs",
+   "why": "তিন পদ্ধতির একটা"
+  },
+  {
+   "from": "kd-l02",
+   "to": "kd-l03",
+   "type": "contrasts",
+   "why": "শুধু text বনাম probability: কী লাগে, কোথায় চলে"
+  },
+  {
+   "from": "opt-kd-text",
+   "to": "opt-kd-probs",
+   "type": "contrasts",
+   "why": "teacher থেকে কী লাগে, API-তে চলে কি না, tokenizer আলাদা হলে"
+  },
+  {
+   "from": "opt-kd-offline",
+   "to": "opt-kd-onpolicy",
+   "type": "contrasts",
+   "why": "কে উদাহরণ লেখে, খরচ আর ভুল জমার ঝুঁকি"
+  },
+  {
+   "from": "opt-kd-same-arch",
+   "to": "opt-kd-diff-arch",
+   "type": "contrasts",
+   "why": "গঠন একই না আলাদা"
+  },
+  {
+   "from": "knowledge-distillation",
+   "to": "quantization",
+   "type": "contrasts",
+   "why": "distillation signal বদলায়, quantization precision বদলায়"
+  },
+  {
+   "from": "knowledge-distillation",
+   "to": "lora-low-rank-update",
+   "type": "contrasts",
+   "why": "distillation নতুন student, LoRA মূল weight স্থির রেখে ছোট adapter"
+  },
+  {
+   "from": "linear-attention",
+   "to": "transformer-block--attention",
+   "type": "needs",
+   "why": "attention-এর N×N খরচ কেন সমস্যা, তা আগে"
+  },
+  {
+   "from": "deltanet",
+   "to": "linear-attention",
+   "type": "needs",
+   "why": "DeltaNet linear attention-এর যোগ-শুধু state শুধরায়"
+  },
+  {
+   "from": "gated-deltanet",
+   "to": "deltanet",
+   "type": "needs",
+   "why": "Gated DeltaNet DeltaNet-এর সাথে decay gate জোড়ে"
+  },
+  {
+   "from": "mamba",
+   "to": "ssm-basics",
+   "type": "needs",
+   "why": "Mamba SSM-এর state-সূত্রের ওপর দাঁড়ানো"
+  },
+  {
+   "from": "mamba-2",
+   "to": "mamba",
+   "type": "needs",
+   "why": "Mamba-2 Mamba-র সরল রূপ"
+  },
+  {
+   "from": "hybrid-architectures",
+   "to": "transformer",
+   "type": "needs",
+   "why": "hybrid-এ attention layer থাকে"
+  },
+  {
+   "from": "hybrid-architectures",
+   "to": "linear-attention",
+   "type": "needs",
+   "why": "hybrid-এর সস্তা অংশ"
+  },
+  {
+   "from": "hybrid-architectures",
+   "to": "state-space-models",
+   "type": "needs",
+   "why": "hybrid-এর সস্তা অংশের আরেক পরিবার"
+  },
+  {
+   "from": "architecture-conversion",
+   "to": "knowledge-distillation",
+   "type": "needs",
+   "why": "রূপান্তর distillation-এরই রূপ"
+  },
+  {
+   "from": "architecture-conversion",
+   "to": "hybrid-architectures",
+   "type": "needs",
+   "why": "কোন গঠনে রূপান্তর হচ্ছে, তা আগে"
+  },
+  {
+   "from": "arch-open-problems",
+   "to": "architecture-conversion",
+   "type": "needs",
+   "why": "খোলা প্রশ্নগুলো এই পদ্ধতিগুলোর সীমা থেকে আসে"
+  }
+ ]
+}

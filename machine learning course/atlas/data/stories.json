@@ -4689,6 +4689,10 @@
     "idea": "বড় model-এর (teacher) output থেকে ছোট model-কে শেখানো। বিস্তারিত Module 18-এ।",
     "next": [
      {
+      "to": "Teacher ও Student",
+      "why": "পাঠক্রম শুরু করো"
+     },
+     {
       "to": "এক architecture থেকে আরেকটায় রূপান্তর",
       "why": "student-এর কাঠামো আলাদা হলে"
      }
@@ -6426,6 +6430,142 @@
      {
       "to": "Parameter বনাম Hyperparameter",
       "why": "ধারণাটা কোথা থেকে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Teacher ও Student"
+   ],
+   "story": {
+    "problem": "বড় model ভালো, কিন্তু ৭ বিলিয়ন parameter-এর model ১৬-bit-এ শুধু weight-এই ১৪ GB: ছোট server বা ফোনে চলে না।",
+    "idea": "বড় model-কে teacher ধরে তার output থেকে ছোট student-কে শেখাও। Update শুধু student-এ, teacher স্থির। Teacher-এর output-এ বিকল্পগুলোর কাছাকাছি-ভাবও থাকে, তাই শুধু ঠিক উত্তরের চেয়ে বেশি শেখা যায়।",
+    "next": [
+     {
+      "to": "Response ও Sequence Distillation",
+      "why": "teacher শুধু text দিলে"
+     },
+     {
+      "to": "Soft target ও temperature",
+      "why": "teacher probability-ও দিলে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Response ও Sequence Distillation"
+   ],
+   "story": {
+    "problem": "অনেক বড় model শুধু API-তে মেলে: prompt দিলে text আসে, ভেতরের probability আসে না। তখন কীভাবে শেখাব?",
+    "idea": "Teacher-এর লেখা উত্তরকে student-এর SFT data বানাও, loss সাধারণ next-token cross-entropy। শুধু text লাগে, তাই API-তে আর আলাদা tokenizer-এও চলে। দাম: প্রতি জায়গায় teacher-এর একটাই পথ student পায়।",
+    "next": [
+     {
+      "to": "On-policy বনাম offline distillation",
+      "why": "কে উদাহরণ লেখে, তাতে কী ফারাক"
+     },
+     {
+      "to": "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই",
+      "why": "teacher-এর ভুল ঠেকানো"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Soft target ও temperature"
+   ],
+   "story": {
+    "problem": "Teacher খুব নিশ্চিত হলে তার probability প্রায় hard label, ছোট probability-গুলো এত ছোট যে loss-এ প্রায় ধরা পড়ে না।",
+    "idea": "Logits-কে temperature T দিয়ে ভাগ করে softmax করো: probability ছড়ায়, ছোটগুলোর অনুপাত দেখা যায়। T শুধু training-এ; inference-এ T = ১।",
+    "next": [
+     {
+      "to": "Distillation loss — KL divergence",
+      "why": "এই নরম probability-র সাথে student-এর দূরত্ব কীভাবে মাপব"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Distillation loss — KL divergence"
+   ],
+   "story": {
+    "problem": "Student-এর সামনে দুটো তথ্য: মানুষের ঠিক label আর teacher-এর probability। দুটোর কাছে যেতে একটা সংখ্যা চাই।",
+    "idea": "KL divergence student-এর probability আর teacher-এর probability-র দূরত্ব মাপে; মোট loss = hard-label cross-entropy + T² × KL। Gradient সরল: q − p।",
+    "next": [
+     {
+      "to": "Feature ও intermediate distillation",
+      "why": "ভেতরের vector-ও মেলাতে চাইলে (ঐচ্ছিক)"
+     },
+     {
+      "to": "On-policy বনাম offline distillation",
+      "why": "কে উদাহরণ লিখবে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Feature ও intermediate distillation"
+   ],
+   "story": {
+    "problem": "শেষ output দেখে student শুধু 'উত্তর কী' শেখে, 'ভেতরে কীভাবে ভাবছে' শেখে না।",
+    "idea": "মাঝের layer-এর vector মেলাও; মাপ আলাদা হলে শেখার যোগ্য projection দিয়ে teacher-এর মাপে আনো। মোট loss = output-loss + λ × feature-loss।",
+    "next": [
+     {
+      "to": "Distillation, quantization ও LoRA — কখন কোনটা",
+      "why": "পদ্ধতিগুলো মিলিয়ে সিদ্ধান্ত"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "On-policy বনাম offline distillation"
+   ],
+   "story": {
+    "problem": "Student teacher-এর লেখা উত্তরে শিখলেও ব্যবহারের সময় সে নিজে লেখে, আর একবার পথ থেকে সরলে এমন অবস্থায় পড়ে যা সে কখনো দেখেনি।",
+    "idea": "Offline: স্থির উদাহরণ, সস্তা কিন্তু ভুল জমতে পারে। On-policy: student নিজে লেখে, teacher সেই লেখায় সংকেত দেয়, খরচ বেশি আর teacher-এর token-স্তরের probability লাগে।",
+    "next": [
+     {
+      "to": "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই",
+      "why": "teacher-এর ভুল ঠেকানো"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই"
+   ],
+   "story": {
+    "problem": "Teacher বড় হলেও ভুল করে, আর সেই ভুল উত্তর student-এর data-য় ঢুকলে সে সেটাকে ঠিক ধরে শেখে।",
+    "idea": "Training-এর আগে বাছাই: ঠিক উত্তর মেলানো, ধাপ যাচাই, জানা উত্তর না থাকলে agreement, ঝুঁকিপূর্ণ ক্ষেত্রে মানুষ। Agreement প্রমাণ নয়, তাই কত data বাদ গেল তা মাপো।",
+    "next": [
+     {
+      "to": "Distillation, quantization ও LoRA — কখন কোনটা",
+      "why": "সব পদ্ধতি জানার পর তুলনা"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Distillation, quantization ও LoRA — কখন কোনটা"
+   ],
+   "story": {
+    "problem": "'Model ছোট ও দ্রুত করো' বললে তিনটা নাম আসে: distillation, quantization, LoRA। ভুলটা বাছলে সময় যায়, সমস্যা মেটে না।",
+    "idea": "তিনটা আলাদা জিনিস বদলায়: signal, precision, কোন parameter শেখা হবে। Memory না কমলে LoRA সমাধান নয়। যেকোনোটার পরে একই held-out data-য় মান, latency আর memory মাপো।",
+    "next": [
+     {
+      "to": "এক architecture থেকে আরেকটায় রূপান্তর",
+      "why": "student-এর গঠন আলাদা হলে"
+     },
+     {
+      "to": "Quantization",
+      "why": "precision কমানোর পথ"
      }
     ]
    }

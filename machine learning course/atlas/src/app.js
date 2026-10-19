@@ -240,6 +240,85 @@ function renderJump(node, box) {
   if (!node.jump.onSelect) note.append(jumpBtn(node.jump, 'pick'));
   box.append(note);
 }
+/* ---------- সম্পর্ক ও পড়ার ক্রম (data/relations.json) ----------
+ * "আগে লাগে", "এর ওপর দাঁড়ায়", "তুলনা করো"; আর যেকোনো node বুঝতে সব পূর্বশর্ত ক্রমে পড়ার একটা পথ (tour)।
+ * tour শুধু পথ দেখায়; কিছু বাছে না বা মোছে না। "পড়া হয়েছে" চিহ্ন এই browser-এই জমা থাকে। */
+const REL = AtlasRelations.create(cfg.relations || []);
+let tour = null;   // { target, order[] }: পড়ার ক্রম চলছে
+let readSet = new Set();
+try { readSet = new Set(JSON.parse(store('ml-atlas-read') || '[]')); } catch (e) { readSet = new Set(); }
+function markRead(id, on) {
+  if (on) readSet.add(id); else readSet.delete(id);
+  store('ml-atlas-read', JSON.stringify([...readSet]));
+}
+function relSection(box, title, items) {
+  const ul = el('ul', 'rel-list');
+  for (const it of items) {
+    const rec = byId.get(it.id);
+    if (!rec) continue;
+    const li = el('li');
+    const b = el('button', 'pick', short(rec.node.name));
+    b.type = 'button';
+    b.onclick = () => openNode(it.id);
+    li.append(b);
+    if (it.why) li.append(el('span', 'why', it.why));
+    ul.append(li);
+  }
+  if (!ul.children.length) return;
+  const sec = el('section', 'profile-section rel');
+  sec.append(el('h3', '', title), ul);
+  box.append(sec);
+}
+function renderRel(r, box) {
+  box.replaceChildren();
+  const id = r.node.id;
+  if (!REL.hasAny(id)) return;
+  relSection(box, 'আগে এগুলো লাগে', REL.needs(id));
+  const path = REL.path(id);
+  if (path.length) {
+    const row = el('div', 'rel-start');
+    const b = el('button', 'pick', 'এটা বুঝতে পড়ার ক্রম (' + bn(path.length + 1) + ' ধাপ) →');
+    b.type = 'button';
+    b.title = 'সব পূর্বশর্ত আগে, তারপর এটা; ক্রমে এগোনোর বোতামসহ';
+    b.onclick = () => startTour(id);
+    row.append(b);
+    box.append(row);
+  }
+  relSection(box, 'এর ওপর এগুলো দাঁড়ায়', REL.usedBy(id));
+  relSection(box, 'তুলনা করো', REL.contrasts(id));
+}
+function startTour(target) {
+  tour = { target, order: REL.path(target).concat(target) };
+  openNode(tour.order[0]);
+}
+function tourStep(delta) {
+  if (!tour) return;
+  const cur = modal.dataset.nodeId;
+  const i = tour.order.indexOf(cur);
+  const j = i < 0 ? 0 : i + delta;
+  if (j < 0 || j >= tour.order.length) return;
+  if (delta > 0 && cur) markRead(cur, true);   // পরেরটায় গেলে এটা পড়া ধরা হয়
+  openNode(tour.order[j]);
+}
+function renderTour(box, cur) {   // cur: যে node এখন দেখানো হচ্ছে (openNode-এ modal.dataset বসার আগেই আঁকা হয়, তাই সরাসরি দেওয়া)
+  box.replaceChildren();
+  if (!tour) return;
+  cur = cur || modal.dataset.nodeId;
+  const i = tour.order.indexOf(cur), n = tour.order.length;
+  const bar = el('div', 'tourbar');
+  bar.append(el('strong', '', 'পড়ার ক্রম: ' + short(byId.get(tour.target).node.name)));
+  const done = tour.order.filter((x) => readSet.has(x)).length;
+  bar.append(el('span', 'tcount', (i >= 0 ? 'ধাপ ' + bn(i + 1) + ' / ' + bn(n) : 'এই node ক্রমের বাইরে') + ' · পড়া হয়েছে ' + bn(done) + 'টা'));
+  const btn = (label, fn, off) => { const b = el('button', 'textbtn', label); b.type = 'button'; b.disabled = !!off; b.onclick = fn; bar.append(b); return b; };
+  if (i < 0) btn('ক্রমে ফেরো', () => openNode(tour.order[0]));
+  else {
+    btn('← আগের', () => tourStep(-1), i === 0);
+    btn(readSet.has(cur) ? 'পড়া হয়েছে ✓' : 'পড়া হয়েছে চিহ্ন দাও', () => { markRead(cur, !readSet.has(cur)); renderTour(box, cur); });
+    btn(i === n - 1 ? 'শেষ' : 'পরের →', () => tourStep(1), i === n - 1);
+  }
+  btn('বন্ধ করো', () => { tour = null; renderTour(box, cur); });
+  box.append(bar);
+}
 /* ---------- গল্প, "কোনটা কখন", ইতিহাস ---------- */
 function jumpButton(x) {
   if (!x.id) return el('span', 'pick plain', x.label);
@@ -461,6 +540,7 @@ function openNode(id, opts) {
   title.append(document.createTextNode(r.node.name));
   $('#def-text').textContent = r.node.definition || 'এই শাখার বিষয়গুলো খুলে দেখো।';
   renderCrumb(r);
+  renderTour($('#tour'), id);
   renderPathBar(id);
   modal.dataset.nodeId = id;
   renderPick(r.node, $('#pick'));
@@ -472,6 +552,7 @@ function openNode(id, opts) {
   const core = $('#core');
   core.replaceChildren();
   renderCore(r.node, core);
+  renderRel(r, $('#rel'));
   renderLessons(r.node, $('#lessons'));
   renderRelated(r, $('#related'));
   const more = $('#more');

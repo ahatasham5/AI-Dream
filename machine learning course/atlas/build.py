@@ -110,6 +110,50 @@ def resolve_refs(root):
     return count
 
 
+RELATIONS = HERE / "data" / "relations.json"
+
+
+def load_relations(ids):
+    """data/relations.json: node-দের মধ্যে `needs` (from-কে বুঝতে আগে to লাগে) ও `contrasts` (পাশাপাশি তুলনা)।
+    id আছে, নিজের দিকে নয়, কারণ লেখা, একই সম্পর্ক দুবার নয়, আর `needs`-এ চক্র নেই; নইলে build থামে।"""
+    if not RELATIONS.exists():
+        return []
+    edges = json.loads(RELATIONS.read_text(encoding="utf-8"))["edges"]
+    seen, needs = set(), {}
+    for e in edges:
+        t = e.get("type")
+        if t not in ("needs", "contrasts"):
+            fail(f"সম্পর্কের ধরন অচেনা: {e}")
+        for k in ("from", "to"):
+            if e.get(k) not in ids:
+                fail(f"সম্পর্কে অজানা id ({k}): {e.get(k)}")
+        if e["from"] == e["to"]:
+            fail(f"সম্পর্ক নিজের দিকেই: {e['from']}")
+        if not str(e.get("why", "")).strip():
+            fail(f"সম্পর্কে কারণ (why) নেই: {e['from']} → {e['to']}")
+        key = (t, e["from"], e["to"]) if t == "needs" else (t,) + tuple(sorted((e["from"], e["to"])))
+        if key in seen:
+            fail(f"একই সম্পর্ক দুবার: {key}")
+        seen.add(key)
+        if t == "needs":
+            needs.setdefault(e["from"], []).append(e["to"])
+    state = {}
+
+    def visit(n, stack):
+        if state.get(n) == 2:
+            return
+        if state.get(n) == 1:
+            fail("'আগে লাগে'-তে চক্র: " + " → ".join(stack[stack.index(n):] + [n]))
+        state[n] = 1
+        for m in needs.get(n, []):
+            visit(m, stack + [n])
+        state[n] = 2
+
+    for n in list(needs):
+        visit(n, [])
+    return edges
+
+
 def write_json(path, obj):
     # id আর name আগে থাকুক, children সবার শেষে; পড়তে সুবিধা
     def order(n):
@@ -559,7 +603,8 @@ def main():
             fail(f"{r['kind']}-নিয়মে with নেই: {r['id']}")
         if r.get("path") and not (ROOT / r["path"]).exists():
             fail(f"নিয়মের পাঠ-ফাইল নেই: {r['path']}")
-    cfg = {"lessonLinks": not args.no_lesson_links, "path": PATH_OUT, "aliases": aliases, "pseudo": pseudo, "rules": rules}
+    relations = load_relations(ids_now)
+    cfg = {"lessonLinks": not args.no_lesson_links, "path": PATH_OUT, "aliases": aliases, "pseudo": pseudo, "rules": rules, "relations": relations}
     page = (SRC / "template.html").read_text(encoding="utf-8")
     for key, val in {
         "__CSS__": (SRC / "style.css").read_text(encoding="utf-8"),

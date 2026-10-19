@@ -358,6 +358,20 @@ class PageSource(unittest.TestCase):
                 self.assertNotIn(n, seen.get(f.name, set()), f"{f.name}: function {n} দুবার ঘোষিত")
                 seen.setdefault(f.name, set()).add(n)
 
+    def test_no_top_level_name_declared_twice_across_the_page_script(self):
+        """পাতায় সব .js এক script-এ জোড়া লাগে (build.py), তাই বাইরের স্তরের const, let, class, function-এর নাম
+        সব file মিলিয়ে একটাই হতে হবে। আগে শুধু একই file-এর function ধরা হতো; একটা const-এর দুবার ঘোষণায়
+        পুরো পাতার script থেমে গিয়েছিল, অথচ build ও Node test পাস করেছিল।"""
+        seen = {}
+        for f in sorted((self.SRC / "js").glob("*.js")) + [self.SRC / "app.js"]:
+            text = f.read_text(encoding="utf-8")
+            names = re.findall(r"^(?:const|let|var|class|function\*?|async function)\s+(\w+)", text, re.M)
+            for grp in re.findall(r"^(?:const|let|var)\s+\{([^}]*)\}", text, re.M):
+                names += [x.split(":")[-1].strip().split("=")[0].strip() for x in grp.split(",") if x.strip()]
+            for n in names:
+                self.assertNotIn(n, seen, f"{n}: {seen.get(n)} ও {f.name}, দুই জায়গায় ঘোষিত")
+                seen[n] = f.name
+
     def test_app_ids_used_exist_in_template(self):
         tpl = (self.SRC / "template.html").read_text(encoding="utf-8")
         ids = set(re.findall(r'\sid="([^"]+)"', tpl))

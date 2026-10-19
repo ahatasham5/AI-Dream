@@ -206,6 +206,18 @@
   },
   "sc-shape": {
    "slot": "shape"
+  },
+  "kd-access": {
+   "slot": "kd_access"
+  },
+  "kd-arch": {
+   "slot": "kd_arch"
+  },
+  "kd-data": {
+   "slot": "kd_data"
+  },
+  "kd-filter": {
+   "slot": "kd_filter"
   }
  },
  "labels": {
@@ -269,7 +281,11 @@
   "clip": "gradient clipping",
   "hp_search": "hyperparameter খোঁজা",
   "hp_search_tool": "খোঁজার tool",
-  "shape": "model-আকার"
+  "shape": "model-আকার",
+  "kd_access": "teacher-এর কতটুকু দেখা",
+  "kd_arch": "student-এর গঠন",
+  "kd_data": "সংকেত কোন text-এ",
+  "kd_filter": "teacher-এর উত্তর বাছাই"
  },
  "join": {
   "schedule": " + ",
@@ -283,7 +299,9 @@
   "ckpt": ", ",
   "mixer": " + ",
   "batch": " + ",
-  "shape": " + "
+  "shape": " + ",
+  "kd_access": " + ",
+  "kd_filter": " + "
  },
  "options": {
   "opt-accuracy": "accuracy",
@@ -471,7 +489,18 @@
   "opt-sc-shape-depth-width": "layers and hidden size chosen for the parameter budget",
   "opt-sc-shape-kv": "fewer KV heads than query heads (GQA)",
   "opt-sc-shape-cache": "compute the KV cache first: 2 * kv_heads * head_dim * attention_layers per token",
-  "opt-sc-shape-tokens": "scale training tokens with parameters (about 20 per parameter)"
+  "opt-sc-shape-tokens": "scale training tokens with parameters (about 20 per parameter)",
+  "opt-kd-text": "the teacher's written answers become the student's SFT data",
+  "opt-kd-probs": "match the teacher's token probabilities (soft targets, KL)",
+  "opt-kd-hidden": "also match the teacher's hidden vectors (projection if sizes differ)",
+  "opt-kd-same-arch": "student has the teacher's architecture, smaller or equal",
+  "opt-kd-diff-arch": "student has a different architecture (see the conversion methods)",
+  "opt-kd-offline": "fixed examples written once by the teacher (offline)",
+  "opt-kd-onpolicy": "the student writes, the teacher gives signal on that text (on-policy)",
+  "opt-kd-filter-answer": "keep only answers that match the known correct answer",
+  "opt-kd-filter-steps": "also check each reasoning step",
+  "opt-kd-filter-agree": "keep answers the teacher repeats consistently",
+  "opt-kd-filter-human": "have people check risky cases"
  },
  "templates": {
   "mode-finetune": [
@@ -494,6 +523,10 @@
    "?labeling labeling = {{labeling}}",
    "train, val, test = split(data, by = {{split}})   # test তুলে রাখো, শেষে একবারই দেখো",
    "signal = {{signal}}",
+   "?kd_access teacher_access = {{kd_access}}",
+   "?kd_arch student_architecture = {{kd_arch}}",
+   "?kd_data distill_on = {{kd_data}}",
+   "?kd_filter filter_teacher_answers = {{kd_filter}}",
    "?mask_note loss_mask: {{mask_note}}",
    "",
    "",

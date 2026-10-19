@@ -119,8 +119,22 @@
     "Gated DeltaNet",
     "State Space Model (SSM) পরিবার",
     "Mamba — Selective State Space",
-    "Hybrid — একাধিক mixer একই model-এ",
+    "Hybrid — একাধিক mixer একই model-এ"
+   ]
+  },
+  {
+   "title": "১০. এক model থেকে আরেকটায় (Distillation ও রূপান্তর)",
+   "intro": "Teacher থেকে student শেখা: কী মেলাবে, কোন text-এ, ভুল কীভাবে ঠেকাবে; তারপর আলাদা গঠনে নেওয়া আর যা এখনো খোলা।",
+   "steps": [
     "Knowledge Distillation",
+    "Teacher ও Student",
+    "Response ও Sequence Distillation",
+    "Soft target ও temperature",
+    "Distillation loss — KL divergence",
+    "Feature ও intermediate distillation",
+    "On-policy বনাম offline distillation",
+    "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই",
+    "Distillation, quantization ও LoRA — কখন কোনটা",
     "এক architecture থেকে আরেকটায় রূপান্তর",
     "খোলা প্রশ্ন — যেখানে গবেষণার জায়গা আছে"
    ]

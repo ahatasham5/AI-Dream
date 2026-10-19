@@ -8012,7 +8012,230 @@
               "to": "architecture-conversion",
               "label": "student-এর architecture আলাদা হলে",
               "why": "teacher Transformer আর student linear attention, SSM বা hybrid হলে: কোন weight কপি হয়, কী মেলানো হয়, খরচ কত, ছয়টা পদ্ধতি পাশাপাশি।"
-             }
+             },
+             "children": [
+              {
+               "id": "kd-course",
+               "name": "Distillation-এর পাঠক্রম",
+               "kind": "info",
+               "definition": "Distillation শেখার আট ধাপ: teacher ও student, teacher-এর লেখা উত্তর থেকে শেখা, soft target, loss, ভেতরের vector মেলানো (ঐচ্ছিক), কে উদাহরণ লেখে, ভুল ঠেকানো, আর quantization ও LoRA-র সাথে তুলনা। ধাপে চাপলে সেই ধাপের সারকথা, আর 'এটা বুঝতে পড়ার ক্রম' বোতামে পূর্বশর্তসহ পথ।",
+               "children": [
+                {
+                 "id": "kd-l01",
+                 "name": "Teacher ও Student",
+                 "kind": "info",
+                 "seq": "১",
+                 "definition": "একটা বড় model (teacher) ভালো উত্তর দেয়, কিন্তু ধীর আর memory-খাওয়া। তার output থেকে আরেকটা model (student)-কে শেখানোই distillation; update শুধু student-এ হয়, teacher স্থির। Teacher-এর output-এ শুধু ঠিক উত্তর নয়, বিকল্পগুলো কতটা কাছাকাছি সেই তথ্যও থাকে, আর student ছোট হওয়া বাধ্যতামূলক নয়। যেমন ৭ বিলিয়ন parameter-এর model ১৬-bit-এ শুধু weight-এই ১৪ GB।"
+                },
+                {
+                 "id": "kd-l02",
+                 "name": "Response ও Sequence Distillation",
+                 "kind": "info",
+                 "seq": "২",
+                 "definition": "Teacher শুধু text ফেরত দিলে (যেমন API) সেই উত্তরকেই student-এর SFT data বানিয়ে শেখানো, loss সাধারণ next-token cross-entropy। শুধু text লাগে, তাই API-র teacher আর আলাদা tokenizer-এও চলে। দাম: প্রতি জায়গায় teacher-এর একটাই পথ student পায়, বিকল্পগুলোর সম্ভাবনা হারায়।"
+                },
+                {
+                 "id": "kd-l03",
+                 "name": "Soft target ও temperature",
+                 "kind": "info",
+                 "seq": "৩",
+                 "definition": "Teacher খুব নিশ্চিত হলে তার probability প্রায় hard label: logits [cat 5, dog 2, car −1] থেকে [০.৯৫০, ০.০৪৭, ০.০০২]। Logits-কে temperature T দিয়ে ভাগ করে softmax করলে (T > 1) probability ছড়ায়, ছোট probability-গুলোর অনুপাত student-এর চোখে পড়ে। T শুধু training-এ লাগে; inference-এ T = ১, আর বেশি বড় T সব সমান করে দেয়।"
+                },
+                {
+                 "id": "kd-l04",
+                 "name": "Distillation loss — KL divergence",
+                 "kind": "info",
+                 "seq": "৪",
+                 "definition": "Student-এর probability teacher-এর probability থেকে কত দূরে, তা মাপে KL divergence: cross-entropy − teacher-এর নিজের entropy; শূন্য মানে হুবহু একই। মোট loss = hard-label cross-entropy + T² × KL। Logit-এর gradient q − p: student যেখানে বেশি দিয়েছে সেখানে কমে, যেখানে কম দিয়েছে সেখানে বাড়ে; T² গুণ gradient-এর মাপ ঠিক রাখে।"
+                },
+                {
+                 "id": "kd-l05",
+                 "name": "Feature ও intermediate distillation",
+                 "kind": "info",
+                 "seq": "৫",
+                 "definition": "Teacher-এর শেষ output-এর পাশাপাশি মাঝের layer-এর vector-ও মেলানো: 'উত্তর কী' ছাড়াও 'ভেতরে কীভাবে ভাবছে'। মাপ আলাদা হলে student-এর vector একটা শেখার যোগ্য projection matrix দিয়ে teacher-এর মাপে নেওয়া হয়; teacher স্থির থাকে। মোট loss = output-loss + λ × feature-loss। এটা ঐচ্ছিক শাখা।"
+                },
+                {
+                 "id": "kd-l06",
+                 "name": "On-policy বনাম offline distillation",
+                 "kind": "info",
+                 "seq": "৬",
+                 "definition": "Offline: উদাহরণ স্থির, teacher-এর লেখা। On-policy: student নিজে লেখে, teacher সেই লেখায় সংকেত দেয়। Offline-এ student teacher-এর পথ চেনে, কিন্তু নিজের ভুলের পরের অবস্থা চেনে না, ভুল জমতে পারে। On-policy-র খরচ বেশি, আর teacher-এর token-স্তরের probability লাগে।"
+                },
+                {
+                 "id": "kd-l07",
+                 "name": "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই",
+                 "kind": "info",
+                 "seq": "৭",
+                 "definition": "Teacher বড় হলেও ভুল করে, আর সেই ভুল student-এ হুবহু যায়। তাই training-এর আগে বাছাই: ঠিক উত্তর মেলানো, তারপর ধাপ যাচাই, জানা উত্তর না থাকলে agreement, ঝুঁকিপূর্ণ ক্ষেত্রে মানুষ। ঠিক শেষ উত্তরের পেছনেও ভুল ধাপ থাকতে পারে। Agreement প্রমাণ নয়; বাছাইয়ে কত আর কী ধরনের data বাদ গেল, তা মাপতে হয়।"
+                },
+                {
+                 "id": "kd-l08",
+                 "name": "Distillation, quantization ও LoRA — কখন কোনটা",
+                 "kind": "info",
+                 "seq": "৮",
+                 "definition": "Distillation শেখার signal বদলায়, quantization precision বদলায়, LoRA কোন parameter শেখা হবে তা বদলায়: তিনটা আলাদা সমস্যায় কাজ করে। ৭B model ১৬-bit-এ ১৪.০ GB, ৪-bit-এ ৩.৫ GB। Memory না কমলে LoRA সমাধান নয়; ছোট student বা quantization দরকার। যেকোনো পদ্ধতির পরে একই held-out data-য় মান, latency আর memory মাপতে হয়।"
+                }
+               ]
+              },
+              {
+               "id": "kd-access",
+               "name": "teacher-এর কতটুকু দেখতে পাও?",
+               "definition": "প্রশ্ন: teacher থেকে কী পাও, তার ওপর নির্ভর করে কী মেলানো যাবে। তিন স্তর: শুধু লেখা উত্তর (API-র মতো), প্রতিটা token-এর probability, আর ভেতরের layer-এর vector। একসঙ্গে একাধিকও নেওয়া যায়, যেমন probability-র সাথে ভেতরের vector।",
+               "kind": "decision",
+               "pick": "many",
+               "need": "required",
+               "needWhy": "কী মেলানো যাবে তা এই উত্তরই ঠিক করে; teacher-এর যতটুকু হাতে নেই তা দিয়ে শেখানো যায় না",
+               "children": [
+                {
+                 "id": "opt-kd-text",
+                 "name": "শুধু লেখা উত্তর (যেমন API)",
+                 "kind": "option",
+                 "when": "teacher শুধু API-তে, বা tokenizer আলাদা",
+                 "basis": "course",
+                 "definition": "Teacher-এর শুধু লেখা উত্তর পাও, ভেতরের probability নয়। সেই উত্তরকে student-এর SFT data বানিয়ে সাধারণ next-token loss-এ শেখানো। API-র teacher আর আলাদা tokenizer-এও চলে; দাম: প্রতি জায়গায় teacher-এর একটাই পথ student পায়।",
+                 "jump": {
+                  "to": "kd-l02",
+                  "label": "এই পদ্ধতির পাঠ",
+                  "why": "Response ও sequence distillation: teacher-এর লেখা উত্তর থেকে student-এর data বানানো।"
+                 }
+                },
+                {
+                 "id": "opt-kd-probs",
+                 "name": "প্রতিটা token-এর probability (logits)",
+                 "kind": "option",
+                 "when": "teacher-এর output স্তর হাতে পাও আর tokenizer এক",
+                 "basis": "course",
+                 "definition": "Teacher-এর প্রতিটা token-এর probability পাও; temperature দিয়ে নরম করে student-এর probability তার কাছে আনা (KL)। প্রতি উদাহরণে বেশি তথ্য পাওয়া যায়, কিন্তু API-র teacher-এ সাধারণত চলে না, আর tokenizer আলাদা হলে জটিল।",
+                 "jump": {
+                  "to": "kd-l04",
+                  "label": "loss-এর পাঠ",
+                  "why": "KL divergence, মোট loss আর gradient হাতে-হিসাবসহ।"
+                 }
+                },
+                {
+                 "id": "opt-kd-hidden",
+                 "name": "ভেতরের layer-এর vector",
+                 "kind": "option",
+                 "when": "teacher model-এর ভেতরে ঢুকে মাঝের layer-এর vector পড়তে পারো",
+                 "basis": "course",
+                 "definition": "Teacher-এর মাঝের layer-এর vector-ও student-কে মেলাতে বলা, শুধু শেষ output নয়। মাপ আলাদা হলে student-এর vector শেখার যোগ্য projection matrix দিয়ে teacher-এর মাপে নেওয়া হয়। মোট loss = output-loss + λ × feature-loss।",
+                 "jump": {
+                  "to": "kd-l05",
+                  "label": "এই পদ্ধতির পাঠ",
+                  "why": "Feature distillation: ভেতরের vector মেলানো আর projection।"
+                 }
+                }
+               ]
+              },
+              {
+               "id": "kd-arch",
+               "name": "student-এর architecture কেমন?",
+               "definition": "প্রশ্ন: student-এর গঠন teacher-এর মতো হবে, না আলাদা? দুই পথ: একই ধরনের গঠন, শুধু ছোট বা সমান আকারের; অথবা আলাদা গঠন, যেমন Transformer teacher থেকে linear attention, SSM বা hybrid student।",
+               "kind": "decision",
+               "pick": "one",
+               "need": "optional",
+               "needWhy": "না বাছলে একই ধরনের গঠন ধরা হয়; আলাদা গঠন চাইলে রূপান্তরের পদ্ধতি লাগে",
+               "children": [
+                {
+                 "id": "opt-kd-same-arch",
+                 "name": "teacher-এর মতোই গঠন, ছোট বা সমান",
+                 "kind": "option",
+                 "when": "বেশির ভাগ কাজে, সবচেয়ে সরল পথ",
+                 "basis": "course",
+                 "definition": "Student-এর গঠন teacher-এর মতো, শুধু ছোট (কম layer বা কম প্রস্থ) বা সমান আকারের। Student ছোট হওয়া বাধ্যতামূলক নয়; একই আকারেও distillation চলে।"
+                },
+                {
+                 "id": "opt-kd-diff-arch",
+                 "name": "আলাদা গঠন (যেমন Transformer থেকে hybrid বা SSM)",
+                 "kind": "option",
+                 "when": "স্থির state-এর মতো আলাদা গঠনের সুবিধা চাই",
+                 "basis": "paper",
+                 "definition": "Teacher Transformer, student linear attention, SSM বা hybrid। কোন weight কপি হয় (Q, K, V, MLP), কী মেলানো হয় (attention matrix, block-এর output, logit), আর কত খরচ, তা রূপান্তরের ছয়টা পদ্ধতিতে।",
+                 "jump": {
+                  "to": "architecture-conversion",
+                  "label": "রূপান্তরের ছয় পদ্ধতি",
+                  "why": "Mamba in the Llama থেকে Taylor-Calibrate পর্যন্ত, খরচ ও সীমাসহ।"
+                 }
+                }
+               ]
+              },
+              {
+               "id": "kd-data",
+               "name": "কোন text-এ teacher-এর সংকেত নেবে?",
+               "definition": "প্রশ্ন: শেখার উদাহরণ কে লিখবে? দুই পথ: আগে থেকে ঠিক করা স্থির উদাহরণ (offline), অথবা student নিজে লিখবে আর teacher সেই লেখায় সংকেত দেবে (on-policy)।",
+               "kind": "decision",
+               "pick": "one",
+               "need": "optional",
+               "needWhy": "না বাছলে স্থির (offline) উদাহরণ ধরা হয়, যা সরলতম",
+               "children": [
+                {
+                 "id": "opt-kd-offline",
+                 "name": "স্থির উদাহরণ (offline)",
+                 "kind": "option",
+                 "when": "সরল ও সস্তা শুরু",
+                 "basis": "course",
+                 "definition": "উদাহরণ আগে একবার বানানো, teacher-এর লেখা। Student teacher-এর পথ চেনে, কিন্তু নিজের ভুলের পরের অবস্থা চেনে না, ভুল জমতে পারে।",
+                 "jump": {
+                  "to": "kd-l06",
+                  "label": "offline ও on-policy-র পাঠ",
+                  "why": "কে উদাহরণ লেখে, আর কেন তাতে ফারাক হয়।"
+                 }
+                },
+                {
+                 "id": "opt-kd-onpolicy",
+                 "name": "student নিজে লেখে, teacher সংকেত দেয় (on-policy)",
+                 "kind": "option",
+                 "when": "student-এর নিজের ভুলের পরের অবস্থাও শেখাতে চাই",
+                 "basis": "course",
+                 "definition": "Student নিজে লেখে, teacher সেই লেখার প্রতিটা অবস্থায় সংকেত দেয়। তাই student নিজের ভুলের পরের অবস্থাও শেখে। খরচ বেশি, আর teacher-এর token-স্তরের probability লাগে।"
+                }
+               ]
+              },
+              {
+               "id": "kd-filter",
+               "name": "teacher-এর উত্তর কীভাবে বাছবে?",
+               "definition": "প্রশ্ন: teacher-এর ভুল student-এ যাওয়া কীভাবে ঠেকাবে? চার স্তর, একাধিক একসঙ্গে: ঠিক উত্তর মেলানো, ধাপ যাচাই, জানা উত্তর না থাকলে agreement, আর ঝুঁকিপূর্ণ ক্ষেত্রে মানুষ।",
+               "kind": "decision",
+               "pick": "many",
+               "need": "optional",
+               "needWhy": "না বাছলে teacher-এর সব উত্তরই যায়, ভুলসহ; ভুল ঠেকাতে চাইলে অন্তত একটা বাছো",
+               "children": [
+                {
+                 "id": "opt-kd-filter-answer",
+                 "name": "ঠিক উত্তর মেলানো",
+                 "kind": "option",
+                 "when": "প্রশ্নের জানা উত্তর আছে",
+                 "basis": "course",
+                 "definition": "প্রতিটা প্রশ্নের জানা ঠিক উত্তরের সাথে teacher-এর শেষ উত্তর মিলিয়ে ভুল উত্তরের উদাহরণ বাদ দেওয়া।"
+                },
+                {
+                 "id": "opt-kd-filter-steps",
+                 "name": "ধাপ যাচাই (reasoning)",
+                 "kind": "option",
+                 "when": "ধাপে ধাপে যুক্তির data",
+                 "basis": "course",
+                 "definition": "ঠিক শেষ উত্তরের পেছনেও মাঝের ধাপ ভুল হতে পারে। তাই উত্তর মেলানোর পরে যুক্তির প্রতিটা ধাপও যাচাই করা।"
+                },
+                {
+                 "id": "opt-kd-filter-agree",
+                 "name": "agreement (জানা উত্তর না থাকলে)",
+                 "kind": "option",
+                 "when": "ঠিক উত্তর জানা নেই",
+                 "basis": "course",
+                 "definition": "একই প্রশ্নে teacher-কে কয়েকবার দিয়ে লিখিয়ে উত্তরগুলোর মিল দেখা। Agreement প্রমাণ নয়; বাছাইয়ে কত আর কী ধরনের data বাদ গেল তা মাপতে হয়।"
+                },
+                {
+                 "id": "opt-kd-filter-human",
+                 "name": "ঝুঁকিপূর্ণ ক্ষেত্রে মানুষের যাচাই",
+                 "kind": "option",
+                 "when": "ভুলের দাম বেশি (যেমন চিকিৎসা, আইন)",
+                 "basis": "course",
+                 "definition": "ভুলের দাম বেশি হলে নমুনা বা সব উত্তর মানুষ দিয়ে যাচাই করানো।"
+                }
+               ]
+              }
+             ]
             }
            ]
           },
