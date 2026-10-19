@@ -237,7 +237,7 @@ function renderJump(node, box) {
   if (!node.jump || !byId.has(node.jump.to)) return;
   const note = el('div', 'jumpnote');
   if (node.jump.why) note.append(el('p', '', node.jump.why));
-  note.append(jumpBtn(node.jump, 'pick'));
+  if (!node.jump.onSelect) note.append(jumpBtn(node.jump, 'pick'));
   box.append(note);
 }
 /* ---------- গল্প, "কোনটা কখন", ইতিহাস ---------- */
@@ -714,7 +714,7 @@ function decorateKind(r, row, button) {
     g.onclick = (e) => { e.stopPropagation(); gotoStep(n.goto); };
     row.append(g);
   }
-  if (n.jump) row.append(jumpBtn(n.jump, 'selbtn go'));
+  if (n.jump && !n.jump.onSelect) row.append(jumpBtn(n.jump, 'selbtn go'));   // onSelect হলে "বাছো" বোতামটাই যায়
   if (n.steps) button.append(el('span', 'kchip mode', 'পথের ধরন'));
   if (SELECTABLE.has(n.kind)) {
     const b = el('button', 'selbtn', 'বাছো');
@@ -813,6 +813,8 @@ function renderSteps(box, compact) {
   const g = renderGuide(); if (g) box.append(g);
 }
 function toggleSel(id) {
+  const jn = byId.get(id) && byId.get(id).node;
+  if (jn && jn.jump && jn.jump.onSelect) { doJump(jn.jump); return; }   // "বাছলে" আসলে অন্য পথে যাওয়া; নিজে বাছা অবস্থায় থাকে না
   const res = plan.toggle(id);
   if (!res.ok) return;
   if (res.on) {

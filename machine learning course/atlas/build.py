@@ -138,6 +138,8 @@ def validate(root):
             fail(f"id দুবার: {node['id']} ({seen[node['id']]} ও {node['name']})")
         seen[node["id"]] = node["name"]
         j = node.get("jump")
+        if isinstance(j, dict) and j.get("onSelect") and node.get("kind") != "option":
+            fail(f"jump.onSelect শুধু option-এ (বাছলে যাওয়া): {node['id']}")
         if j is not None and not (isinstance(j, dict) and str(j.get("to", "")).strip() and str(j.get("label", "")).strip() and str(j.get("why", "")).strip()):
             fail(f"jump-এ to, label, why তিনটাই লাগে: {node['id']}")
         if "children" in node and not node["children"]:

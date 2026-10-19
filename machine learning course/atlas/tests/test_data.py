@@ -185,6 +185,11 @@ class Jumps(unittest.TestCase):
             self.assertIn(j["to"], ids, n["id"]); self.assertNotEqual(j["to"], n["id"])
             self.assertTrue(j["label"].strip() and j["why"].strip(), n["id"])
 
+    def test_on_select_jumps_are_options(self):
+        for n in NODES:
+            if (n.get("jump") or {}).get("onSelect"):
+                self.assertEqual(n.get("kind"), "option", n["id"])
+
     def test_scratch_need_offers_the_finetune_path(self):
         by = {n["id"]: n for n in NODES}
         self.assertEqual(by["opt-sc-pretrained-exists"]["jump"]["to"], "mode-finetune")
