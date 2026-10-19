@@ -1,5 +1,27 @@
 # Changelog — ML Learning Atlas
 
+## ২০২৬-১০-১৯ (১৯) — মূল ML ধারার সম্পর্ক: ৮৫টা node, ১০৪টা সম্পর্ক
+
+### সমস্যা
+সম্পর্ক শুধু Distillation আর architecture শাখায় ছিল; Training, network, Transformer, fine-tuning-এর মতো মূল ধারায় "আগে কী লাগে" ছিল না, তাই সেখানে পড়ার ক্রম বের হতো না।
+
+### পরিবর্তন
+- **৬৩টা নতুন `needs`:** Supervised Learning → Linear Regression → MSE → Gradient Descent; Sigmoid → Logistic Regression → Log loss; Unit → Activation → Layer → MLP → Architecture; Gradient Step → Derivative → Chain Rule → Backpropagation → Optimizer → Batch/Step/Epoch; SGD → Momentum → Adam → AdamW; Weight Decay, Gradient Clipping, Cosine ও WSD, Early Stopping, Hyperparameter খোঁজা; Token → Embedding → Softmax → Next-token → Attention → Transformer Block → Autoregressive; Pretraining → Fine-tuning → LoRA → QLoRA।
+- **প্রতিটা সম্পর্কে `basis`:** `course` (কোর্সের নিজের lecture-পূর্বশর্ত সমর্থন করে, ৬৯টা) বা `concept` (সংজ্ঞা থেকে সরাসরি, ৩৫টা)। `build.py` এখন basis ছাড়া সম্পর্ক আটকায়। dialog-এ সম্পর্কের নামে hover করলে basis দেখায়।
+- **`course`-দাবি আর আমার বিচারে নয়:** নতুন test `Relations` প্রতিটা `basis: course` সম্পর্কের জন্য lecture-ফাইল ঘেঁটে দেখে, তার lecture-এর "আগে যা জানা থাকলে ভালো" লাইনে (পরোক্ষভাবেও, `[Lecture 01–07]`-এর মতো সীমাসহ) অন্য node-এর lecture আছে কি না।
+- **পথ ঠিকঠাক করা:** পড়ার ক্রম এখন সবখানে Supervised Learning → Linear Regression থেকে শুরু; Linear Attention সত্যিকারের Attention node-এ জোড়া; Transformer Block-এ আগে Layer, তারপর Attention।
+- `Leakage` node-কে Module 05-এর "Data leakage" পাঠের সাথে জোড়া (আগে শুধু Module 15)।
+
+### যাচাই
+- `bash atlas/check.sh` পাস (৪৯টা data test, ৬৬টা Node test)।
+- test প্রথমবারে আমার ৪টা `course`-দাবি ধরেছিল (Leakage পাঠ জোড়া ছিল না; "[Lecture 01–07]" সীমা পড়া হয়নি); দুটোই ঠিক করা।
+- browser-এ AdamW খুলে: "আগে এগুলো লাগে: Adam, Weight Decay" আর ১২ ধাপের পড়ার ক্রম।
+
+### সীমা
+- মোট ১১২১ node-এর ৮৫টায় সম্পর্ক। Evaluation, Application, Learning Setting, classical model (tree, SVM, k-NN) এখনো বাকি।
+- `concept`-সম্পর্ক (৩৫টা) সংজ্ঞা পড়ে আমার বিচারে, test এগুলো যাচাই করে না; তাই আলাদা চিহ্নে রাখা।
+- Lecture-এর পূর্বশর্ত-লাইনই কোর্সের একমাত্র সূত্র: কোনো lecture নিজের পূর্বশর্ত ভুল লিখলে সম্পর্কও সেই ভুল পাবে।
+
 ## ২০২৬-১০-১৯ (১৮) — সম্পর্ক ও পড়ার ক্রম; Distillation পাঠক্রম গাছের ভেতরে
 
 ### সমস্যা

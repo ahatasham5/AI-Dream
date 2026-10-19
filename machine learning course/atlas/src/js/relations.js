@@ -14,8 +14,8 @@ const AtlasRelations = (function () {
     const contrasts = new Map();  // id   -> [{ id, why }]
     const push = (m, k, v) => { if (!m.has(k)) m.set(k, []); m.get(k).push(v); };
     for (const e of edges || []) {
-      if (e.type === 'needs') { push(needs, e.from, { id: e.to, why: e.why || '' }); push(usedBy, e.to, { id: e.from, why: e.why || '' }); }
-      else if (e.type === 'contrasts') { push(contrasts, e.from, { id: e.to, why: e.why || '' }); push(contrasts, e.to, { id: e.from, why: e.why || '' }); }
+      if (e.type === 'needs') { push(needs, e.from, { id: e.to, why: e.why || '', basis: e.basis }); push(usedBy, e.to, { id: e.from, why: e.why || '', basis: e.basis }); }
+      else if (e.type === 'contrasts') { push(contrasts, e.from, { id: e.to, why: e.why || '', basis: e.basis }); push(contrasts, e.to, { id: e.from, why: e.why || '', basis: e.basis }); }
     }
     const get = (m, id) => (m.get(id) || []).slice();
 

@@ -5,223 +5,729 @@
    "from": "kd-l01",
    "to": "classification--logistic-regression--structure--softmax",
    "type": "needs",
-   "why": "teacher-এর probability কীভাবে বের হয়"
+   "why": "teacher-এর probability কীভাবে বের হয়",
+   "basis": "course"
   },
   {
    "from": "kd-l01",
    "to": "fine-tuning",
    "type": "needs",
-   "why": "SFT কী, তা আগে জানা"
+   "why": "SFT কী, তা আগে জানা",
+   "basis": "course"
   },
   {
    "from": "kd-l02",
    "to": "kd-l01",
    "type": "needs",
-   "why": "teacher ও student কে, তা আগে"
+   "why": "teacher ও student কে, তা আগে",
+   "basis": "course"
   },
   {
    "from": "kd-l02",
    "to": "next-token-prediction",
    "type": "needs",
-   "why": "teacher-এর লেখা উত্তর next-token loss-এ শেখা হয়"
+   "why": "teacher-এর লেখা উত্তর next-token loss-এ শেখা হয়",
+   "basis": "course"
   },
   {
    "from": "kd-l03",
    "to": "kd-l01",
    "type": "needs",
-   "why": "teacher ও student কে, তা আগে"
+   "why": "teacher ও student কে, তা আগে",
+   "basis": "course"
   },
   {
    "from": "kd-l03",
    "to": "classification--logistic-regression--structure--softmax",
    "type": "needs",
-   "why": "temperature softmax-এর ভেতরে বসে"
+   "why": "temperature softmax-এর ভেতরে বসে",
+   "basis": "course"
   },
   {
    "from": "kd-l04",
    "to": "kd-l03",
    "type": "needs",
-   "why": "soft target ছাড়া KL-এর মানে নেই"
+   "why": "soft target ছাড়া KL-এর মানে নেই",
+   "basis": "course"
   },
   {
    "from": "kd-l04",
    "to": "cross-entropy",
    "type": "needs",
-   "why": "KL এসেছে cross-entropy থেকে"
+   "why": "KL এসেছে cross-entropy থেকে",
+   "basis": "course"
   },
   {
    "from": "kd-l05",
    "to": "kd-l04",
    "type": "needs",
-   "why": "output-loss বুঝে তারপর feature-loss যোগ"
+   "why": "output-loss বুঝে তারপর feature-loss যোগ",
+   "basis": "course"
   },
   {
    "from": "kd-l05",
    "to": "neural-network-regression-head--structure--hidden-layer",
    "type": "needs",
-   "why": "ভেতরের layer-এর vector কী, তা আগে"
+   "why": "ভেতরের layer-এর vector কী, তা আগে",
+   "basis": "course"
   },
   {
    "from": "kd-l05",
    "to": "mse-squared-error",
    "type": "needs",
-   "why": "feature-loss সাধারণত MSE"
+   "why": "feature-loss সাধারণত MSE",
+   "basis": "course"
   },
   {
    "from": "kd-l06",
    "to": "kd-l02",
    "type": "needs",
-   "why": "offline-এ teacher-এর লেখা উত্তরই উদাহরণ"
+   "why": "offline-এ teacher-এর লেখা উত্তরই উদাহরণ",
+   "basis": "course"
   },
   {
    "from": "kd-l06",
    "to": "kd-l04",
    "type": "needs",
-   "why": "on-policy-তে token-স্তরের loss লাগে"
+   "why": "on-policy-তে token-স্তরের loss লাগে",
+   "basis": "course"
   },
   {
    "from": "kd-l07",
    "to": "kd-l02",
    "type": "needs",
-   "why": "বাছাই হয় teacher-এর লেখা উত্তরের ওপর"
+   "why": "বাছাই হয় teacher-এর লেখা উত্তরের ওপর",
+   "basis": "course"
   },
   {
    "from": "kd-l07",
    "to": "leakage",
    "type": "needs",
-   "why": "বাছাইয়ে test data ঢুকে পড়া এড়াতে"
+   "why": "বাছাইয়ে test data ঢুকে পড়া এড়াতে",
+   "basis": "course"
   },
   {
    "from": "kd-l08",
    "to": "kd-l06",
    "type": "needs",
-   "why": "সব পদ্ধতি জানার পর তুলনা"
+   "why": "সব পদ্ধতি জানার পর তুলনা",
+   "basis": "course"
   },
   {
    "from": "kd-l08",
    "to": "kd-l07",
    "type": "needs",
-   "why": "সব পদ্ধতি জানার পর তুলনা"
+   "why": "সব পদ্ধতি জানার পর তুলনা",
+   "basis": "course"
   },
   {
    "from": "kd-l08",
    "to": "kd-l05",
    "type": "needs",
-   "why": "সব পদ্ধতি জানার পর তুলনা"
+   "why": "সব পদ্ধতি জানার পর তুলনা",
+   "basis": "course"
   },
   {
    "from": "kd-l08",
    "to": "quantization",
    "type": "needs",
-   "why": "তিন পদ্ধতির একটা"
+   "why": "তিন পদ্ধতির একটা",
+   "basis": "course"
   },
   {
    "from": "kd-l08",
    "to": "lora-low-rank-update",
    "type": "needs",
-   "why": "তিন পদ্ধতির একটা"
+   "why": "তিন পদ্ধতির একটা",
+   "basis": "course"
   },
   {
    "from": "kd-l02",
    "to": "kd-l03",
    "type": "contrasts",
-   "why": "শুধু text বনাম probability: কী লাগে, কোথায় চলে"
+   "why": "শুধু text বনাম probability: কী লাগে, কোথায় চলে",
+   "basis": "course"
   },
   {
    "from": "opt-kd-text",
    "to": "opt-kd-probs",
    "type": "contrasts",
-   "why": "teacher থেকে কী লাগে, API-তে চলে কি না, tokenizer আলাদা হলে"
+   "why": "teacher থেকে কী লাগে, API-তে চলে কি না, tokenizer আলাদা হলে",
+   "basis": "course"
   },
   {
    "from": "opt-kd-offline",
    "to": "opt-kd-onpolicy",
    "type": "contrasts",
-   "why": "কে উদাহরণ লেখে, খরচ আর ভুল জমার ঝুঁকি"
+   "why": "কে উদাহরণ লেখে, খরচ আর ভুল জমার ঝুঁকি",
+   "basis": "course"
   },
   {
    "from": "opt-kd-same-arch",
    "to": "opt-kd-diff-arch",
    "type": "contrasts",
-   "why": "গঠন একই না আলাদা"
+   "why": "গঠন একই না আলাদা",
+   "basis": "course"
   },
   {
    "from": "knowledge-distillation",
    "to": "quantization",
    "type": "contrasts",
-   "why": "distillation signal বদলায়, quantization precision বদলায়"
+   "why": "distillation signal বদলায়, quantization precision বদলায়",
+   "basis": "course"
   },
   {
    "from": "knowledge-distillation",
    "to": "lora-low-rank-update",
    "type": "contrasts",
-   "why": "distillation নতুন student, LoRA মূল weight স্থির রেখে ছোট adapter"
+   "why": "distillation নতুন student, LoRA মূল weight স্থির রেখে ছোট adapter",
+   "basis": "course"
   },
   {
    "from": "linear-attention",
-   "to": "transformer-block--attention",
+   "to": "basics--attention",
    "type": "needs",
-   "why": "attention-এর N×N খরচ কেন সমস্যা, তা আগে"
+   "why": "attention-এর N×N খরচ কেন সমস্যা, তা আগে",
+   "basis": "concept"
   },
   {
    "from": "deltanet",
    "to": "linear-attention",
    "type": "needs",
-   "why": "DeltaNet linear attention-এর যোগ-শুধু state শুধরায়"
+   "why": "DeltaNet linear attention-এর যোগ-শুধু state শুধরায়",
+   "basis": "concept"
   },
   {
    "from": "gated-deltanet",
    "to": "deltanet",
    "type": "needs",
-   "why": "Gated DeltaNet DeltaNet-এর সাথে decay gate জোড়ে"
+   "why": "Gated DeltaNet DeltaNet-এর সাথে decay gate জোড়ে",
+   "basis": "concept"
   },
   {
    "from": "mamba",
    "to": "ssm-basics",
    "type": "needs",
-   "why": "Mamba SSM-এর state-সূত্রের ওপর দাঁড়ানো"
+   "why": "Mamba SSM-এর state-সূত্রের ওপর দাঁড়ানো",
+   "basis": "concept"
   },
   {
    "from": "mamba-2",
    "to": "mamba",
    "type": "needs",
-   "why": "Mamba-2 Mamba-র সরল রূপ"
+   "why": "Mamba-2 Mamba-র সরল রূপ",
+   "basis": "concept"
   },
   {
    "from": "hybrid-architectures",
    "to": "transformer",
    "type": "needs",
-   "why": "hybrid-এ attention layer থাকে"
+   "why": "hybrid-এ attention layer থাকে",
+   "basis": "concept"
   },
   {
    "from": "hybrid-architectures",
    "to": "linear-attention",
    "type": "needs",
-   "why": "hybrid-এর সস্তা অংশ"
+   "why": "hybrid-এর সস্তা অংশ",
+   "basis": "concept"
   },
   {
    "from": "hybrid-architectures",
    "to": "state-space-models",
    "type": "needs",
-   "why": "hybrid-এর সস্তা অংশের আরেক পরিবার"
+   "why": "hybrid-এর সস্তা অংশের আরেক পরিবার",
+   "basis": "concept"
   },
   {
    "from": "architecture-conversion",
    "to": "knowledge-distillation",
    "type": "needs",
-   "why": "রূপান্তর distillation-এরই রূপ"
+   "why": "রূপান্তর distillation-এরই রূপ",
+   "basis": "concept"
   },
   {
    "from": "architecture-conversion",
    "to": "hybrid-architectures",
    "type": "needs",
-   "why": "কোন গঠনে রূপান্তর হচ্ছে, তা আগে"
+   "why": "কোন গঠনে রূপান্তর হচ্ছে, তা আগে",
+   "basis": "concept"
   },
   {
    "from": "arch-open-problems",
    "to": "architecture-conversion",
    "type": "needs",
-   "why": "খোলা প্রশ্নগুলো এই পদ্ধতিগুলোর সীমা থেকে আসে"
+   "why": "খোলা প্রশ্নগুলো এই পদ্ধতিগুলোর সীমা থেকে আসে",
+   "basis": "concept"
+  },
+  {
+   "from": "regression--linear-regression",
+   "to": "supervised-learning",
+   "type": "needs",
+   "why": "linear regression supervised learning-এরই একটা উদাহরণ",
+   "basis": "course"
+  },
+  {
+   "from": "mse-squared-error",
+   "to": "regression--linear-regression",
+   "type": "needs",
+   "why": "MSE মাপে linear regression-এর ভুল",
+   "basis": "course"
+  },
+  {
+   "from": "gradient-descent",
+   "to": "mse-squared-error",
+   "type": "needs",
+   "why": "gradient descent কী কমায়, তা আগে: ভুলের মাপ",
+   "basis": "course"
+  },
+  {
+   "from": "classification--logistic-regression--structure--sigmoid",
+   "to": "regression--linear-regression",
+   "type": "needs",
+   "why": "sigmoid বসে linear score-এর ওপর",
+   "basis": "course"
+  },
+  {
+   "from": "classification--logistic-regression",
+   "to": "classification--logistic-regression--structure--sigmoid",
+   "type": "needs",
+   "why": "logistic model sigmoid-এর ওপর দাঁড়ানো",
+   "basis": "course"
+  },
+  {
+   "from": "binary-classification--logistic-regression--binary-cross-entropy",
+   "to": "classification--logistic-regression",
+   "type": "needs",
+   "why": "log loss মাপে logistic model-এর ভুল",
+   "basis": "course"
+  },
+  {
+   "from": "binary-classification--logistic-regression--binary-cross-entropy",
+   "to": "mse-squared-error",
+   "type": "needs",
+   "why": "আগে সংখ্যার ভুল মাপা, তারপর classification-এর ভুল",
+   "basis": "course"
+  },
+  {
+   "from": "early-stopping",
+   "to": "overfitting",
+   "type": "needs",
+   "why": "কেন থামব: overfitting ঠেকাতে",
+   "basis": "course"
+  },
+  {
+   "from": "early-stopping",
+   "to": "gradient-descent",
+   "type": "needs",
+   "why": "কীসের মধ্যে থামব: gradient descent-এর ধাপ",
+   "basis": "course"
+  },
+  {
+   "from": "regularized-objective",
+   "to": "overfitting",
+   "type": "needs",
+   "why": "কোন সমস্যার সমাধান",
+   "basis": "course"
+  },
+  {
+   "from": "regularized-objective",
+   "to": "data-fit-objective",
+   "type": "needs",
+   "why": "regularization data-fit objective-এর ওপর শাস্তি যোগ করে",
+   "basis": "concept"
+  },
+  {
+   "from": "hyperparameter-search",
+   "to": "early-stopping",
+   "type": "needs",
+   "why": "validation দেখে সিদ্ধান্ত নেওয়ার কৌশল আগে",
+   "basis": "course"
+  },
+  {
+   "from": "hyperparameter-search",
+   "to": "training--parameters--parameter-hyperparameter",
+   "type": "needs",
+   "why": "কোনটা hyperparameter, তা আগে",
+   "basis": "concept"
+  },
+  {
+   "from": "basics--unit-neuron",
+   "to": "general-structure--parameters--parameter-hyperparameter",
+   "type": "needs",
+   "why": "unit-এর weight ও bias-ই parameters",
+   "basis": "course"
+  },
+  {
+   "from": "neural-network-regression-head--structure--activation",
+   "to": "basics--unit-neuron",
+   "type": "needs",
+   "why": "activation বসে unit-এর score-এর ওপর",
+   "basis": "course"
+  },
+  {
+   "from": "layer",
+   "to": "basics--unit-neuron",
+   "type": "needs",
+   "why": "layer মানে পাশাপাশি unit",
+   "basis": "course"
+  },
+  {
+   "from": "layer",
+   "to": "neural-network-regression-head--structure--activation",
+   "type": "needs",
+   "why": "layer-এ unit-এর পরে activation",
+   "basis": "course"
+  },
+  {
+   "from": "multilayer-perceptron-mlp",
+   "to": "layer",
+   "type": "needs",
+   "why": "MLP মানে পরপর layer",
+   "basis": "course"
+  },
+  {
+   "from": "architecture",
+   "to": "multilayer-perceptron-mlp",
+   "type": "needs",
+   "why": "কাঠামো বোঝার আগে একটা পুরো network-এর হিসাব",
+   "basis": "course"
+  },
+  {
+   "from": "neural-network-regression-head--structure--task-head",
+   "to": "multilayer-perceptron-mlp",
+   "type": "needs",
+   "why": "head বসে network-এর শেষে",
+   "basis": "course"
+  },
+  {
+   "from": "gradient-step",
+   "to": "multilayer-perceptron-mlp",
+   "type": "needs",
+   "why": "কোন network-এর ধাপ, তা আগে",
+   "basis": "course"
+  },
+  {
+   "from": "gradient-step",
+   "to": "mse-squared-error",
+   "type": "needs",
+   "why": "ধাপ নেওয়া হয় ভুল কমাতে",
+   "basis": "course"
+  },
+  {
+   "from": "derivative",
+   "to": "gradient-step",
+   "type": "needs",
+   "why": "বড় ছবি আগে: কেন derivative লাগে",
+   "basis": "course"
+  },
+  {
+   "from": "chain-rule",
+   "to": "derivative",
+   "type": "needs",
+   "why": "chain rule derivative জোড়া লাগায়",
+   "basis": "course"
+  },
+  {
+   "from": "regression-target--neural-network-regression-head--chain-rule-backpropagation",
+   "to": "chain-rule",
+   "type": "needs",
+   "why": "backpropagation chain rule উল্টো ক্রমে চালায়",
+   "basis": "course"
+  },
+  {
+   "from": "regression-target--neural-network-regression-head--chain-rule-backpropagation",
+   "to": "multilayer-perceptron-mlp",
+   "type": "needs",
+   "why": "কোন network-এ চালানো হচ্ছে, তা আগে",
+   "basis": "course"
+  },
+  {
+   "from": "optimizer",
+   "to": "regression-target--neural-network-regression-head--chain-rule-backpropagation",
+   "type": "needs",
+   "why": "gradient কীভাবে আসে, তা আগে",
+   "basis": "course"
+  },
+  {
+   "from": "optimizer",
+   "to": "gradient-descent",
+   "type": "needs",
+   "why": "optimizer gradient descent-এর উন্নত রূপ",
+   "basis": "course"
+  },
+  {
+   "from": "batch-step-epoch",
+   "to": "optimizer",
+   "type": "needs",
+   "why": "step ও epoch-এর আগে optimizer",
+   "basis": "course"
+  },
+  {
+   "from": "gradient-accumulation",
+   "to": "batch-step-epoch",
+   "type": "needs",
+   "why": "micro-batch ও step-এর ধারণা আগে",
+   "basis": "concept"
+  },
+  {
+   "from": "learning-rate",
+   "to": "gradient-descent",
+   "type": "needs",
+   "why": "learning rate gradient descent-এর ধাপের মাপ",
+   "basis": "concept"
+  },
+  {
+   "from": "sgd-plain-update",
+   "to": "gradient-descent",
+   "type": "needs",
+   "why": "SGD gradient descent-এর সরল update",
+   "basis": "concept"
+  },
+  {
+   "from": "momentum-gradient",
+   "to": "sgd-plain-update",
+   "type": "needs",
+   "why": "momentum SGD-র ওপর gradient-এর স্মৃতি যোগ করে",
+   "basis": "concept"
+  },
+  {
+   "from": "adam-adaptive-update",
+   "to": "momentum-gradient",
+   "type": "needs",
+   "why": "Adam-ও gradient-এর চলমান গড় (দিক) রাখে",
+   "basis": "concept"
+  },
+  {
+   "from": "adamw-decoupled-weight-decay",
+   "to": "adam-adaptive-update",
+   "type": "needs",
+   "why": "AdamW মানে Adam আর আলাদা weight decay",
+   "basis": "concept"
+  },
+  {
+   "from": "adamw-decoupled-weight-decay",
+   "to": "weight-decay",
+   "type": "needs",
+   "why": "AdamW-এ decay আলাদা করে বসে",
+   "basis": "concept"
+  },
+  {
+   "from": "mini-batch-gradient-descent",
+   "to": "gradient-descent",
+   "type": "needs",
+   "why": "mini-batch gradient descent-এর একটা রূপ",
+   "basis": "concept"
+  },
+  {
+   "from": "stochastic-gradient-descent",
+   "to": "gradient-descent",
+   "type": "needs",
+   "why": "stochastic gradient descent-এর একটা রূপ",
+   "basis": "concept"
+  },
+  {
+   "from": "full-batch-gradient-descent",
+   "to": "gradient-descent",
+   "type": "needs",
+   "why": "full-batch gradient descent-এর একটা রূপ",
+   "basis": "concept"
+  },
+  {
+   "from": "batch-size-and-learning-rate",
+   "to": "batch-step-epoch",
+   "type": "needs",
+   "why": "batch size কী, তা আগে",
+   "basis": "concept"
+  },
+  {
+   "from": "batch-size-and-learning-rate",
+   "to": "learning-rate",
+   "type": "needs",
+   "why": "batch বদলালে learning rate-ও বদলাতে হয়",
+   "basis": "concept"
+  },
+  {
+   "from": "weight-decay",
+   "to": "regularized-objective",
+   "type": "needs",
+   "why": "weight ছোট রাখা regularization-এর অংশ",
+   "basis": "concept"
+  },
+  {
+   "from": "gradient-clipping",
+   "to": "vanishing-exploding-gradient",
+   "type": "needs",
+   "why": "clipping যে সমস্যা ঠেকায়",
+   "basis": "concept"
+  },
+  {
+   "from": "vanishing-exploding-gradient",
+   "to": "regression-target--neural-network-regression-head--chain-rule-backpropagation",
+   "type": "needs",
+   "why": "gradient প্রতি layer-এ গুণ হয়, তাই এই সমস্যা",
+   "basis": "concept"
+  },
+  {
+   "from": "warmup",
+   "to": "learning-rate",
+   "type": "needs",
+   "why": "warmup learning rate-এর শুরুর অংশ",
+   "basis": "concept"
+  },
+  {
+   "from": "learning-rate-decay",
+   "to": "learning-rate",
+   "type": "needs",
+   "why": "decay learning rate কমানোর নিয়ম",
+   "basis": "concept"
+  },
+  {
+   "from": "cosine-decay",
+   "to": "learning-rate-decay",
+   "type": "needs",
+   "why": "cosine একটা decay schedule",
+   "basis": "concept"
+  },
+  {
+   "from": "wsd-schedule",
+   "to": "warmup",
+   "type": "needs",
+   "why": "WSD-র প্রথম ভাগ warmup",
+   "basis": "concept"
+  },
+  {
+   "from": "wsd-schedule",
+   "to": "learning-rate-decay",
+   "type": "needs",
+   "why": "WSD-র শেষ ভাগ decay",
+   "basis": "concept"
+  },
+  {
+   "from": "transformer-classification-head--structure--embedding",
+   "to": "token",
+   "type": "needs",
+   "why": "embedding token id থেকে vector",
+   "basis": "course"
+  },
+  {
+   "from": "classification--logistic-regression--structure--softmax",
+   "to": "classification--logistic-regression--structure--sigmoid",
+   "type": "needs",
+   "why": "softmax sigmoid-এর বহু-class রূপ",
+   "basis": "course"
+  },
+  {
+   "from": "next-token-prediction",
+   "to": "classification--logistic-regression--structure--softmax",
+   "type": "needs",
+   "why": "পরের token বাছতে softmax-এর probability",
+   "basis": "course"
+  },
+  {
+   "from": "cross-entropy",
+   "to": "binary-classification--logistic-regression--binary-cross-entropy",
+   "type": "needs",
+   "why": "cross-entropy log loss-এর বহু-class রূপ",
+   "basis": "course"
+  },
+  {
+   "from": "basics--attention",
+   "to": "transformer-classification-head--structure--embedding",
+   "type": "needs",
+   "why": "attention চলে token-এর vector-এর ওপর",
+   "basis": "course"
+  },
+  {
+   "from": "basics--attention",
+   "to": "classification--logistic-regression--structure--softmax",
+   "type": "needs",
+   "why": "attention-এর ওজন softmax থেকে",
+   "basis": "course"
+  },
+  {
+   "from": "transformer-block",
+   "to": "layer",
+   "type": "needs",
+   "why": "block-এর ভেতরে feed-forward layer",
+   "basis": "course"
+  },
+  {
+   "from": "transformer-block",
+   "to": "basics--attention",
+   "type": "needs",
+   "why": "block-এর ভেতরে attention",
+   "basis": "course"
+  },
+  {
+   "from": "autoregressive-transformer",
+   "to": "transformer-block",
+   "type": "needs",
+   "why": "decoder block-এ গড়া",
+   "basis": "course"
+  },
+  {
+   "from": "autoregressive-transformer",
+   "to": "next-token-prediction",
+   "type": "needs",
+   "why": "decoder পরের token বাছে",
+   "basis": "course"
+  },
+  {
+   "from": "fine-tuning",
+   "to": "pretraining",
+   "type": "needs",
+   "why": "আগে-শেখা model থেকে শুরু, তাই pretraining আগে",
+   "basis": "course"
+  },
+  {
+   "from": "lora-low-rank-update",
+   "to": "fine-tuning",
+   "type": "needs",
+   "why": "LoRA fine-tuning-এর একটা পদ্ধতি",
+   "basis": "course"
+  },
+  {
+   "from": "qlora",
+   "to": "lora-low-rank-update",
+   "type": "needs",
+   "why": "QLoRA মানে quantized base-এর ওপর LoRA",
+   "basis": "concept"
+  },
+  {
+   "from": "qlora",
+   "to": "quantization",
+   "type": "needs",
+   "why": "QLoRA base weight quantize করে",
+   "basis": "concept"
+  },
+  {
+   "from": "overfitting",
+   "to": "mse-squared-error",
+   "type": "needs",
+   "why": "overfitting মাপা হয় train ও test ভুলের ফারাকে, তাই ভুল মাপা আগে",
+   "basis": "course"
+  },
+  {
+   "from": "prediction-inference",
+   "to": "regression--linear-regression",
+   "type": "needs",
+   "why": "prediction মানে linear model-এর output, তা আগে",
+   "basis": "course"
+  },
+  {
+   "from": "general-structure--parameters--parameter-hyperparameter",
+   "to": "prediction-inference",
+   "type": "needs",
+   "why": "parameters কী, তা বুঝতে আগে model-এর হিসাব: input, হিসাব, output",
+   "basis": "course"
+  },
+  {
+   "from": "token",
+   "to": "prediction-inference",
+   "type": "needs",
+   "why": "লেখা model-এ ঢোকে input হিসেবে, তাই input-হিসাব-output আগে",
+   "basis": "course"
   }
  ]
 }

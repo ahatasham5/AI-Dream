@@ -196,6 +196,70 @@ class Jumps(unittest.TestCase):
         self.assertTrue(by["mode-finetune"].get("steps"), "লক্ষ্য একটা পথের ধরন হওয়া উচিত")
 
 
+class Relations(unittest.TestCase):
+    """সম্পর্কের `basis: course` দাবি আসলেই কোর্সের lecture-গুলোর "আগে যা জানা থাকলে ভালো" লাইনে মেলে কি না,
+    তা এখানে পাঠ-ফাইল ঘেঁটে যাচাই হয়; আমার বিচারের ওপর ছেড়ে দেওয়া হয় না।"""
+    ROOT = HERE.parent
+
+    def lecture_prereqs(self):
+        def lid(rel):
+            m = re.match(r"module-(\d\d)-[^/]+/(lecture|bridge)-(\d\d)", rel)
+            return None if not m else (f"{m.group(1)}/{m.group(3)}" if m.group(2) == "lecture" else f"{m.group(1)}/b{m.group(3)}")
+        pre = {}
+        for f in self.ROOT.glob("module-*/*.md"):
+            me = lid(f.relative_to(self.ROOT).as_posix())
+            if not me:
+                continue
+            line = next((l for l in f.read_text(encoding="utf-8").split("\n")[:8] if "আগে যা জানা" in l), "")
+            ps = []
+            for href in re.findall(r"\]\(([^)#]+\.md)", line):
+                t = (f.parent / href).resolve()
+                try:
+                    i = lid(t.relative_to(self.ROOT.resolve()).as_posix())
+                except ValueError:
+                    i = None
+                if i:
+                    ps.append(i)
+            # "[Lecture 01–07](…01…)" একটা লিংকে একটা সীমা: ওই module-এর ০১ থেকে ০৭ সব
+            for lo, hi, href in re.findall(r"\[Lecture\s*(\d\d)\s*[–-]\s*(\d\d)\]\(([^)#]+\.md)", line):
+                try:
+                    mod = lid((f.parent / href).resolve().relative_to(self.ROOT.resolve()).as_posix())[:2]
+                except (ValueError, TypeError):
+                    continue
+                ps += [f"{mod}/{n:02d}" for n in range(int(lo), int(hi) + 1)]
+            pre[me] = ps
+        return pre
+
+    def test_course_edges_follow_lecture_prerequisites(self):
+        pre = self.lecture_prereqs()
+
+        def closure(x):
+            out, stack = set(), list(pre.get(x, []))
+            while stack:
+                y = stack.pop()
+                if y not in out:
+                    out.add(y)
+                    stack += pre.get(y, [])
+            return out
+        les = {}
+        for r in load("lessons.json")["rules"]:
+            for n in r["names"]:
+                les.setdefault(n, set()).update(r["lessons"])
+        name = {n["id"]: n["name"] for n in NODES}
+        bad = []
+        for e in load("relations.json")["edges"]:
+            if e["type"] != "needs" or e.get("basis") != "course":
+                continue
+            la, lb = les.get(name[e["from"]], set()), les.get(name[e["to"]], set())
+            if not any(b in closure(a) for a in la for b in lb):
+                bad.append(f"{e['from']} → {e['to']}  (পাঠ {sorted(la)} বনাম {sorted(lb)})")
+        self.assertEqual(bad, [], "basis=course অথচ lecture-এর পূর্বশর্তে মেলে না:\n" + "\n".join(bad))
+
+    def test_every_edge_has_a_basis(self):
+        for e in load("relations.json")["edges"]:
+            self.assertIn(e.get("basis"), ("course", "concept"), f"{e['from']} → {e['to']}")
+
+
 class Aliases(unittest.TestCase):
     def test_aliases_point_to_existing_nodes_and_old_ids_are_gone(self):
         ids = {n["id"] for n in NODES}

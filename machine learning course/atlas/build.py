@@ -131,6 +131,8 @@ def load_relations(ids):
             fail(f"সম্পর্ক নিজের দিকেই: {e['from']}")
         if not str(e.get("why", "")).strip():
             fail(f"সম্পর্কে কারণ (why) নেই: {e['from']} → {e['to']}")
+        if e.get("basis") not in ("course", "concept"):
+            fail(f"সম্পর্কের basis লাগে (course বা concept): {e['from']} → {e['to']}")
         key = (t, e["from"], e["to"]) if t == "needs" else (t,) + tuple(sorted((e["from"], e["to"])))
         if key in seen:
             fail(f"একই সম্পর্ক দুবার: {key}")

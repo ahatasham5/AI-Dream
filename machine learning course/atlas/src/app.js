@@ -260,6 +260,7 @@ function relSection(box, title, items) {
     const b = el('button', 'pick', short(rec.node.name));
     b.type = 'button';
     b.onclick = () => openNode(it.id);
+    if (it.basis) b.title = it.basis === 'course' ? 'কোর্সের নিজের পূর্বশর্ত-লাইন অনুযায়ী' : 'সংজ্ঞা থেকে সরাসরি';
     li.append(b);
     if (it.why) li.append(el('span', 'why', it.why));
     ul.append(li);
