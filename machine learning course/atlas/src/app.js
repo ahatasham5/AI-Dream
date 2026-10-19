@@ -290,14 +290,19 @@ function renderRel(r, box) {
   relSection(box, 'এর ওপর এগুলো দাঁড়ায়', REL.usedBy(id));
   relSection(box, 'তুলনা করো', REL.contrasts(id));
 }
+function tourIdx(cur) {
+  let i = tour.order.indexOf(cur);
+  if (i < 0) i = tour.order.indexOf(relId(cur));
+  return i;
+}
 function startTour(target) {
-  tour = { target, order: REL.path(target).concat(target) };
+  tour = { kind: 'prereq', target, title: 'পড়ার ক্রম: ' + short(byId.get(target).node.name), order: REL.path(target).concat(target) };
   openNode(tour.order[0]);
 }
 function tourStep(delta) {
   if (!tour) return;
   const cur = modal.dataset.nodeId;
-  const i = tour.order.indexOf(cur);
+  const i = tourIdx(cur);
   const j = i < 0 ? 0 : i + delta;
   if (j < 0 || j >= tour.order.length) return;
   if (delta > 0 && cur) markRead(cur, true);   // পরেরটায় গেলে এটা পড়া ধরা হয়
@@ -306,10 +311,12 @@ function tourStep(delta) {
 function renderTour(box, cur) {   // cur: যে node এখন দেখানো হচ্ছে (openNode-এ modal.dataset বসার আগেই আঁকা হয়, তাই সরাসরি দেওয়া)
   box.replaceChildren();
   if (!tour) return;
-  cur = relId(cur || modal.dataset.nodeId);
-  const i = tour.order.indexOf(cur), n = tour.order.length;
+  cur = cur || modal.dataset.nodeId;
+  const i = tourIdx(cur), n = tour.order.length;
+  if (i >= 0) cur = tour.order[i];
+  if (tour.kind === 'course' && i >= 0) saveCourse(i < n - 1 ? i : null);   // শেষ ধাপে আর জমা নয়: কোর্স শেষ
   const bar = el('div', 'tourbar');
-  bar.append(el('strong', '', 'পড়ার ক্রম: ' + short(byId.get(tour.target).node.name)));
+  bar.append(el('strong', '', tour.title));
   const done = tour.order.filter((x) => readSet.has(x)).length;
   bar.append(el('span', 'tcount', (i >= 0 ? 'ধাপ ' + bn(i + 1) + ' / ' + bn(n) : 'এই node ক্রমের বাইরে') + ' · পড়া হয়েছে ' + bn(done) + 'টা'));
   const btn = (label, fn, off) => { const b = el('button', 'textbtn', label); b.type = 'button'; b.disabled = !!off; b.onclick = fn; bar.append(b); return b; };
@@ -383,7 +390,7 @@ async function readerPlay() {
   if (!r) return;
   readerStop();
   rd.segs = AtlasReader.segments(r.node, rd.story);
-  if (!rd.segs.length) return;
+  if (!rd.segs.length) { courseNext(); return; }
   rd.state = 'playing'; rd.i = 0;
   const my = rd.token;
   const man = await loadAudioManifest();
@@ -405,10 +412,7 @@ async function readerPlay() {
     if (res === 'error') { rd.state = 'idle'; rd.problem = 'error'; markReading(null); renderReaderBar(); return; }
   }
   rd.state = 'idle'; markReading(null); renderReaderBar();
-  if (rd.auto && tour) {
-    const i = tour.order.indexOf(relId(modal.dataset.nodeId));
-    if (i >= 0 && i < tour.order.length - 1) { tourStep(1); setTimeout(readerPlay, 350); }
-  }
+  courseNext();
 }
 function readerPause(on) {
   if (rd.state === 'idle') return;
@@ -417,7 +421,7 @@ function readerPause(on) {
   else if ('speechSynthesis' in window) { if (on) speechSynthesis.pause(); else speechSynthesis.resume(); }
   renderReaderBar();
 }
-function renderReaderBar() {
+function renderReaderBar(nodeId) {
   const box = $('#reader');
   if (!box) return;
   box.replaceChildren();
@@ -437,6 +441,13 @@ function renderReaderBar() {
   const lab = el('label', 'rdopt'); const cb = el('input'); cb.type = 'checkbox'; cb.checked = rd.story;
   cb.onchange = () => { rd.story = cb.checked; store('ml-atlas-rd-story', cb.checked ? '1' : '0'); };
   lab.append(cb, document.createTextNode(' গল্পসহ')); bar.append(lab);
+  if (rd.state === 'idle') {
+    const here = byId.get(nodeId || modal.dataset.nodeId);
+    if (here && AtlasReader.branch(here, false).length >= 2)
+      btn('🎓 এই শাখা কোর্সের মতো', () => openCourseBox(short(here.node.name), (wo) => AtlasReader.branch(here, wo), true), 'এই শাখার সব node এক এক করে খুলে পড়ে শোনায়');
+    const sc = !tour && savedCourse();
+    if (sc) btn('⏯ আগের কোর্স চালাও (ধাপ ' + bn(sc.i + 1) + '/' + bn(sc.order.length) + ')', () => startCourse(sc.title, sc.order, sc.i), sc.title);
+  }
   if (rd.state !== 'idle' && rd.segs[rd.i]) bar.append(el('span', 'rdstat', 'এখন: ' + rd.segs[rd.i].label + ' (' + bn(rd.i + 1) + '/' + bn(rd.segs.length) + ') · ' + rd.src));
   box.append(bar);
   if (rd.state === 'idle' && (rd.problem || (!hasFiles && !voice && rd.manifest !== undefined))) {
@@ -451,6 +462,84 @@ modal.addEventListener('close', readerStop);
 window.addEventListener('pagehide', readerStop);
 // dialog বন্ধ হলে পড়া থামে, event না এলেও (যেমন কিছু embedded browser 'close' পাঠায় না): খোলা আছে কি না নিজে দেখে
 setInterval(() => { if (rd.state !== 'idle' && !modal.open) readerStop(); }, 300);
+/* ---------- কোর্স: এক এক করে node খুলে শোনানো ----------
+ * একটা শাখার সব node গাছের ক্রমে, বা গল্পের পথের একটা অধ্যায়: প্রতিটা node dialog-এ খোলে, পড়া হয়, শেষ হলে নিজে পরেরটায় যায়।
+ * লম্বা কাজ, তাই এক ক্লিকে শুরু হয় না: আগে নিশ্চিতকরণ (ধাপ, আনুমানিক সময়, উৎস), বাতিল সবসময়; চলার সময় থামাও ও বন্ধ।
+ * কোথায় থেমেছে browser-এ জমা থাকে, "আগের কোর্স চালাও"-তে সেখান থেকে। কিছু বাছে বা মোছে না। */
+const COURSE_CPS = 14;   // অক্ষর/সেকেন্ড: অনুমান, মাপা নয়
+function fmtTime(min) {
+  if (min < 1) return 'এক মিনিটেরও কম';
+  if (min < 90) return bn(Math.round(min)) + ' মিনিট';
+  return bn(Math.round(min / 6) / 10) + ' ঘণ্টা';
+}
+function saveCourse(i) {
+  if (i === null || !tour) { store('ml-atlas-course', ''); return; }
+  store('ml-atlas-course', JSON.stringify({ title: tour.title, order: tour.order, i }));
+}
+function savedCourse() {
+  try {
+    const c = JSON.parse(store('ml-atlas-course') || 'null');
+    if (c && Array.isArray(c.order) && c.order.length && c.order.every((id) => byId.has(id)) && c.i >= 0 && c.i < c.order.length - 1) return c;
+  } catch (e) { /* জমা নেই */ }
+  return null;
+}
+function startCourse(title, order, at) {
+  if (!order.length) return;
+  tour = { kind: 'course', title, order };
+  rd.auto = true; store('ml-atlas-rd-auto', '1');
+  openNode(order[at || 0]);
+  setTimeout(readerPlay, 450);
+}
+function courseNext() {
+  if (!(rd.auto && tour)) return;
+  const i = tourIdx(modal.dataset.nodeId);
+  if (i < 0) return;
+  if (i < tour.order.length - 1) { tourStep(1); setTimeout(readerPlay, 350); return; }
+  markRead(tour.order[i], true);
+  if (tour.kind === 'course') { saveCourse(null); toast('কোর্স শেষ ✓'); }
+  renderTour($('#tour'), tour.order[i]);
+}
+function openCourseBox(title, orderFor, canOptions) {
+  const dlg = $('#coursebox');
+  dlg.replaceChildren();
+  let withOptions = false, order = [];
+  const h = el('h2', '', 'কোর্স: ' + title); h.id = 'course-title';
+  const what = el('p', 'cwhat', 'প্রতিটা ধাপ এক এক করে খুলবে আর পড়ে শোনাবে, শেষ হলে নিজে পরেরটায় যাবে। যেকোনো সময় থামাও বা বন্ধ করা যায়, আর পরে আগের জায়গা থেকে চালানো যায়।');
+  const sum = el('p', 'csum'), src = el('p', 'csrc'), long = el('p', 'clong');
+  const opts = el('div', 'copts');
+  const cbox = (label, get, set) => {
+    const l = el('label'), c = el('input'); c.type = 'checkbox'; c.checked = get();
+    c.onchange = () => { set(c.checked); refresh(); };
+    l.append(c, document.createTextNode(' ' + label)); opts.append(l);
+  };
+  cbox('গল্পসহ (সমস্যা, ধারণা)', () => rd.story, (v) => { rd.story = v; store('ml-atlas-rd-story', v ? '1' : '0'); });
+  if (canOptions) cbox('বিকল্প ও tool-ও পড়ো', () => withOptions, (v) => { withOptions = v; });
+  const go = el('button', 'pick', '▶ শুরু করো'), cancel = el('button', 'textbtn', 'বাতিল');
+  go.type = 'button'; cancel.type = 'button';
+  go.onclick = () => { dlg.close(); startCourse(title, order); };
+  cancel.onclick = () => dlg.close();
+  const row = el('div', 'cbtns'); row.append(go, cancel);
+  function refresh() {
+    order = orderFor(withOptions);
+    const nodes = order.map((id) => byId.get(id).node);
+    const s = AtlasReader.stats(nodes, rd.story, COURSE_CPS, rd.speed);
+    sum.textContent = bn(s.steps) + 'টা ধাপ · ' + bn(s.parts) + 'টা অংশ · প্রায় ' + fmtTime(s.minutes) + ' (অনুমান: ' + bn(COURSE_CPS) + ' অক্ষর/সেকেন্ড, বর্তমান গতি ' + rd.speed + '×)';
+    long.textContent = s.minutes > 60 ? 'লম্বা কোর্স। তাড়া নেই: থামিয়ে পরে "⏯ আগের কোর্স চালাও"-তে ফেরা যায়।' : '';
+    go.disabled = !s.steps;
+    loadAudioManifest().then((man) => {
+      const keys = nodes.flatMap((n) => AtlasReader.segments(n, rd.story).map((x) => x.key));
+      const have = man ? keys.filter((k) => man.files[k]).length : 0, v = bnVoice();
+      src.textContent = have === keys.length && keys.length ? 'উৎস: আগে-বানানো audio-ফাইল (সব অংশ)।'
+        : have ? 'উৎস: audio-ফাইল ' + bn(have) + '/' + bn(keys.length) + ' অংশের; বাকিটা ' + (v ? 'browser voice (' + v.name + ')।' : 'পড়া যাবে না: বাংলা voice নেই।')
+        : v ? 'উৎস: browser voice (' + v.name + '); আগে-বানানো audio নেই।' : 'সতর্কতা: বাংলা voice বা audio কিছুই নেই, তাই পড়া হবে না। README-র "বাংলা audio পড়া" দেখো।';
+      src.classList.toggle('warn', !have && !v);
+    });
+  }
+  dlg.append(h, what, opts, sum, src, long, row);
+  refresh();
+  dlg.showModal();
+  go.focus();
+}
 /* ---------- গল্প, "কোনটা কখন", ইতিহাস ---------- */
 function jumpButton(x) {
   if (!x.id) return el('span', 'pick plain', x.label);
@@ -674,7 +763,7 @@ function openNode(id, opts) {
   renderCrumb(r);
   readerStop();
   renderTour($('#tour'), id);
-  renderReaderBar();
+  renderReaderBar(id);
   renderPathBar(id);
   modal.dataset.nodeId = id;
   renderPick(r.node, $('#pick'));
@@ -844,6 +933,10 @@ function renderPath() {
     };
     head.append(reset);
   }
+  const all = el('button', 'pick', '🎧 পুরো গল্পের পথ শুনে শুনে (' + flat.length.toLocaleString('bn-BD') + ' ধাপ)');
+  all.type = 'button';
+  all.onclick = () => openCourseBox('পুরো গল্পের পথ', () => flat.filter((i) => byId.has(i)), false);
+  head.append(all);
   box.append(head);
   const pr = el('div', 'progress');
   const bar = el('div', 'bar'), fill = el('i');
@@ -857,6 +950,10 @@ function renderPath() {
     const sec = el('section', 'chapter');
     sec.append(el('h3', '', ch.title));
     if (ch.intro) sec.append(el('p', 'intro', ch.intro));
+    const lb = el('button', 'pick', '🎧 অধ্যায়টা শুনে শুনে (' + ch.steps.length.toLocaleString('bn-BD') + ' ধাপ)');
+    lb.type = 'button';
+    lb.onclick = () => openCourseBox(ch.title, () => ch.steps.filter((i) => byId.has(i)), false);
+    sec.append(lb);
     for (const id of ch.steps) {
       n++;
       const r = byId.get(id);

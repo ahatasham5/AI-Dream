@@ -64,3 +64,34 @@ test('chunks: একটাই অতি-লম্বা বাক্য শব�
   assert.ok(c.length > 1 && c.every((x) => x.length <= 50));
   assert.equal(c.join(' '), long);
 });
+
+const rec = (id, def, kind, kids) => ({ node: { id, definition: def, kind }, children: kids || [] });
+
+test('branch: গাছের ক্রম (আগে নিজে, তারপর সন্তান গভীরে), stepref ও সংজ্ঞাহীন বাদ', () => {
+  const t = rec('root', 'মূল', undefined, [
+    rec('a', 'ক সংজ্ঞা', 'info', [rec('a1', 'ক-১', 'info')]),
+    rec('go', 'ধাপে যাও', 'stepref'),
+    rec('empty', '  ', 'info'),
+    rec('b', 'খ সংজ্ঞা', 'info'),
+  ]);
+  assert.deepEqual(R.branch(t, true), ['root', 'a', 'a1', 'b']);
+});
+
+test('branch: নকল (একই সংজ্ঞা) একবারই; option/tool/decision শুধু withOptions হলে; শাখার নিজেকে সবসময়', () => {
+  const t = rec('root', 'মূল', 'decision', [
+    rec('x', 'একই লেখা', 'info'), rec('x2', 'একই লেখা', 'info'),
+    rec('o', 'বিকল্প', 'option', [rec('o1', 'বিকল্পের ভেতরের ব্যাখ্যা', 'info')]),
+    rec('tl', 'tool', 'tool'), rec('d', 'প্রশ্ন', 'decision'),
+  ]);
+  assert.deepEqual(R.branch(t, false), ['root', 'x', 'o1']);
+  assert.deepEqual(R.branch(t, true), ['root', 'x', 'o', 'o1', 'tl', 'd']);
+});
+
+test('stats: অক্ষর, অংশ আর সময় (গতি বাড়লে কমে); গল্প বাদ দিলে কম', () => {
+  const nodes = [{ definition: 'ক'.repeat(140), story: { problem: 'খ'.repeat(70), idea: 'গ'.repeat(70) } }];
+  const a = R.stats(nodes, true, 14, 1), b = R.stats(nodes, false, 14, 1), c = R.stats(nodes, true, 14, 2);
+  assert.equal(a.chars, 280); assert.equal(a.parts, 3); assert.equal(b.chars, 140); assert.equal(b.parts, 1);
+  assert.ok(Math.abs(a.minutes - 280 / 14 / 60) < 1e-9);
+  assert.ok(Math.abs(c.minutes - a.minutes / 2) < 1e-9);
+  assert.equal(R.stats([], true).steps, 0);
+});

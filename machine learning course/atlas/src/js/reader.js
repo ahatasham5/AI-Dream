@@ -64,6 +64,28 @@ const AtlasReader = (function () {
     return out;
   }
 
-  return { clean, key, segments, bengaliVoice, chunks, SAY };
+  /** কোর্স: একটা শাখার সব node গাছের ক্রমে (আগে নিজে, তারপর সন্তানরা)। rec = { node, children[] }।
+   *  বাদ: stepref (শুধু "ধাপে যাও" বোতাম), সংজ্ঞা নেই এমন, আর হুবহু একই সংজ্ঞার নকল (একই বিষয় তিন পথে থাকলে একবারই)।
+   *  withOptions = false হলে option, tool, decision-ও বাদ, যাতে ধারণাগুলোই থাকে (শাখার নিজেকে সবসময় রাখা হয়)। */
+  function branch(rec, withOptions) {
+    const out = [], seen = new Set();
+    (function walk(r, isRoot) {
+      const n = r.node, d = (n.definition || '').trim();
+      const optional = n.kind === 'option' || n.kind === 'tool' || n.kind === 'decision';
+      const skip = n.kind === 'stepref' || !d || seen.has(d) || (!isRoot && !withOptions && optional);
+      if (!skip) { seen.add(d); out.push(n.id); }
+      for (const c of r.children || []) walk(c, false);
+    })(rec, true);
+    return out;
+  }
+
+  /** কোর্সের সারাংশ: ধাপ, অক্ষর, আনুমানিক মিনিট (cps অক্ষর/সেকেন্ড অনুমান, speed গতি)। nodes = node-এর তালিকা */
+  function stats(nodes, withStory, cps, speed) {
+    let chars = 0, parts = 0;
+    for (const n of nodes) for (const s of segments(n, withStory)) { chars += s.speech.length; parts++; }
+    return { steps: nodes.length, parts, chars, minutes: chars / (cps || 14) / (speed || 1) / 60 };
+  }
+
+  return { clean, key, segments, bengaliVoice, chunks, branch, stats, SAY };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = AtlasReader;

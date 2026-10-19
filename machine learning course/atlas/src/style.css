@@ -494,3 +494,6 @@ li.inc-on>.row>.term{background:var(--soft);border-color:var(--hover-line)}
 .readerbar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin:0 0 12px}.readerbar .rdstat{color:var(--muted);font-size:.85em}.readerbar .rdspeed{font:inherit;padding:2px 6px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:inherit}.readerbar .rdopt{font-size:.9em}
 .rdwarn{margin:0 0 12px;padding:8px 12px;border:1px dashed var(--amber);border-radius:10px;font-size:.9em;line-height:1.6}
 #def-text.reading{background:var(--soft);border-radius:6px;box-shadow:0 0 0 4px var(--soft)}
+#coursebox{max-width:min(520px,94vw);padding:18px 20px;border:1px solid var(--line);border-radius:14px;background:var(--dlg);color:var(--ink)}#coursebox::backdrop{background:var(--backdrop)}
+#coursebox h2{margin:0 0 8px;font-size:1.15em}#coursebox p{margin:6px 0;line-height:1.6}#coursebox .csum{font-weight:600}#coursebox .csrc.warn{color:var(--danger)}#coursebox .clong{color:var(--amber)}#coursebox .copts{display:flex;flex-direction:column;gap:4px;margin:10px 0}#coursebox .cbtns{display:flex;gap:10px;margin-top:12px}
+.chapter>.pick{margin:4px 0 10px}
