@@ -214,17 +214,27 @@ function renderInsight(node, box) {
 /* ---------- jump: "এখানে নয়, ওখানে যাও" (data: node.jump = {to, label, why}) ----------
  * লক্ষ্য পথের ধরন (steps-ওয়ালা mode) হলে mode বদলায়; আগের বাছাই মোছে না (engine pick:one শুধু mode-টা বদলায়),
  * তবু toast-এ "আগের পথে ফেরো" থাকে। অন্য লক্ষ্যে শুধু সেখানে নিয়ে গিয়ে খোলে। */
-function jumpBtn(j, cls) {
+function jumpBtn(j, cls, from) {   // from: যে node থেকে jump হচ্ছে, ফেরার জন্য
   const b = el('button', cls, j.label + ' →');
   b.type = 'button';
   if (j.why) b.title = j.why;
-  b.onclick = (e) => { e.stopPropagation(); doJump(j); };
+  b.onclick = (e) => { e.stopPropagation(); doJump(j, from); };
   return b;
 }
-function doJump(j) {
+/* jump অন্য node-এর dialog খোলে, কিন্তু গাছ নড়ায় না (reveal: false), তাই dialog বন্ধ করলে যেখানে ছিলে সেখানেই। আর ওপরে "← ফিরে যাও"। */
+function renderBack(box, from, here) {
+  box.replaceChildren();
+  const o = from && from !== here && byId.get(from);
+  if (!o) return;
+  const b = el('button', 'textbtn', '← ফিরে যাও: ' + short(o.node.name));
+  b.type = 'button';
+  b.onclick = () => openNode(from, { reveal: false });
+  box.append(b);
+}
+function doJump(j, from) {
   const r = byId.get(j.to);
   if (!r) return;
-  if (!r.node.steps) { openNode(j.to); return; }
+  if (!r.node.steps) { openNode(j.to, { reveal: false, from }); return; }
   if (modal.open) modal.close();
   const before = [...selected];
   const prev = plan.activeMode();
@@ -237,7 +247,7 @@ function renderJump(node, box) {
   if (!node.jump || !byId.has(node.jump.to)) return;
   const note = el('div', 'jumpnote');
   if (node.jump.why) note.append(el('p', '', node.jump.why));
-  if (!node.jump.onSelect) note.append(jumpBtn(node.jump, 'pick'));
+  if (!node.jump.onSelect) note.append(jumpBtn(node.jump, 'pick', node.id));
   box.append(note);
 }
 /* ---------- সম্পর্ক ও পড়ার ক্রম (data/relations.json) ----------
@@ -762,6 +772,7 @@ function openNode(id, opts) {
   $('#def-text').textContent = r.node.definition || 'এই শাখার বিষয়গুলো খুলে দেখো।';
   renderCrumb(r);
   readerStop();
+  renderBack($('#jumpback'), o.from, id);
   renderTour($('#tour'), id);
   renderReaderBar(id);
   renderPathBar(id);
@@ -1026,7 +1037,7 @@ function decorateKind(r, row, button) {
     g.onclick = (e) => { e.stopPropagation(); gotoStep(n.goto); };
     row.append(g);
   }
-  if (n.jump && !n.jump.onSelect) row.append(jumpBtn(n.jump, 'selbtn go'));   // onSelect হলে "বাছো" বোতামটাই যায়
+  if (n.jump && !n.jump.onSelect) row.append(jumpBtn(n.jump, 'selbtn go', n.id));   // onSelect হলে "বাছো" বোতামটাই যায়
   if (n.steps) button.append(el('span', 'kchip mode', 'পথের ধরন'));
   if (SELECTABLE.has(n.kind)) {
     const b = el('button', 'selbtn', 'বাছো');
@@ -1126,7 +1137,7 @@ function renderSteps(box, compact) {
 }
 function toggleSel(id) {
   const jn = byId.get(id) && byId.get(id).node;
-  if (jn && jn.jump && jn.jump.onSelect) { doJump(jn.jump); return; }   // "বাছলে" আসলে অন্য পথে যাওয়া; নিজে বাছা অবস্থায় থাকে না
+  if (jn && jn.jump && jn.jump.onSelect) { doJump(jn.jump, id); return; }   // "বাছলে" আসলে অন্য পথে যাওয়া; নিজে বাছা অবস্থায় থাকে না
   const res = plan.toggle(id);
   if (!res.ok) return;
   if (res.on) {

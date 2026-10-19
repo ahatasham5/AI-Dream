@@ -497,3 +497,4 @@ li.inc-on>.row>.term{background:var(--soft);border-color:var(--hover-line)}
 #coursebox{max-width:min(520px,94vw);padding:18px 20px;border:1px solid var(--line);border-radius:14px;background:var(--dlg);color:var(--ink)}#coursebox::backdrop{background:var(--backdrop)}
 #coursebox h2{margin:0 0 8px;font-size:1.15em}#coursebox p{margin:6px 0;line-height:1.6}#coursebox .csum{font-weight:600}#coursebox .csrc.warn{color:var(--danger)}#coursebox .clong{color:var(--amber)}#coursebox .copts{display:flex;flex-direction:column;gap:4px;margin:10px 0}#coursebox .cbtns{display:flex;gap:10px;margin-top:12px}
 .chapter>.pick{margin:4px 0 10px}
+#jumpback:not(:empty){margin:0 0 10px}
