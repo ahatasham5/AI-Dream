@@ -1,5 +1,27 @@
 # Changelog — ML Learning Atlas
 
+## ২০২৬-১০-১৯ (২০) — Distillation এখন From-scratch-এও (training-এর শেখার সংকেত)
+
+### সমস্যা
+Distillation শেখার সংকেত বদলায়, তাই এটা training-এরই অংশ; কিন্তু map-এ ছিল শুধু Fine-tuning-এর নিচে। From-scratch ও Pretraining-এ কোনো teacher node ছিল না, ফলে মনে হতো distillation মানে আগে-শেখা model ছোট করা; অথচ student প্রায়ই অশিক্ষিত অবস্থা থেকে শুরু করে।
+
+### পরিবর্তন
+- **From-scratch, ধাপ ৩ ("Tokenizer ও data"): নতুন সিদ্ধান্ত "teacher থেকে শেখাবে কি?"** (ঐচ্ছিক; না বাছলে label বা লেখা থেকেই শেখে)। এর বিকল্প Knowledge Distillation-এর পুরো নকল: আট পাঠ আর চার সিদ্ধান্তসহ (`-sc` id)।
+- **Pretraining:** একটা ছোট node "teacher থেকে শেখা", যা ব্যাখ্যা করে এটা এই পথে বাছার বিষয় নয় এবং Distillation-এর পাঠক্রমে নিয়ে যায় (jump)। Pretraining-এ distillation চলে কি না তার সূত্র যাচাই করিনি, তাই দাবি করা হয়নি।
+- **নকল node-এও সম্পর্ক ও পড়ার ক্রম কাজ করে:** নকল (`-sc`, `-in-ft`, `-in-pt`) নিজের সম্পর্ক না রাখলে মূল node-এর সম্পর্ক দেখায়।
+- নকলের ভেতরের jump নকলের ভেতরেই থাকে। pseudo-code-এ From-scratch পথেও `learning_signal`, `teacher_access`, `student_architecture`, `distill_on`, `filter_teacher_answers`, `training_loss` আসে।
+- নতুন সম্পর্ক: "Soft target ও temperature" পাঠ আগে "Soft Target" ধারণা চায়।
+
+### যাচাই
+- `bash atlas/check.sh` পাস।
+- engine-এ: From-scratch-এ distillation বাছলে নতুন আবশ্যক সিদ্ধান্ত আসে ("teacher-এর কতটুকু দেখতে পাও"), বাকি সিদ্ধান্ত বাছলে ছয়টা pseudo-code লাইন আসে; Fine-tuning আগের মতোই কাজ করে।
+- browser-এ নকল node (শূন্য-থেকের ভেতরে "Distillation loss") খুলে: সম্পর্ক আসে, ১৪ ধাপের ক্রম শুরু হয়, আর "এই নামটি আরও ১ জায়গায়" লিংকে Fine-tuning-এর কপি দেখা যায়।
+
+### সীমা
+- নকল আলাদা কপি: Fine-tuning-এর KD সংজ্ঞা বদলালে `-sc` কপিও বদলাতে হবে। test `NeedAndDefaults` ও `Definitions` কপির সংজ্ঞা মূলের সাথে মেলে কি না ধরে।
+- পড়ার ক্রম সবসময় মূল node-এর পথ খোলে (Fine-tuning-এর নিচের কপি), নকলের জায়গায় নয়।
+- Pretraining-এ আসল বাছাই (সিদ্ধান্ত) নেই, শুধু ব্যাখ্যা ও jump।
+
 ## ২০২৬-১০-১৯ (১৯) — মূল ML ধারার সম্পর্ক: ৮৫টা node, ১০৪টা সম্পর্ক
 
 ### সমস্যা

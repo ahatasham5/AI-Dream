@@ -728,6 +728,13 @@
    "type": "needs",
    "why": "লেখা model-এ ঢোকে input হিসেবে, তাই input-হিসাব-output আগে",
    "basis": "course"
+  },
+  {
+   "from": "kd-l03",
+   "to": "soft-target",
+   "type": "needs",
+   "why": "Soft Target ধারণা আগে: target যখন একটা probability-র তালিকা",
+   "basis": "concept"
   }
  ]
 }

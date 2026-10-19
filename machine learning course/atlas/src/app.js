@@ -251,6 +251,8 @@ function markRead(id, on) {
   if (on) readSet.add(id); else readSet.delete(id);
   store('ml-atlas-read', JSON.stringify([...readSet]));
 }
+// নকল node (-sc, -in-ft, -in-pt) নিজের সম্পর্ক না রাখলে মূল node-এর সম্পর্ক দেখায়
+const relId = (id) => (REL.hasAny(id) ? id : id.replace(/-(sc|in-ft|in-pt)$/, ''));
 function relSection(box, title, items) {
   const ul = el('ul', 'rel-list');
   for (const it of items) {
@@ -272,7 +274,7 @@ function relSection(box, title, items) {
 }
 function renderRel(r, box) {
   box.replaceChildren();
-  const id = r.node.id;
+  const id = relId(r.node.id);
   if (!REL.hasAny(id)) return;
   relSection(box, 'আগে এগুলো লাগে', REL.needs(id));
   const path = REL.path(id);
@@ -304,7 +306,7 @@ function tourStep(delta) {
 function renderTour(box, cur) {   // cur: যে node এখন দেখানো হচ্ছে (openNode-এ modal.dataset বসার আগেই আঁকা হয়, তাই সরাসরি দেওয়া)
   box.replaceChildren();
   if (!tour) return;
-  cur = cur || modal.dataset.nodeId;
+  cur = relId(cur || modal.dataset.nodeId);
   const i = tour.order.indexOf(cur), n = tour.order.length;
   const bar = el('div', 'tourbar');
   bar.append(el('strong', '', 'পড়ার ক্রম: ' + short(byId.get(tour.target).node.name)));
