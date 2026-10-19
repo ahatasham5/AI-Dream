@@ -484,3 +484,5 @@ li.inc-on>.row>.term{background:var(--soft);border-color:var(--hover-line)}
 .cmpbtn.off{display:inline-flex;align-items:center;cursor:help;font-weight:500}
 .cmpbtn.off:hover{background:transparent;color:var(--muted);border-color:transparent}
 @media(hover:none){.cmpbtn.off{opacity:.55}}
+.jumpnote{margin:12px 0;padding:10px 12px;border:1px dashed var(--line,#3a4a40);border-radius:10px}.jumpnote p{margin:0 0 8px}
+#toast .toastbtn{margin-left:8px;font:inherit;font-weight:700;background:transparent;color:inherit;border:1px solid currentColor;border-radius:99px;padding:2px 10px;cursor:pointer}

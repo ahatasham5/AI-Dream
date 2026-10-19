@@ -124,6 +124,12 @@ def write_json(path, obj):
 
 def validate(root):
     seen = {}
+    ids = {n['id'] for n, _, _ in walk(root)}
+    for n, _, _ in walk(root):
+        if n.get('jump') and n['jump'].get('to') not in ids:
+            fail(f"jump-এর লক্ষ্য নেই: {n['id']} → {n['jump'].get('to')}")
+        if n.get('jump') and n['jump'].get('to') == n['id']:
+            fail(f"jump নিজের দিকেই: {n['id']}")
     for node, _, _ in walk(root):
         for key in ("id", "name", "definition"):
             if not str(node.get(key, "")).strip():
@@ -131,6 +137,9 @@ def validate(root):
         if node["id"] in seen:
             fail(f"id দুবার: {node['id']} ({seen[node['id']]} ও {node['name']})")
         seen[node["id"]] = node["name"]
+        j = node.get("jump")
+        if j is not None and not (isinstance(j, dict) and str(j.get("to", "")).strip() and str(j.get("label", "")).strip() and str(j.get("why", "")).strip()):
+            fail(f"jump-এ to, label, why তিনটাই লাগে: {node['id']}")
         if "children" in node and not node["children"]:
             fail(f"খালি children: {node['id']}")
         if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", node["id"]):

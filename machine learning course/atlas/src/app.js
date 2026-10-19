@@ -211,6 +211,35 @@ function renderInsight(node, box) {
     box.append(d);
   }
 }
+/* ---------- jump: "এখানে নয়, ওখানে যাও" (data: node.jump = {to, label, why}) ----------
+ * লক্ষ্য পথের ধরন (steps-ওয়ালা mode) হলে mode বদলায়; আগের বাছাই মোছে না (engine pick:one শুধু mode-টা বদলায়),
+ * তবু toast-এ "আগের পথে ফেরো" থাকে। অন্য লক্ষ্যে শুধু সেখানে নিয়ে গিয়ে খোলে। */
+function jumpBtn(j, cls) {
+  const b = el('button', cls, j.label + ' →');
+  b.type = 'button';
+  if (j.why) b.title = j.why;
+  b.onclick = (e) => { e.stopPropagation(); doJump(j); };
+  return b;
+}
+function doJump(j) {
+  const r = byId.get(j.to);
+  if (!r) return;
+  if (!r.node.steps) { openNode(j.to); return; }
+  if (modal.open) modal.close();
+  const before = [...selected];
+  const prev = plan.activeMode();
+  if (!selected.has(r.node.id)) toggleSel(r.node.id);   // toggleSel নিজেই প্রথম অবাছা ধাপে নিয়ে যায়
+  else { const first = r.node.steps[0]; if (first) gotoStep(first); }
+  if (prev && prev.node.id !== r.node.id)
+    toast('পথ বদলেছে: ' + short(r.node.name) + '। আগের বাছাই রয়ে গেছে।', { label: 'আগের পথে ফেরো', fn: () => { setSelFrom(before); saveSel(); refreshSel(); gotoStep(prev.node.steps[0]); } });
+}
+function renderJump(node, box) {
+  if (!node.jump || !byId.has(node.jump.to)) return;
+  const note = el('div', 'jumpnote');
+  if (node.jump.why) note.append(el('p', '', node.jump.why));
+  note.append(jumpBtn(node.jump, 'pick'));
+  box.append(note);
+}
 /* ---------- গল্প, "কোনটা কখন", ইতিহাস ---------- */
 function jumpButton(x) {
   if (!x.id) return el('span', 'pick plain', x.label);
@@ -435,6 +464,7 @@ function openNode(id, opts) {
   renderPathBar(id);
   modal.dataset.nodeId = id;
   renderPick(r.node, $('#pick'));
+  renderJump(r.node, $('#pick'));
   renderCmpEntry(r);
   renderStory(r.node, $('#story'));
   renderChoose(r.node, $('#choose'));
@@ -684,6 +714,7 @@ function decorateKind(r, row, button) {
     g.onclick = (e) => { e.stopPropagation(); gotoStep(n.goto); };
     row.append(g);
   }
+  if (n.jump) row.append(jumpBtn(n.jump, 'selbtn go'));
   if (n.steps) button.append(el('span', 'kchip mode', 'পথের ধরন'));
   if (SELECTABLE.has(n.kind)) {
     const b = el('button', 'selbtn', 'বাছো');
@@ -795,11 +826,17 @@ function toggleSel(id) {
 function setSelFrom(ids) { plan.setFrom(ids); }
 function forgetPrev() { prevIds = []; store('ml-atlas-prev', '[]'); }
 function saveSel() { store('ml-atlas-plan', JSON.stringify([...selected])); }
-function toast(msg) {
+function toast(msg, action) {
   let t = $('#toast');
   if (!t) { t = el('div'); t.id = 'toast'; t.setAttribute('role', 'status'); document.body.append(t); }
   t.textContent = msg; t.hidden = false;
-  clearTimeout(t._h); t._h = setTimeout(() => { t.hidden = true; }, 1800);
+  if (action) {   // যেমন "আগের পথে ফেরো": বেশিক্ষণ থাকে, যাতে চাপার সময় পাওয়া যায়
+    const b = el('button', 'toastbtn', action.label);
+    b.type = 'button';
+    b.onclick = () => { t.hidden = true; action.fn(); };
+    t.append(' ', b);
+  }
+  clearTimeout(t._h); t._h = setTimeout(() => { t.hidden = true; }, action ? 6000 : 1800);
 }
 function copyText(text) {
   const done = (ok) => toast(ok ? 'কপি হয়েছে ✓' : 'কপি হয়নি');

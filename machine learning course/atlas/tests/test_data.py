@@ -174,6 +174,23 @@ class Rules(unittest.TestCase):
                     self.assertFalse(same, f"{r['id']}: {a} ও {b} একই one-সিদ্ধান্তে")
 
 
+class Jumps(unittest.TestCase):
+    """jump = "এখানে নয়, ওখানে যাও" বোতাম: লক্ষ্য আছে, নিজের দিকে নয়, আর কেন যাবে তা লেখা।"""
+    def test_jumps_point_to_real_other_nodes_and_explain(self):
+        ids = {n["id"] for n in NODES}
+        js = [n for n in NODES if n.get("jump")]
+        self.assertGreaterEqual(len(js), 1)
+        for n in js:
+            j = n["jump"]
+            self.assertIn(j["to"], ids, n["id"]); self.assertNotEqual(j["to"], n["id"])
+            self.assertTrue(j["label"].strip() and j["why"].strip(), n["id"])
+
+    def test_scratch_need_offers_the_finetune_path(self):
+        by = {n["id"]: n for n in NODES}
+        self.assertEqual(by["opt-sc-pretrained-exists"]["jump"]["to"], "mode-finetune")
+        self.assertTrue(by["mode-finetune"].get("steps"), "লক্ষ্য একটা পথের ধরন হওয়া উচিত")
+
+
 class Aliases(unittest.TestCase):
     def test_aliases_point_to_existing_nodes_and_old_ids_are_gone(self):
         ids = {n["id"] for n in NODES}

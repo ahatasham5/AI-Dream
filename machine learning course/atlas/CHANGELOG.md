@@ -1,5 +1,20 @@
 # Changelog — ML Learning Atlas
 
+## ২০২৬-১০-১৯ (১৪) — jump: "এখানে নয়, ওখানে যাও" বোতাম
+
+### সমস্যা
+"মানানসই আগে-শেখা model আছে → Fine-tune মোড বাছো" লেখা থাকলেও সেখানে যাওয়ার বোতাম ছিল না; reference গাছ আর বাছাই-গাছের মধ্যেও সরাসরি যাতায়াত ছিল না।
+
+### পরিবর্তন
+- node-এ নতুন ঐচ্ছিক field `jump: {to, label, why}`। গাছের সারিতে "label →" বোতাম, dialog-এ কারণসহ একটা ঘর।
+- লক্ষ্য পথের ধরন (mode) হলে mode বদলায় ও প্রথম অবাছা ধাপে নিয়ে যায়; আগের বাছাই মোছে না (engine-এ যাচাই করা), তবু toast-এ "আগের পথে ফেরো"। অন্য লক্ষ্যে শুধু সেখানে নিয়ে গিয়ে খোলে।
+- ৬টা jump: শূন্য-থেকে → Fine-tune পথ; Knowledge Distillation ↔ রূপান্তর; Hybrid (reference) → বাছাই-গাছের token mixer; interleave → বাস্তব অনুপাত; parallel → Hymba।
+- `build.py` আটকায়: লক্ষ্য নেই, নিজের দিকে, বা to/label/why ফাঁকা। নতুন data test `Jumps`।
+
+### যাচাই
+- `bash atlas/check.sh` পাস; ভুল jump দিলে build থামে (দুটো ক্ষেত্রে পরীক্ষা)।
+- browser-এ: বোতাম দেখায়, click-এ mode বদলায়, বাছাই থাকে, "আগের পথে ফেরো" আগের mode ফেরায়; Hybrid থেকে token mixer-এর dialog খোলে।
+
 ## ২০২৬-১০-১৯ (১৩) — Architecture: কাঠামো, token mixer আর hybrid আলাদা
 
 ### সমস্যা

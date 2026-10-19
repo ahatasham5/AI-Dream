@@ -5113,7 +5113,12 @@
            "name": "Kimi Linear — Kimi Delta Attention + MLA",
            "definition": "Gated DeltaNet-এর সূক্ষ্মতর gate-সহ রূপ Kimi Delta Attention (KDA)-এর সাথে Multi-Head Latent Attention (MLA) মেশানো, অনুপাত প্রায় ৩:১। ২৭ layer-এর ২০টা KDA, ৭টা full MLA। Paper-এর দাবি: KV cache ৭৫% পর্যন্ত কম, আর ১ মিলিয়ন context-এ decode ৬ গুণ পর্যন্ত দ্রুত।"
           }
-         ]
+         ],
+         "jump": {
+          "to": "sc-mixer",
+          "label": "নিজের পথে hybrid বাছো",
+          "why": "শূন্য থেকে Train পথে token mixer-এ দুটো পরিবার বাছলেই hybrid; তারপর সাজানোর ছক আর FFN সেখানেই ঠিক করো।"
+         }
         },
         {
          "id": "architecture-conversion",
@@ -5155,7 +5160,12 @@
            "name": "Taylor-Calibrate — teacher থেকে শুরুর মান",
            "definition": "Student (Gated DeltaNet)-এর শুরুর মান এলোমেলো না রেখে teacher-এর attention-এর পরিসংখ্যান (গড় attention-দূরত্ব, entropy, value-র মাপ) দেখে ঠিক করা: value projection, memory half-life, write gate আর output gate। তারপর সাধারণ distillation। ভালো শুরু থেকে কম token-এ একই মান আসে।"
           }
-         ]
+         ],
+         "jump": {
+          "to": "knowledge-distillation",
+          "label": "সাধারণ Knowledge Distillation",
+          "why": "এই পদ্ধতিগুলো knowledge distillation-এরই রূপ; teacher-student, soft target আর loss-এর মূল ধারণা সেখানে।"
+         }
         },
         {
          "id": "arch-open-problems",
@@ -5405,7 +5415,12 @@
            "definition": "মানানসই আগে-শেখা model পাওয়া গেলে শূন্য থেকে না শুরু করে তার checkpoint থেকে শুরু করা, অর্থাৎ Fine-tune পথে যাওয়া। শুরুর weight আগেই ভালো মানে থাকে বলে সাধারণত শুরু থেকেই loss কম, তাই কম data ও সময় লাগে। যেমন সাধারণ ভাষা-বোঝা model থেকে শুরু করে নিজের কাজের data-য় আরেকটু শেখানো।",
            "kind": "option",
            "when": "আগে-শেখা model পাওয়া যায়",
-           "basis": "course"
+           "basis": "course",
+           "jump": {
+            "to": "mode-finetune",
+            "label": "Fine-tune পথে যাও",
+            "why": "মানানসই checkpoint থাকলে শূন্য থেকে না বানিয়ে তার থেকে শুরু করা সাধারণত সস্তা ও দ্রুত। পথ বদলালে এখানকার বাছাই মোছে না, চাইলে ফিরে আসা যায়।"
+           }
           },
           {
            "id": "opt-sc-no-pretrained",
@@ -5950,7 +5965,12 @@
                "kind": "option",
                "when": "দুই বা বেশি mixer বাছলে, সবচেয়ে পরিচিত ছক",
                "basis": "paper",
-               "definition": "কিছু layer attention, বাকিগুলো সস্তা mixer, একটা নির্দিষ্ট ছকে (যেমন প্রতি ৪টায় ১টা attention)। দেখা অনুপাত ১:৩ (Qwen3-Next) ও ১:৭ (Jamba, MiniMax-01); অনুপাত ও কোন layer-এ attention যাবে, দুটোই ঠিক করতে হয়।"
+               "definition": "কিছু layer attention, বাকিগুলো সস্তা mixer, একটা নির্দিষ্ট ছকে (যেমন প্রতি ৪টায় ১টা attention)। দেখা অনুপাত ১:৩ (Qwen3-Next) ও ১:৭ (Jamba, MiniMax-01); অনুপাত ও কোন layer-এ attention যাবে, দুটোই ঠিক করতে হয়।",
+               "jump": {
+                "to": "hybrid-layout",
+                "label": "বাস্তব অনুপাত দেখো",
+                "why": "Jamba, MiniMax-01, Qwen3-Next, Surya OCR 2, Griffin কোন অনুপাতে attention রেখেছে, আর কোন গবেষণায় কোন অনুপাত ভালো এসেছে।"
+               }
               },
               {
                "id": "opt-sc-layout-parallel",
@@ -5958,7 +5978,12 @@
                "kind": "option",
                "when": "প্রতি layer-এই দুই ধরনের সুবিধা চাইলে",
                "basis": "paper",
-               "definition": "একই block-এ attention head আর SSM head পাশাপাশি চলে ও তাদের output মেশে (Hymba)। layer পালা না করে প্রতি layer-এই দুই ধরনের তথ্য-মেশানো পাওয়া যায়, তবে block বেশি জটিল।"
+               "definition": "একই block-এ attention head আর SSM head পাশাপাশি চলে ও তাদের output মেশে (Hymba)। layer পালা না করে প্রতি layer-এই দুই ধরনের তথ্য-মেশানো পাওয়া যায়, তবে block বেশি জটিল।",
+               "jump": {
+                "to": "hybrid-hymba",
+                "label": "Hymba-র ছক দেখো",
+                "why": "একই layer-এ attention head আর SSM head পাশাপাশি চালানোর বাস্তব উদাহরণ, layer-ভাগসহ।"
+               }
               }
              ]
             },
@@ -7718,7 +7743,12 @@
              },
              "kind": "option",
              "when": "বড় teacher model আছে, ছোটটা চাই",
-             "basis": "paper"
+             "basis": "paper",
+             "jump": {
+              "to": "architecture-conversion",
+              "label": "student-এর architecture আলাদা হলে",
+              "why": "teacher Transformer আর student linear attention, SSM বা hybrid হলে: কোন weight কপি হয়, কী মেলানো হয়, খরচ কত, ছয়টা পদ্ধতি পাশাপাশি।"
+             }
             }
            ]
           },
