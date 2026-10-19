@@ -635,10 +635,6 @@
    "why": "ক্রম ধাপে ধাপে চলে, সরল; inference-এ constant memory।",
    "tradeoff": "সমান্তরালে শেখানো যায় না; লম্বা ক্রমে ভুলে যায় (LSTM/GRU কিছু সামলায়)।"
   },
-  "opt-sc-transformer": {
-   "why": "যেকোনো দুই অংশের সরাসরি সম্পর্ক, সমান্তরালে শেখা; সবচেয়ে বেশি tool ও checkpoint।",
-   "tradeoff": "attention-এর খরচ ক্রমের দৈর্ঘ্যের বর্গ; generation-এ KV cache বাড়ে।"
-  },
   "tool-transformers-sc": {
    "why": "প্রচলিত architecture-এর তৈরি model-definition।",
    "tradeoff": "Hugging Face-এর কাঠামোয় বাঁধা; একদম নতুন architecture-এ কাস্টম কোড।",
@@ -651,10 +647,6 @@
   "tool-litgpt": {
    "why": "২০+ LLM-এর pretrain, finetune, deploy-এর recipe একসঙ্গে।",
    "tradeoff": "recipe-র বাইরে বড় বদল করতে কোড পড়ে বুঝতে হয়।"
-  },
-  "opt-sc-ssm": {
-   "why": "লম্বা ক্রমে সরল খরচ, inference-এ constant memory (Mamba paper)।",
-   "tradeoff": "নতুন: tooling ও pretrained checkpoint কম; ছোট-মাঝারি scale-এর প্রমাণ বেশি (Mamba-2 paper)।"
   },
   "tool-mamba": {
    "why": "Mamba layer-এর মূল repository, নিজে layer জোড়ার জন্য।",
@@ -807,6 +799,78 @@
   "lora-dropout": {
    "why": "প্রতিবার পাশের পথের কিছু input লুকিয়ে ফেললে মুখস্থ করার ঝোঁক কমে",
    "tradeoff": "শুধু training-এ কাজ করে, আর সাধারণত শুধু LoRA-র পাশের পথে বসে, মূল পথে নয়"
+  },
+  "opt-sc-blockstack": {
+   "why": "mixer বদলালেও বাকি কাঠামো (normalization, residual, FFN, training-এর সেটিং) একই থাকে, তাই Transformer, Mamba আর hybrid এক জায়গায় পাশাপাশি তুলনা করা যায় (Mamba-2 paper: attention আর SSM একই পরিবারের)।",
+   "tradeoff": "ভেতরে mixer, সাজানোর ছক আর FFN আলাদা আলাদা ঠিক করতে হয়: সিদ্ধান্ত বেশি, তবে প্রতিটা আলাদা করে মাপা যায়।"
+  },
+  "opt-sc-mix-attn": {
+   "why": "যেকোনো দুই token-এর সরাসরি সম্পর্ক, সমান্তরালে শেখা; copy আর in-context retrieval-এ শক্ত (Repeat After Me paper: Transformer SSM-কে ছাড়ায); সবচেয়ে বেশি tool ও checkpoint।",
+   "tradeoff": "attention-এর খরচ ক্রমের দৈর্ঘ্যের বর্গ; generation-এ KV cache বাড়তেই থাকে।"
+  },
+  "opt-sc-mix-linear": {
+   "why": "state স্থির আকারের, তাই generation-এ memory বাড়ে না; training-এ সমান্তরালে শেখানো যায় (Linear Attention paper-এর RNN-রূপ, RetNet paper-এর parallel ও recurrent দুই রূপ)।",
+   "tradeoff": "ছোট স্থির state-এ সব মনে রাখা যায় না: recall-ভারী কাজে দুর্বল (KL-নির্দেশিত hybrid paper: hidden-state bottleneck এখানে মৌলিক সীমা)।"
+  },
+  "opt-sc-mix-ssm": {
+   "why": "লম্বা ক্রমে সরল খরচ, inference-এ constant memory (Mamba paper)।",
+   "tradeoff": "খাঁটি SSM-এ copy ও in-context recall দুর্বল: NVIDIA-র গবেষণায় ১.১T token-এর পরে MMLU-তে Transformer-এর প্রায় ১৫ পয়েন্ট নিচে, ৩.৫T token-এ ফাঁক কমে কিন্তু মেটে না; tooling ও checkpoint কম।"
+  },
+  "opt-sc-lin-linattn": {
+   "why": "kernel feature map দিয়ে softmax-এর বদলে সরল গুণ; RNN-রূপে চলে (paper: ছবি বানানোয় softmax-এর চেয়ে ৪০০০ গুণ পর্যন্ত দ্রুত, CIFAR-10-এ bits/dim ৩.৪০ বনাম ৩.৪৭)।",
+   "tradeoff": "state-এ শুধু যোগ হয়, পুরোনো তথ্য মোছে না; paper-এর speech টেবিলে (WSJ) phoneme error ৮.০৮, softmax-এর ৫.১২: মান কমে।"
+  },
+  "opt-sc-lin-rwkv": {
+   "why": "paper-এর ১৪B model 'এ পর্যন্ত সবচেয়ে বড় dense RNN', সমআকারের Transformer-এর কাছাকাছি মান; inference-এ constant memory।",
+   "tradeoff": "একটা vector-state সূক্ষ্ম তথ্য দীর্ঘ context-এ ধরে রাখতে সীমিত, আর prompt-এর শব্দচয়নে সংবেদনশীল (paper §9)। RWKV-7 (paper ২০২৫) আরও expressive, কিন্তু kernel precision-এ সংবেদনশীল।"
+  },
+  "opt-sc-lin-retnet": {
+   "why": "তিন রূপ: parallel (training), recurrent (inference-এ O(1)), chunkwise (লম্বা ক্রমে)। paper: ৭B model, ৮k দৈর্ঘ্যে Transformer-এর চেয়ে decode ৮.৪ গুণ দ্রুত, ৭০% কম memory।",
+   "tradeoff": "decay স্থির (head-ভিত্তিক scalar), input-নির্ভর নয়; paper-এ আলাদা limitations অংশ নেই, শুধু ভবিষ্যৎ কাজের তালিকা।"
+  },
+  "opt-sc-lin-deltanet": {
+   "why": "state-এ শুধু যোগ না করে পুরোনো value শুধরায়। paper: ১.৩B, ১০০B token-এ Wikitext perplexity ১৬.৮৭ (conv-সহ), Mamba-র ১৭.০৬ ও GLA-র ১৭.২২-এর চেয়ে ভালো।",
+   "tradeoff": "paper নিজেই: training GLA-র চেয়ে ধীর; ১.৩B-এ recall-ভারী কাজে GLA-র পিছনে; decay নেই বলে length generalization সীমিত।"
+  },
+  "opt-sc-lin-gdn": {
+   "why": "decay gate (দ্রুত মোছা) আর delta rule (নির্দিষ্ট জায়গা শুধরানো) একসঙ্গে; paper-এ Mamba-2 ও DeltaNet-এর চেয়ে ভালো; Qwen3-Next ও Qwen3.5-এ ৩:১ অনুপাতে ব্যবহৃত।",
+   "tradeoff": "paper নিজেই বলে delta rule-এর তাত্ত্বিক সীমা আছে ও বাস্তব data-য় ফল মাঝারি, তাই sliding-window attention বা Mamba2-র সাথে hybrid-ও বানিয়েছে।"
+  },
+  "opt-sc-ssm-s4": {
+   "why": "লম্বা ক্রমে প্রথম সফল SSM: ১৬,৩৮৪ ধাপের Path-X কাজ সমাধান করা প্রথম model (S4 paper-এর দাবি)।",
+   "tradeoff": "সময়-স্থির: কোন token জরুরি তা বাছতে পারে না, ভাষায় এটাই সবচেয়ে দরকার (Mamba paper)।"
+  },
+  "opt-sc-ssm-mamba": {
+   "why": "B, C, Δ input-নির্ভর, তাই কী মনে রাখবে ও কী ভুলবে model নিজে ঠিক করে; inference-এ প্রতি ধাপে constant কাজ (Mamba paper: Transformer-এর ৫ গুণ throughput)।",
+   "tradeoff": "নতুন: tooling ও pretrained checkpoint কম; ছোট-মাঝারি scale-এর প্রমাণ বেশি (Mamba-2 paper)।"
+  },
+  "opt-sc-ssm-mamba2": {
+   "why": "SSD দিয়ে layer সরল (A = scalar × identity) ও বড় head dimension: Transformer-এর hardware-ব্যবহারের সাথে মানানসই, দ্রুত (Mamba-2 paper)।",
+   "tradeoff": "Mamba-র মতোই খাঁটি SSM হিসেবে recall-ভারী কাজে দুর্বল (NVIDIA-র গবেষণায় Mamba-2-ও)।"
+  },
+  "opt-sc-layout-uniform": {
+   "why": "সরল: একটাই layer-ধরন, একটাই kernel, সহজে debug।",
+   "tradeoff": "সেই পরিবারের দুর্বলতা পুরো model-এ থেকে যায়: খাঁটি SSM-এ copy ও recall দুর্বল, খাঁটি attention-এ cache বাড়ে।"
+  },
+  "opt-sc-layout-interleave": {
+   "why": "কিছু attention layer রাখলে recall ফেরে, বাকি সস্তা layer cache কমায়। NVIDIA-র গবেষণায় প্রায় ৮% layer attention হলে loss সবচেয়ে কম; Jamba-য় ১:৩ ও ১:৭ প্রায় সমান ভালো।",
+   "tradeoff": "অনুপাত আর কোন layer-এ attention যাবে, দুটোই খোলা প্রশ্ন; সমান ফাঁকে বসানো (uniform interleave) সব সময় সেরা নয় (KL-নির্দেশিত layer বাছাই paper)।"
+  },
+  "opt-sc-layout-parallel": {
+   "why": "প্রতি layer-এই দুই ধরনের head একসাথে। Hymba-য় ৩২ layer-এর ৩টায় global attention, বাকিতে সীমিত জানালা।",
+   "tradeoff": "block জটিল: দুই ধরনের head মেশানো, সাথে meta token ও layer-এর মধ্যে KV cache ভাগের মতো সহায়ক কৌশল paper-এ আছে।"
+  },
+  "opt-sc-ffn-dense": {
+   "why": "সরল ও সবচেয়ে প্রচলিত: প্রতিটা token একই FFN দিয়ে যায়।",
+   "tradeoff": "parameter বাড়ালে প্রতি token-এর হিসাবও সমান হারে বাড়ে।"
+  },
+  "opt-sc-ffn-moe": {
+   "why": "মোট parameter অনেক, কিন্তু প্রতি token-এ কয়েকটা expert সক্রিয়: Qwen3-Next-80B-এ সক্রিয় ৩B, Jamba-য় ৫২B মোটের ১২B সক্রিয়।",
+   "tradeoff": "সব expert-এর weight memory-তে রাখতে হয়; কোন token কোন expert-এ যাবে তা router-কে ঠিক করতে হয়।"
+  },
+  "tool-fla": {
+   "why": "RetNet, DeltaNet, Gated DeltaNet, RWKV6/7, Mamba2-সহ অনেক layer-এর kernel একটা library-তে।",
+   "tradeoff": "মূল RWKV-4 নেই (README-র তালিকা RWKV6 থেকে শুরু); plain Linear Attention-এর জন্য README-তে আলাদা সারি নেই, যদিও কোড আছে।"
   }
  }
 }

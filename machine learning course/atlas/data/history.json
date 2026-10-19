@@ -442,6 +442,175 @@
      "url": "https://arxiv.org/abs/2004.05150"
     }
    ]
+  },
+  {
+   "names": [
+    "DeltaNet — delta rule"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (জুন, arXiv-এ প্রথম জমা)",
+     "text": "DeltaNet-এর সমান্তরাল training algorithm প্রকাশ।",
+     "src": "arXiv: DeltaNet paper (Yang et al.), ২০২৪",
+     "url": "https://arxiv.org/abs/2406.06484"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Gated DeltaNet"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (ডিসেম্বর, arXiv-এ প্রথম জমা)",
+     "text": "Gated DeltaNet প্রকাশ; ICLR ২০২৫।",
+     "src": "arXiv: Gated Delta Networks paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2412.06464"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Griffin ও RecurrentGemma — recurrence + local attention"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (ফেব্রুয়ারি, arXiv-এ প্রথম জমা)",
+     "text": "Griffin ও Hawk প্রকাশ।",
+     "src": "arXiv: Griffin paper (Google DeepMind), ২০২৪",
+     "url": "https://arxiv.org/abs/2402.19427"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Hymba — একই layer-এ attention head ও SSM head"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (নভেম্বর, arXiv-এ প্রথম জমা)",
+     "text": "Hymba প্রকাশ।",
+     "src": "arXiv: Hymba paper (NVIDIA), ২০২৪",
+     "url": "https://arxiv.org/abs/2411.13676"
+    }
+   ]
+  },
+  {
+   "names": [
+    "MiniMax-01 — lightning attention + softmax"
+   ],
+   "items": [
+    {
+     "year": "২০২৫ (জানুয়ারি, arXiv-এ প্রথম জমা)",
+     "text": "MiniMax-01 প্রকাশ।",
+     "src": "arXiv: MiniMax-01 paper, ২০২৫",
+     "url": "https://arxiv.org/abs/2501.08313"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Qwen3-Next ও Qwen3.5 — Gated DeltaNet + Gated Attention"
+   ],
+   "items": [
+    {
+     "year": "২০২৫ (সেপ্টেম্বর, Hugging Face repo তৈরি)",
+     "text": "Qwen3-Next-80B-A3B model card প্রকাশ; Qwen3.5 পরের repo (২০২৬)।",
+     "src": "Hugging Face: Qwen3-Next model card",
+     "url": "https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Kimi Linear — Kimi Delta Attention + MLA"
+   ],
+   "items": [
+    {
+     "year": "২০২৫ (অক্টোবর, arXiv-এ প্রথম জমা)",
+     "text": "Kimi Linear প্রকাশ।",
+     "src": "arXiv: Kimi Linear paper, ২০২৫",
+     "url": "https://arxiv.org/abs/2510.26692"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Mamba in the Llama — Q, K, V থেকে C, B, X"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (আগস্ট, arXiv-এ প্রথম জমা)",
+     "text": "The Mamba in the Llama প্রকাশ; NeurIPS ২০২৪।",
+     "src": "arXiv: The Mamba in the Llama, ২০২৪",
+     "url": "https://arxiv.org/abs/2408.15237"
+    }
+   ]
+  },
+  {
+   "names": [
+    "MOHAWK ও Phi-Mamba — তিন ধাপের alignment"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (আগস্ট, arXiv-এ প্রথম জমা)",
+     "text": "MOHAWK ও Phi-Mamba প্রকাশ।",
+     "src": "arXiv: Transformers to SSMs (MOHAWK), ২০২৪",
+     "url": "https://arxiv.org/abs/2408.10189"
+    }
+   ]
+  },
+  {
+   "names": [
+    "LoLCATs — attention transfer ও LoRA"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (অক্টোবর, arXiv-এ প্রথম জমা)",
+     "text": "LoLCATs প্রকাশ; ICLR ২০২৫।",
+     "src": "arXiv: LoLCATs paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2410.10254"
+    }
+   ]
+  },
+  {
+   "names": [
+    "KL-নির্দেশিত layer বাছাই — কোন attention layer রাখবে"
+   ],
+   "items": [
+    {
+     "year": "২০২৫ (ডিসেম্বর, arXiv-এ জমা)",
+     "text": "KL-নির্দেশিত layer বাছাই প্রকাশ।",
+     "src": "arXiv: KL-Guided Layer Selection, ২০২৫",
+     "url": "https://arxiv.org/abs/2512.20569"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Distill-then-Replace — কাজ-নির্দিষ্ট hybrid"
+   ],
+   "items": [
+    {
+     "year": "২০২৬ (জানুয়ারি, arXiv-এ প্রথম জমা)",
+     "text": "Distill-then-Replace প্রকাশ।",
+     "src": "arXiv: Distill-then-Replace, ২০২৬",
+     "url": "https://arxiv.org/abs/2601.11667"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Taylor-Calibrate — teacher থেকে শুরুর মান"
+   ],
+   "items": [
+    {
+     "year": "২০২৬ (জুন, arXiv-এ জমা)",
+     "text": "Taylor-Calibrate প্রকাশ।",
+     "src": "arXiv: Taylor-Calibrate, ২০২৬",
+     "url": "https://arxiv.org/abs/2606.16429"
+    }
+   ]
   }
  ]
 }

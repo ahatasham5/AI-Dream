@@ -139,6 +139,93 @@
    "text": "GGUF llama.cpp-এর ফরম্যাট; Ollama-ও GGUF import করে। serving engine হিসেবে llama.cpp বা Ollama না বাছলে এই ফরম্যাট কাজে আসে না।",
    "src": "llama.cpp README; Ollama docs (import)",
    "url": "https://github.com/ollama/ollama/blob/main/docs/import.mdx"
+  },
+  {
+   "id": "hybrid-needs-layout-attn-linear",
+   "kind": "requires",
+   "if": [
+    "opt-sc-mix-attn",
+    "opt-sc-mix-linear"
+   ],
+   "anyOf": [
+    "opt-sc-layout-interleave",
+    "opt-sc-layout-parallel"
+   ],
+   "text": "full attention আর linear attention, দুই ধরনের mixer বাছলে সাজানোর ছক ঠিক করতে হয়: layer ধরে পালা করে (অনুপাতসহ, যেমন Jamba ১:৭, Qwen3-Next ১:৩) অথবা একই layer-এ সমান্তরাল head (Hymba)।",
+   "src": "Jamba paper; Qwen3-Next model card",
+   "url": "https://arxiv.org/abs/2403.19887"
+  },
+  {
+   "id": "hybrid-vs-uniform-attn-linear",
+   "kind": "conflict",
+   "if": [
+    "opt-sc-mix-attn",
+    "opt-sc-layout-uniform"
+   ],
+   "with": [
+    "opt-sc-mix-linear"
+   ],
+   "text": "'সব layer এক ধরন' বাছলে full attention আর linear attention একসঙ্গে থাকতে পারে না। হয় একটা mixer রাখো, নয় ছক (interleave বা parallel) বাছো।",
+   "src": "Jamba paper; Qwen3-Next model card",
+   "url": "https://arxiv.org/abs/2403.19887"
+  },
+  {
+   "id": "hybrid-needs-layout-attn-ssm",
+   "kind": "requires",
+   "if": [
+    "opt-sc-mix-attn",
+    "opt-sc-mix-ssm"
+   ],
+   "anyOf": [
+    "opt-sc-layout-interleave",
+    "opt-sc-layout-parallel"
+   ],
+   "text": "full attention আর SSM, দুই ধরনের mixer বাছলে সাজানোর ছক ঠিক করতে হয়: layer ধরে পালা করে (অনুপাতসহ, যেমন Jamba ১:৭, Qwen3-Next ১:৩) অথবা একই layer-এ সমান্তরাল head (Hymba)।",
+   "src": "Jamba paper; Qwen3-Next model card",
+   "url": "https://arxiv.org/abs/2403.19887"
+  },
+  {
+   "id": "hybrid-vs-uniform-attn-ssm",
+   "kind": "conflict",
+   "if": [
+    "opt-sc-mix-attn",
+    "opt-sc-layout-uniform"
+   ],
+   "with": [
+    "opt-sc-mix-ssm"
+   ],
+   "text": "'সব layer এক ধরন' বাছলে full attention আর SSM একসঙ্গে থাকতে পারে না। হয় একটা mixer রাখো, নয় ছক (interleave বা parallel) বাছো।",
+   "src": "Jamba paper; Qwen3-Next model card",
+   "url": "https://arxiv.org/abs/2403.19887"
+  },
+  {
+   "id": "hybrid-needs-layout-linear-ssm",
+   "kind": "requires",
+   "if": [
+    "opt-sc-mix-linear",
+    "opt-sc-mix-ssm"
+   ],
+   "anyOf": [
+    "opt-sc-layout-interleave",
+    "opt-sc-layout-parallel"
+   ],
+   "text": "linear attention আর SSM, দুই ধরনের mixer বাছলে সাজানোর ছক ঠিক করতে হয়: layer ধরে পালা করে (অনুপাতসহ, যেমন Jamba ১:৭, Qwen3-Next ১:৩) অথবা একই layer-এ সমান্তরাল head (Hymba)।",
+   "src": "Jamba paper; Qwen3-Next model card",
+   "url": "https://arxiv.org/abs/2403.19887"
+  },
+  {
+   "id": "hybrid-vs-uniform-linear-ssm",
+   "kind": "conflict",
+   "if": [
+    "opt-sc-mix-linear",
+    "opt-sc-layout-uniform"
+   ],
+   "with": [
+    "opt-sc-mix-ssm"
+   ],
+   "text": "'সব layer এক ধরন' বাছলে linear attention আর SSM একসঙ্গে থাকতে পারে না। হয় একটা mixer রাখো, নয় ছক (interleave বা parallel) বাছো।",
+   "src": "Jamba paper; Qwen3-Next model card",
+   "url": "https://arxiv.org/abs/2403.19887"
   }
  ]
 }

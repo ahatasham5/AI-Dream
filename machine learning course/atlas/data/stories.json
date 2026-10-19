@@ -4682,7 +4682,13 @@
    ],
    "story": {
     "problem": "বড় model ভালো, কিন্তু ভারী।",
-    "idea": "বড় model-এর (teacher) output থেকে ছোট model-কে শেখানো। বিস্তারিত Module 18-এ।"
+    "idea": "বড় model-এর (teacher) output থেকে ছোট model-কে শেখানো। বিস্তারিত Module 18-এ।",
+    "next": [
+     {
+      "to": "এক architecture থেকে আরেকটায় রূপান্তর",
+      "why": "student-এর কাঠামো আলাদা হলে"
+     }
+    ]
    }
   },
   {
@@ -5720,6 +5726,122 @@
      {
       "to": "Combined Objective",
       "why": "দুই loss মেলানোর রূপ"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "DeltaNet — delta rule"
+   ],
+   "story": {
+    "problem": "Linear attention-এর state শুধু যোগ হয়, তাই নতুন তথ্য এলে পুরোনোটা মোছা যায় না, state ক্রমে ভরে ঘোলা হয়ে যায়।",
+    "idea": "যোগ করার আগে দেখো এই key-র জন্য এখন কী মনে আছে, আর সেটা নতুন value-র দিকে খানিক সরাও। এটা প্রতি ধাপে ছোট একটা gradient নামা। paper-এর কাজ ছিল এটাকে লম্বা ক্রমে সমান্তরালে train করা।",
+    "next": [
+     {
+      "to": "Gated DeltaNet",
+      "why": "decay gate যোগ করলে কী হয়"
+     },
+     {
+      "to": "Linear Attention — Transformers are RNNs",
+      "why": "যে সাধারণ রূপ থেকে এটা এসেছে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Gated DeltaNet"
+   ],
+   "story": {
+    "problem": "DeltaNet নির্দিষ্ট জায়গা শুধরাতে পারে, কিন্তু পুরো পুরোনো প্রসঙ্গ একবারে ঝেড়ে ফেলতে পারে না। Mamba-2-এর decay সেটা পারে, কিন্তু নির্দিষ্ট জায়গা শুধরাতে পারে না।",
+    "idea": "দুটো একসাথে: gate দিয়ে এক ঝটকায় অনেকটা মোছো, delta rule দিয়ে নির্দিষ্ট জায়গা শুধরাও। এই কারণে এটাই এখন hybrid model-গুলোর সস্তা অংশ (Qwen3-Next, Qwen3.5, Surya OCR 2)।",
+    "next": [
+     {
+      "to": "Qwen3-Next ও Qwen3.5 — Gated DeltaNet + Gated Attention",
+      "why": "বাস্তবে কোথায় ব্যবহার হয়"
+     },
+     {
+      "to": "Hybrid — একাধিক mixer একই model-এ",
+      "why": "attention-এর সাথে মেশালে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Hybrid — একাধিক mixer একই model-এ"
+   ],
+   "story": {
+    "problem": "খাঁটি attention লম্বা context-এ ভারী (cache বাড়ে), খাঁটি SSM বা linear layer হালকা কিন্তু 'আগের নির্দিষ্ট তথ্য ফেরত দাও' কাজে দুর্বল। একটা বেছে নিলে একটা সুবিধা ছাড়তে হয়।",
+    "idea": "দুটোই রাখো: অল্প কয়েকটা layer-এ পুরো attention (যে কাজে সত্যিই লাগে), বাকিতে সস্তা layer। কত layer-এ attention, আর কোনগুলোতে, সেটাই নকশার আসল প্রশ্ন।",
+    "next": [
+     {
+      "to": "Hybrid-এর ছক — অনুপাত ও সাজানো",
+      "why": "অনুপাত ও সাজানোর ছক"
+     },
+     {
+      "to": "এক architecture থেকে আরেকটায় রূপান্তর",
+      "why": "পুরোনো Transformer থেকে hybrid বানানো"
+     },
+     {
+      "to": "খোলা প্রশ্ন — যেখানে গবেষণার জায়গা আছে",
+      "why": "যেখানে প্রশ্ন এখনো খোলা"
+     }
+    ]
+   },
+   "choose": [
+    {
+     "when": "লম্বা context, recall-ও দরকার",
+     "pick": "Hybrid — Transformer + Mamba (Jamba)",
+     "why": "১:৭ অনুপাত, MoE সহ"
+    },
+    {
+     "when": "সবচেয়ে প্রচলিত আধুনিক ছক",
+     "pick": "Qwen3-Next ও Qwen3.5 — Gated DeltaNet + Gated Attention",
+     "why": "৩:১, Gated DeltaNet-সহ"
+    },
+    {
+     "when": "প্রতি layer-এ দুই ধরনের head",
+     "pick": "Hymba — একই layer-এ attention head ও SSM head",
+     "why": "parallel ছক"
+    }
+   ]
+  },
+  {
+   "names": [
+    "এক architecture থেকে আরেকটায় রূপান্তর"
+   ],
+   "story": {
+    "problem": "একটা ভালো Transformer আছে, কিন্তু inference-এ KV cache ভারী। নতুন architecture গোড়া থেকে train করা অনেক খরচের।",
+    "idea": "teacher-এর অংশ কপি করো, attention-এর জায়গায় নতুন layer বসাও, আর teacher-কে নকল করতে শেখাও। এটা knowledge distillation-এরই একটা রূপ, তবে student-এর কাঠামো আলাদা।",
+    "next": [
+     {
+      "to": "Knowledge Distillation",
+      "why": "যে সাধারণ ধারণার ওপর এটা দাঁড়ানো"
+     },
+     {
+      "to": "খোলা প্রশ্ন — যেখানে গবেষণার জায়গা আছে",
+      "why": "এই পদ্ধতিগুলোর সীমা কোথায়"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "খোলা প্রশ্ন — যেখানে গবেষণার জায়গা আছে"
+   ],
+   "story": {
+    "problem": "কোন প্রশ্নের উত্তর এখনো অজানা, তা না জানলে নতুন কিছু বানানো বা গবেষণা করার জায়গা চেনা যায় না।",
+    "idea": "এখানে প্রতিটা প্রশ্নের পাশে সূত্র-যাচাই-করা প্রমাণ আছে: কে কী মেপেছে, কে নিজেই বলেছে 'এটা বাকি'। এখান থেকে একটা প্রশ্ন বেছে নিলে সেটা সরাসরি একটা গবেষণার বা product-এর শুরু।",
+    "next": [
+     {
+      "to": "Hybrid — একাধিক mixer একই model-এ",
+      "why": "যে নকশার প্রশ্ন এগুলো"
+     },
+     {
+      "to": "এক architecture থেকে আরেকটায় রূপান্তর",
+      "why": "যে পদ্ধতির সীমা এগুলো"
      }
     ]
    }

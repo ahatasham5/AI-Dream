@@ -130,6 +130,22 @@ Training-এর ১০ উপাদান (Target থেকে Learning Rate) Fr
 Fine-tuning (আর From-scratch)-এর গাছ আলাদা "ধাপের গাছ" ছাড়া একটাই: ধাপ (`step`) → সিদ্ধান্ত (`decision`) → বিকল্প (`option`) → tool, আর পাশে ব্যাখ্যা (`info`)। নতুন বিকল্প যোগ করতে আসল ধারণা-node-কেই `kind: "option"` দাও (গল্প, পাঠ-link, বাস্তব-স্তর নাম ধরে নিজে আসে); আলাদা নকল node বানিও না।
 **বাছার নিয়ম:** `decision`-এ `pick: "one"` (ডিফল্ট ভাবো, প্রতি সিদ্ধান্ত থেকে একটাই), শুধু যেখানে সত্যিই জমা হয় (মাপকাঠি, memory কৌশল, tracking) `pick: "many"`। বাছাই-ক্রম মুক্ত; ডান-তালিকা গাছের ক্রমে সাজায়।
 
+### Architecture: কাঠামো, token mixer, ছক (দুই স্তর)
+
+"model-এর পরিবার" একটা সারিতে MLP, CNN, Transformer, Mamba রাখলে hybrid-এর ঘর থাকে না, কারণ Transformer ও Mamba আসলে **একই কাঠামোর** (block-stack) দুই রকম **ভেতরের অংশ** (mixer)। তাই বাছাই-গাছে (`sc-arch`) স্তর দুটো আলাদা:
+
+1. **কাঠামো** (`sc-family`, একটা বাছো): MLP, CNN, RNN, Block-stack।
+2. **Block-stack বাছলে** ভেতরে: `sc-mixer` (**একাধিক বাছা যায়**: Full attention, Linear attention পরিবার, SSM পরিবার; ২টা বাছলেই hybrid), `sc-layout` (সব layer এক ধরন / interleave / parallel head), `sc-ffn` (dense বা MoE)।
+3. **প্রতিটা mixer-এর নিজের রূপ ও সরঞ্জাম তার ভেতরেই** নেস্টেড: Full attention-এর নিচে অবস্থান-তথ্য, attention-এর দক্ষতা, implementation; Linear attention-এর নিচে `sc-linear-kind` ও `sc-linear-impl`; SSM-এর নিচে `sc-ssm-kind` ও `sc-ssm-impl`। কোনো mixer না বাছলে এগুলো আসেই না, তাই "(Transformer হলে)"-ধরনের লেখা আর লাগে না।
+4. **নিয়ম** (`rules.json`): দুই mixer বাছলে `sc-layout`-এ interleave বা parallel আবশ্যক (`requires`), আর uniform বাছলে বিরোধ (`conflict`)। জোড়া ধরে লেখা, তাই নতুন mixer যোগ করলে তার জোড়ার নিয়মও যোগ করো।
+
+**নতুন mixer (যেমন একটা নতুন linear-attention রূপ) যোগ করার ধাপ:**
+- Reference গাছে `recurrent-alternatives` বা `state-space-models`-এর নিচে node: সংজ্ঞা, `mathDetail` (সূত্র, চিহ্নের অর্থ, ছোট সংখ্যার উদাহরণ), `insight`। প্রতিটা সংখ্যা paper বা model card থেকে মিলিয়ে।
+- বাছাই-গাছে `sc-linear-kind` (বা `sc-ssm-kind`)-এ `kind: option`, `ref: <reference id>`, `when`, `basis`। `guidance.json`-এ `why` ও `tradeoff`; `pseudo.json`-এর `options`-এ ছোট ইংরেজি লাইন।
+- `practice.json`-এ `facts` (সূত্র-লিংকসহ), `history.json`-এ সাল। যা যাচাই হয়নি, তা লিখো না, বা "অনুমান" বলে লেখো।
+
+**Hybrid model যোগ করতে:** `hybrid-architectures`-এর নিচে node (সংজ্ঞায় layer-ভাগ ও ছক, যেমন "প্রতি ৪ layer-এ ৩টা সস্তা, ১টা attention")। সংখ্যা model card বা `config.json` থেকে, নিজে গুনে নয় (গুনলে বলে দাও)। **রূপান্তরের পদ্ধতি** যোগ করতে `architecture-conversion`-এর নিচে; **নতুন খোলা প্রশ্ন** `arch-open-problems`-এর নিচে, আর প্রতিটার পাশে অন্তত একটা সূত্র-লিংকওয়ালা fact, নইলে রাখা হয় না।
+
 ### তুলনা (একই parent-এর ভাইদের পাশাপাশি)
 
 যেকোনো node-এর ভাই থাকলে (শাখা হোক বা leaf) তাদের পাশাপাশি তুলনা করা যায়, শুধু **একই parent-এর ভেতরে**।

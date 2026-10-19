@@ -1,5 +1,33 @@
 # Changelog — ML Learning Atlas
 
+## ২০২৬-১০-১৯ (১৩) — Architecture: কাঠামো, token mixer আর hybrid আলাদা
+
+### সমস্যা
+- "model-এর পরিবার" ছিল একটা-বাছো (MLP, CNN, RNN, Transformer, SSM), অথচ Qwen3-Next, Jamba, Surya OCR 2-র মতো model-এ একাধিক ধরনের layer মেশানো। Hybrid-এর কোনো ঘর ছিল না।
+- Jamba ছিল শুধু SSM-এর নিচে; Gated DeltaNet কোথাও ছিল না; "(Transformer হলে)" শুধু নামে লেখা ছিল, কোনো নিয়ম এটা মানাত না।
+
+### পরিবর্তন
+- **বাছাই-গাছ (Training → From-scratch → Architecture বাছা):** `sc-family` এখন "কাঠামো" (MLP, CNN, RNN, Block-stack)। Block-stack-এর ভেতরে তিন সিদ্ধান্ত: token mixer (`sc-mixer`, একাধিক বাছা যায়; ২টা বাছলেই hybrid), layer সাজানোর ছক (`sc-layout`), channel mixer (`sc-ffn`: dense বা MoE)। প্রতিটা mixer-এর ভেতরে তার নিজের রূপ ও implementation।
+- **"Transformer হলে" এখন গাছের গঠনেই:** অবস্থান-তথ্য, attention-এর দক্ষতা ও Transformer-এর implementation এখন Full attention বিকল্পের ভেতরে, তাই attention না বাছলে আসেই না। MLP বাছলে mixer-এর প্রশ্নও আসে না, block-stack বাছলে আবশ্যক হয়ে যায়।
+- **id বদল (alias আছে):** `opt-sc-transformer` → `opt-sc-mix-attn`, `opt-sc-ssm` → `opt-sc-mix-ssm`।
+- **নিয়ম (`rules.json`, ৬টা):** দুই ধরনের mixer বাছলে ছক আবশ্যক (জোড়া ধরে ৩টা requires); ছক "সব layer এক ধরন" হলে বিরোধ (৩টা conflict)। প্রতিটা বার্তায় কোন দুই mixer, তা লেখা।
+- **Reference গাছ (Architecture-এর ধরন):** নতুন DeltaNet ও Gated DeltaNet (সূত্র, হিসাবের উদাহরণসহ); ৭. Hybrid (Jamba সরানো হয়েছে, SSM-এর নিচে ইঙ্গিত থাকল; Qwen3-Next ও Qwen3.5, MiniMax-01, Griffin, Hymba, Kimi Linear; ছকের ব্যাখ্যা); ৮. এক architecture থেকে আরেকটায় রূপান্তর (৬টা পদ্ধতি); ৯. খোলা প্রশ্ন (৫টা)। প্রতিটার সূত্র-যাচাই-করা তথ্য `practice.json`-এ, সাল `history.json`-এ।
+- **নতুন tool:** flash-linear-attention (GitHub API থেকে মেলানো)।
+- **test বদল:** Architecture-এর তুলনাযোগ্য ভাই ৬ → ৭ (নতুন ৮ ও ৯ বিকল্প নয়, তাই `peer: false`); engine test-এ `opt-sc-ssm` → `opt-sc-mix-ssm`।
+
+### যাচাই
+- `bash atlas/check.sh`: build, ৪৩টা data test, ৫৮টা engine test, ml-mapping.html হালনাগাদ, সব পাস।
+- বাছাই-দৃশ্য engine-এ চালিয়ে দেখা: MLP-তে mixer আসে না; block-stack-এ mixer আবশ্যক; attention + SSM ছক ছাড়া হলে requires, uniform দিলে conflict; tool বাছলে পূর্বপুরুষ নিজে বাছা হয়।
+- browser-এ খুলে: "কাঠামো" decision, ভাইদের তুলনা-ছক (Hybrid), আর "আমার পথ" panel-এ বাছা পথ ও সতর্কতা-সংখ্যা।
+- সব তথ্য ২০২৬-১০-১৯-এ arXiv, model card ও config.json থেকে আলাদা agent দিয়ে মেলানো; Surya OCR 2-র ১৮ + ৬ layer আপনার local cache-এর config থেকে।
+
+### সীমা
+- Surya-র ১৮টা linear layer নির্দিষ্টভাবে Gated DeltaNet কি না config বলে না (শুধু `linear_attention`); নামটা Qwen3.5 পরিবারের card থেকে অনুমান, ঠিক সেভাবেই লেখা।
+- RecurrentGemma-র layer ছক, Samba-র ঠিক ক্রম আর Qwen3-Next-এর blog-তারিখ যাচাই হয়নি, তাই বাদ।
+- Cross-tokenizer distillation-এর কোনো paper পাওয়া যায়নি, তাই খোলা প্রশ্নে রাখা হয়নি।
+- এই নতুন node-গুলোর কোর্সের পাঠ নেই (practice-এ "কোর্সে নেই" লেখা)।
+- সংজ্ঞার সরলতা আমার বিচারে, স্বতন্ত্র যাচাইকারী ছাড়া।
+
 ## ২০২৬-১০-১৮ (১২) — তুলনা: নম্বর-ওয়ালা বিকল্পও, আর কেন নেই তা বলা
 
 ### সমস্যা

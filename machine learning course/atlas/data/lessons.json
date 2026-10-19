@@ -1120,6 +1120,17 @@
    "lessons": [
     "12/04"
    ]
+  },
+  {
+   "names": [
+    "Hybrid — একাধিক mixer একই model-এ",
+    "DeltaNet — delta rule",
+    "Gated DeltaNet",
+    "Linear Attention — Transformers are RNNs"
+   ],
+   "lessons": [
+    "12/09"
+   ]
   }
  ]
 }

@@ -172,7 +172,7 @@ test('আসল data: বিকল্প-তালিকায় (Task, Archite
   const map = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'map.json'), 'utf8'));
   const m = E.fromTree(JSON.parse(JSON.stringify(map)));
   const size = (id) => C.groupOf(m.byId.get(id)).length;
-  assert.equal(size('task'), 5); assert.equal(size('setting'), 5); assert.equal(size('neural-network--architecture'), 6);
+  assert.equal(size('task'), 5); assert.equal(size('setting'), 5); assert.equal(size('neural-network--architecture'), 7);
   assert.equal(size('training'), 3); assert.equal(size('transformer-efficiency'), 6);
   assert.equal(size('supervised-learning'), 3, 'Input, Target, Model শেখা বাদ; তিন ধরনের target বাকি');
   assert.equal(size('state-space-models'), 5, 'SSM: ভিত্তি ও HiPPO বাদ; S4, Mamba, Mamba-2, Vision Mamba, Hybrid বাকি');

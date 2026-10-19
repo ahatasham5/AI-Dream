@@ -4943,6 +4943,32 @@
            "id": "retnet",
            "name": "RetNet — Retention",
            "definition": "Transformer-এর attention-এর বদলে 'retention' নামের একটা ব্যবস্থা, যাকে তিন রূপে চালানো যায়: parallel (training-এ সব token একসঙ্গে), recurrent (inference-এ ধাপে ধাপে, প্রতি ধাপে খরচ O(1), অর্থাৎ ক্রম যত লম্বাই হোক একই), আর chunkwise recurrent (লম্বা ক্রমকে টুকরো করে টুকরোর ভেতরে সমান্তরালে, টুকরোর মধ্যে ধাপে ধাপে)।"
+          },
+          {
+           "id": "deltanet",
+           "name": "DeltaNet — delta rule",
+           "definition": "সাধারণ linear attention-এর state শুধু যোগ হতে থাকে, তাই পুরোনো বা ভুল তথ্য মুছতে পারে না। DeltaNet প্রতি ধাপে আগে দেখে state এই key-র জন্য এখন কী value মনে রেখেছে, তারপর সেটাকে নতুন value-র দিকে খানিক শুধরে দেয়। যেমন 'ক = ৩' মনে আছে, নতুন তথ্য 'ক = ৫' এলে ৩ মুছে ৫-এর দিকে সরে।",
+           "mathDetail": {
+            "formula": "Sₜ = Sₜ₋₁(I − βₜ kₜ kₜᵀ) + βₜ vₜ kₜᵀ,   oₜ = Sₜ qₜ",
+            "meaning": "S: state (key থেকে value-র তালিকা); k, v, q: token থেকে পাওয়া key, value, query; β ∈ (0,1): কতটা শুধরাবে। এটা ½‖S·k − v‖²-এর ওপর এক ধাপ gradient নামার সমান: state-কে key k-এর জন্য value v-র কাছে আনা।",
+            "example": "এক সংখ্যার state, k = 1: Sₜ = Sₜ₋₁(1 − β) + β·v। আগে S = 3, নতুন v = 5, β = 0.5 হলে S = 3 × 0.5 + 0.5 × 5 = 4। β = 1 হলে পুরোনো ৩ পুরো মুছে S = 5। সাধারণ linear attention হলে S = 3 + 5 = 8, পুরোনোটা থেকেই যেত।"
+           },
+           "insight": {
+            "fact": "DeltaNet paper-এর নিজের অবদান হলো delta rule-কে sequence-দৈর্ঘ্য জুড়ে সমান্তরালে train করার algorithm; delta-rule model নিজে আগের কাজ।"
+           }
+          },
+          {
+           "id": "gated-deltanet",
+           "name": "Gated DeltaNet",
+           "definition": "DeltaNet-এর সাথে Mamba-2-ধরনের decay gate জোড়া। প্রতি ধাপে একটা সংখ্যা α (০ থেকে ১) ঠিক করে পুরো state কতটা ভুলে যাবে, আর delta rule ঠিক করে একটা নির্দিষ্ট key-র value কীভাবে শুধরাবে। অর্থাৎ gate দিয়ে এক ঝটকায় অনেকটা মোছা যায়, আর delta rule দিয়ে নির্দিষ্ট জায়গা সংশোধন।",
+           "mathDetail": {
+            "formula": "Sₜ = Sₜ₋₁ · αₜ(I − βₜ kₜ kₜᵀ) + βₜ vₜ kₜᵀ",
+            "meaning": "DeltaNet-এর সূত্রের সাথে αₜ ∈ (0,1) যোগ: এটা input-নির্ভর decay। αₜ ছোট হলে পুরো state দ্রুত ফিকে হয়, বড় (১-এর কাছে) হলে সবটা থাকে; β আগের মতোই শুধরানোর হার।",
+            "example": "এক সংখ্যার state, k = 1, β = 1: Sₜ = Sₜ₋₁ · α · 0 + v = v, অর্থাৎ পুরো overwrite। β = 0.5, α = 0.8, S = 3, v = 5 হলে S = 3 × 0.8 × 0.5 + 0.5 × 5 = 3.7। α গেটটা না থাকলে (α = 1) পাওয়া যেত 4।"
+           },
+           "insight": {
+            "fact": "Qwen3-Next ও Qwen3.5-এর model card-এ প্রতি ৪ layer-এর ৩টা Gated DeltaNet, ১টা Gated Attention; ছবি-লেখা-পড়া OCR model Surya OCR 2-ও একই Qwen3.5-ধরনের কাঠামোর।"
+           }
           }
          ]
         },
@@ -5031,10 +5057,137 @@
            "seq": "৬"
           },
           {
+           "id": "ssm-hybrid-pointer",
+           "name": "Hybrid — Transformer + Mamba (Jamba)",
+           "ref": "jamba-hybrid",
+           "seq": "৭"
+          }
+         ]
+        },
+        {
+         "id": "hybrid-architectures",
+         "name": "Hybrid — একাধিক mixer একই model-এ",
+         "compare": "alternatives",
+         "seq": "৭",
+         "definition": "Hybrid model-এ সব layer এক রকম থাকে না: কিছু layer-এ পুরো attention (সব token-কে দেখে, মনে রাখায় নির্ভুল, কিন্তু cache বাড়ে), বাকিতে linear attention বা SSM (স্থির আকারের state, সস্তা)। যেমন প্রতি ৪ layer-এ ৩টা সস্তা, ১টা attention। কাঠামো (block সাজানো) একই থাকে, বদলায় শুধু ভেতরের mixer।",
+         "insight": {
+          "fact": "NVIDIA-র তুলনামূলক গবেষণায় সবচেয়ে ভালো hybrid-এ attention ছিল মাত্র ৭% layer (৪৩% Mamba-2, ৫০% MLP), আর সেটা ৮B Transformer-কে সব ১২টা প্রচলিত কাজে ছাড়ায়।"
+         },
+         "children": [
+          {
+           "id": "hybrid-layout",
+           "name": "Hybrid-এর ছক — অনুপাত ও সাজানো",
+           "peer": false,
+           "definition": "Hybrid বানাতে তিনটা সিদ্ধান্ত। (১) অনুপাত: মোট layer-এর কতটা attention। (২) সাজানো: layer-এ layer-এ পালা করে, নাকি একই layer-এর ভেতরে পাশাপাশি head হিসেবে। (৩) attention পুরো না সীমিত জানালার। দেখা অনুপাত (attention : সস্তা layer): Jamba ও MiniMax-01 ১:৭, Qwen3-Next ও Surya OCR 2 ১:৩, Griffin ১:২।",
+           "insight": {
+            "fact": "Jamba-র পরীক্ষায় ১:৩ আর ১:৭ প্রায় সমান ভালো ছিল; NVIDIA-র পরীক্ষায় প্রায় ৮% layer attention হলে validation loss সবচেয়ে কম। অনুপাতের উত্তর কাজ ও scale-ভেদে বদলায়, কোনো একটা সংখ্যা সবার জন্য ঠিক নয়।"
+           }
+          },
+          {
            "id": "jamba-hybrid",
            "name": "Hybrid — Transformer + Mamba (Jamba)",
-           "definition": "Transformer আর Mamba layer একই model-এ পাশাপাশি সাজানো, কিছু layer-এ MoE যোগ করা। Mamba লম্বা ক্রমে সস্তা, Transformer ভাষায় প্রমাণিত শক্ত; একটা বেছে না নিয়ে দুটোর সুবিধা একসঙ্গে নেওয়ার চেষ্টা। Jamba এই ধরনের একটা model-এর নাম।",
-           "seq": "৭"
+           "definition": "Transformer আর Mamba layer একই model-এ পাশাপাশি সাজানো, কিছু layer-এ MoE যোগ করা। Jamba-য় ৮ layer-এর একটা block-এ ১টা attention ও ৭টা Mamba (অনুপাত ১:৭), আর প্রতি দ্বিতীয় layer-এ MLP-র জায়গায় MoE (১৬ expert, প্রতি token-এ ২টা)। Mamba লম্বা ক্রমে সস্তা, attention মনে-রাখায় শক্ত; দুটোর সুবিধা একসঙ্গে।"
+          },
+          {
+           "id": "hybrid-qwen-next",
+           "name": "Qwen3-Next ও Qwen3.5 — Gated DeltaNet + Gated Attention",
+           "definition": "প্রতি ৪ layer-এ ৩টা Gated DeltaNet (linear attention) আর ১টা Gated Attention, প্রতিটার পরে MoE। Qwen3-Next-80B-A3B-তে ৪৮ layer = ৩৬ + ১২; Qwen3.5-397B-A17B-তে ৬০ layer = ৪৫ + ১৫। ছবি-লেখা-পড়া OCR model Surya OCR 2-ও এই Qwen3.5-ধরনের: ২৪ layer-এর ১৮টা linear attention, ৬টা full attention।"
+          },
+          {
+           "id": "hybrid-minimax",
+           "name": "MiniMax-01 — lightning attention + softmax",
+           "definition": "৮০ layer-এর model-এ প্রতি ৭টা linear (lightning) attention layer-এর পরে ১টা softmax attention layer, অর্থাৎ অনুপাত ১:৭, সাথে MoE (৩২ expert, প্রতি token-এ ২টা)। Paper-এর ablation-এ খাঁটি lightning attention-এর চেয়ে এই hybrid retrieval-ভারী কাজে ভালো।"
+          },
+          {
+           "id": "hybrid-griffin",
+           "name": "Griffin ও RecurrentGemma — recurrence + local attention",
+           "definition": "দুটো recurrent block (RG-LRU নামের gated linear recurrence) এরপর একটা local attention block, এভাবে পালা করে। local attention শুধু আগের ১০২৪ token দেখে, তাই cache স্থির। Paper-এর দাবি: ১৪B Griffin Llama-2-এর সমান মান পায় ৬ গুণের বেশি কম token-এ train করে। RecurrentGemma এই কাঠামোরই Gemma-ভিত্তিক রূপ।"
+          },
+          {
+           "id": "hybrid-hymba",
+           "name": "Hymba — একই layer-এ attention head ও SSM head",
+           "definition": "প্রতিটা block-এ attention head আর Mamba (SSM) head পাশাপাশি চলে, পালা করে নয়; অর্থাৎ interleave নয়, parallel ছক। বেশির ভাগ layer-এ সীমিত জানালার attention; ৩২ layer-এর মাত্র ৩টায় (প্রথম, মাঝের, শেষ) পুরো global attention। সাথে learnable meta token আর layer-এর মধ্যে KV cache ভাগ।"
+          },
+          {
+           "id": "hybrid-kimi-linear",
+           "name": "Kimi Linear — Kimi Delta Attention + MLA",
+           "definition": "Gated DeltaNet-এর সূক্ষ্মতর gate-সহ রূপ Kimi Delta Attention (KDA)-এর সাথে Multi-Head Latent Attention (MLA) মেশানো, অনুপাত প্রায় ৩:১। ২৭ layer-এর ২০টা KDA, ৭টা full MLA। Paper-এর দাবি: KV cache ৭৫% পর্যন্ত কম, আর ১ মিলিয়ন context-এ decode ৬ গুণ পর্যন্ত দ্রুত।"
+          }
+         ]
+        },
+        {
+         "id": "architecture-conversion",
+         "name": "এক architecture থেকে আরেকটায় রূপান্তর",
+         "peer": false,
+         "seq": "৮",
+         "definition": "আগে-থেকে-শেখা Transformer-এর জ্ঞান নতুন architecture-এ (linear attention, SSM বা hybrid) সরানোর পদ্ধতি, গোড়া থেকে train না করে। সাধারণ ধারা: teacher-এর কপি-করা-যায় এমন অংশ (embedding, MLP, Q/K/V weight) নতুন model-এ বসানো, attention-এর জায়গায় নতুন layer দেওয়া, তারপর teacher-কে নকল করতে শেখানো।",
+         "insight": {
+          "fact": "চার পদ্ধতিই teacher-এর আচরণ নকল করে, কিন্তু কোথা থেকে শুরু (কোন weight কপি), কী মেলায় (attention matrix, block-এর output, নাকি শুধু logit) আর কতটা শেখায় তাতে আলাদা; খরচ ৬.৫ GPU-ঘণ্টা থেকে কয়েক দিন পর্যন্ত।"
+         },
+         "children": [
+          {
+           "id": "conv-mamba-in-llama",
+           "name": "Mamba in the Llama — Q, K, V থেকে C, B, X",
+           "definition": "Teacher-এর attention-এর Q, K, V linear projection কপি করে Mamba-র C, B, X-এ বসানো হয়, MLP রাখা হয়, আর কিছু attention layer অক্ষত রেখে hybrid বানানো হয় (৫০%, ২৫% বা ১২.৫% attention)। Mamba layer শেখে teacher-এর pseudo-label আর token-বণ্টনের KL দিয়ে, তারপর SFT ও DPO।"
+          },
+          {
+           "id": "conv-mohawk",
+           "name": "MOHAWK ও Phi-Mamba — তিন ধাপের alignment",
+           "definition": "তিন ধাপ: (১) student-এর SSM matrix-কে teacher-এর attention matrix-এর কাছে আনা, (২) প্রতি block-এর output মেলানো, (৩) বাকি weight (embedding, MLP, LM head) কপি করে logit দিয়ে পুরো model distill। Phi-Mamba এভাবে Phi-1.5 থেকে মোট ৩B token-এ বানানো; ৪টা attention layer রাখা hybrid লাগে ৫B token।"
+          },
+          {
+           "id": "conv-lolcats",
+           "name": "LoLCATs — attention transfer ও LoRA",
+           "definition": "Q, K, V, O weight জমাট রেখে নতুন feature map শেখানো হয়, যাতে প্রতিটা linear attention-এর output তার softmax layer-এর output-এর কাছে আসে (block ধরে MSE)। তারপর LoRA (r=8) দিয়ে next-token loss-এ ছোট সংশোধন, সাথে sliding window। মাত্র ~৪০M token, parameter-এর ০.২%-এরও কম শেখানো।"
+          },
+          {
+           "id": "conv-kl-layer-selection",
+           "name": "KL-নির্দেশিত layer বাছাই — কোন attention layer রাখবে",
+           "definition": "আগে সব layer linear (Gated DeltaNet) করে distill, তারপর একটা একটা করে teacher-এর softmax layer ফেরানো হয়; যে layer ফেরালে teacher ও student-এর KL সবচেয়ে কমে সেটাই রাখা হয়। এভাবে 'কোন layer-এ attention থাকবে' ডেটা দেখে ঠিক হয়, সমান ফাঁকে বসানোর আন্দাজে নয়।"
+          },
+          {
+           "id": "conv-distill-then-replace",
+           "name": "Distill-then-Replace — কাজ-নির্দিষ্ট hybrid",
+           "definition": "linear block-গুলো একটা একটা করে full-attention block-এর output-এর সাথে মিলিয়ে শেখানো হয় (MSE), তারপর কাজের validation set দেখে greedy ভাবে full-attention layer বদলানো হয়। ফল একটা নির্দিষ্ট কাজের জন্য বানানো hybrid, সব কাজের নয়; সময় অল্প, এক GPU-তেই হয়।"
+          },
+          {
+           "id": "conv-taylor-calibrate",
+           "name": "Taylor-Calibrate — teacher থেকে শুরুর মান",
+           "definition": "Student (Gated DeltaNet)-এর শুরুর মান এলোমেলো না রেখে teacher-এর attention-এর পরিসংখ্যান (গড় attention-দূরত্ব, entropy, value-র মাপ) দেখে ঠিক করা: value projection, memory half-life, write gate আর output gate। তারপর সাধারণ distillation। ভালো শুরু থেকে কম token-এ একই মান আসে।"
+          }
+         ]
+        },
+        {
+         "id": "arch-open-problems",
+         "name": "খোলা প্রশ্ন — যেখানে গবেষণার জায়গা আছে",
+         "peer": false,
+         "seq": "৯",
+         "definition": "Architecture নিয়ে যেসব প্রশ্নের উত্তর এখনো পাকা নয়। প্রতিটার পাশে সূত্র-যাচাই-করা প্রমাণ আছে: কোথায় ফাঁক, কে কী মেপেছে, কে নিজেই বলেছে 'এটা বাকি'। নতুন গবেষণা বা product-এর idea খুঁজতে এখান থেকে শুরু করা যায়।",
+         "children": [
+          {
+           "id": "open-recall",
+           "name": "স্থির state-এ মনে রাখার সীমা",
+           "definition": "Linear attention বা SSM সব তথ্য একটা স্থির আকারের state-এ জমায়। state ছোট হলে 'অনেক আগের এই নির্দিষ্ট তথ্যটা ফেরত দাও' ধরনের কাজ (copy, retrieval, in-context শেখা) কঠিন হয়। কত বড় state, কী লেখা-মোছার নিয়ম, আর কতটুকু attention রাখলে এটা পূরণ হয়, তা এখনো খোলা।"
+          },
+          {
+           "id": "open-which-layers",
+           "name": "কয়টা ও কোন layer-এ attention রাখবে",
+           "definition": "Hybrid-এ কত শতাংশ layer attention হবে, আর কোনগুলো। সমান ফাঁকে বসানো সহজ, কিন্তু প্রমাণ বলছে সেটা সেরা নয়; layer-গুলো একে অপরের ওপর নির্ভর করে, তাই একটা layer-এর গুরুত্ব আলাদা করে মাপা যায় না। layer না, head ধরে বেছে নেওয়ার পথ এখনো কেউ পরীক্ষা করেনি।"
+          },
+          {
+           "id": "open-approx-gap",
+           "name": "softmax-কে সরল layer দিয়ে কতটা নকল করা যায়",
+           "definition": "Softmax attention 'ধারালো' হতে পারে: একটা-দুটো token-এ প্রায় সব ওজন। সরল linear layer সেটা ঠিকঠাক নকল করতে পারে না, তাই রূপান্তরের পরেও ফাঁক থাকে। কোন student কাঠামো সবচেয়ে ভালো নকল করে আর শুরুর মান কীভাবে ঠিক করবে, তার সূত্র এখনো heuristic।"
+          },
+          {
+           "id": "open-long-context",
+           "name": "লম্বা context-এ আচরণ ও রূপান্তরের data",
+           "definition": "রূপান্তরের সময় যে data দেওয়া হয় (ছোট, instruction-ধরনের) তা student-কে লম্বা context-এ কী শেখায়, সেটা পরিষ্কার নয়। একটা পরীক্ষায় শুধু সাধারণ data-য় train করা model ৮ হাজার token-এর passkey খোঁজায় ০% পেয়েছে, আবার অন্য পরীক্ষায় ২ হাজার token-এ distill করা model অনেক লম্বা দৈর্ঘ্যেও প্রায় নির্ভুল।"
+          },
+          {
+           "id": "open-scaling",
+           "name": "বড় teacher ও MoE-তে প্রসার",
+           "definition": "রূপান্তরের পদ্ধতিগুলো ১B–৮B-তে ভালো চলে; ৭০B, ৪০৫B-তে একটা পদ্ধতি পৌঁছেছে, কিন্তু প্রায় ২২% ফাঁক রয়ে গেছে। MoE বা অনেক বড় teacher-এ বাকি পদ্ধতিগুলো এখনো পরীক্ষাই হয়নি, কারণ তাতে আলাদা system-সহায়তা (memory, parallelism) লাগে।"
           }
          ]
         }
@@ -5413,18 +5566,18 @@
       {
        "id": "sc-arch",
        "name": "Architecture বাছা",
-       "definition": "From-scratch training-এর যে ধাপে ঠিক হয় model-এর কাঠামো কেমন হবে: কোন পরিবার (MLP, CNN, Transformer…), layer-এর মান স্থির রাখার normalization, আর Transformer হলে token-এর অবস্থান জানানো ও attention-এর খরচ কমানোর কৌশল। Model তৈরির নকশা এখানেই আঁকা হয়।",
+       "definition": "From-scratch training-এর যে ধাপে ঠিক হয় model-এর কাঠামো কেমন হবে: বাইরের কাঠামো (MLP, CNN, RNN বা block-stack), block-stack হলে ভেতরের তথ্য-মেশানো অংশ (attention, linear attention, SSM, বা মিশ্র hybrid) ও তাদের সাজানো, প্রতি-token-এর অংশ (FFN বা MoE), আর layer-এর মান স্থির রাখার normalization।",
        "kind": "step",
        "seq": "২",
        "children": [
         {
          "id": "sc-family",
-         "name": "model-এর পরিবার",
-         "definition": "প্রশ্ন: model-এর মূল কাঠামো কোন ধরনের হবে? উত্তর নির্ভর করে input-এর ধরন আর কাজের ওপর: সাধারণত ছবির জন্য CNN, লেখা বা ক্রমের জন্য RNN, Transformer বা SSM, সরল ছকের data-য় MLP। পাঁচটা বিকল্প থেকে একটা বাছতে হয়।",
+         "name": "কাঠামো — layer-গুলো কীভাবে সাজানো?",
+         "definition": "প্রশ্ন: model-এর বাইরের কাঠামো কী? সাধারণত ছবির জন্য CNN, সরল ছকের data-য় MLP, আর ধাপে ধাপে ক্রমের জন্য RNN। লেখা বা লম্বা ক্রমের জন্য এখন সাধারণ কাঠামো block-stack: একই ধরনের block পরপর, প্রতিটায় তথ্য-মেশানোর অংশ (mixer) ও প্রতি-token-এর অংশ (FFN)। Transformer, Mamba আর hybrid সবই এই কাঠামোর ভেতরে।",
          "kind": "decision",
          "pick": "one",
          "need": "required",
-         "needWhy": "model-এর পরিবার না ঠিক করলে architecture-ই থাকে না",
+         "needWhy": "কাঠামো ঠিক না করলে architecture-ই থাকে না",
          "children": [
           {
            "id": "opt-sc-mlp",
@@ -5451,111 +5604,388 @@
            "basis": "course"
           },
           {
-           "id": "opt-sc-transformer",
-           "name": "Transformer",
-           "ref": "transformer",
+           "id": "opt-sc-blockstack",
+           "name": "Block-stack — Transformer, Mamba, hybrid সবই এই কাঠামো",
            "kind": "option",
-           "when": "লেখা, ছবি-টুকরো, মিশ্র; সবচেয়ে প্রচলিত",
-           "basis": "course",
+           "when": "token-এর ক্রম আছে এমন data (লেখা, কোড, অডিও) আর লম্বা ক্রম",
+           "basis": "paper",
+           "definition": "একই ধরনের block বহুবার পরপর সাজানো। প্রতিটা block-এ দুটো অংশ: token-দের মধ্যে তথ্য মেশায় যে mixer (attention, linear attention বা SSM), আর প্রতিটা token আলাদা প্রক্রিয়া করে যে FFN (বা MoE); সাথে normalization আর residual যোগ। Transformer এই কাঠামোরই একটা রূপ, যেখানে mixer হলো attention।",
            "children": [
             {
-             "id": "sc-transformer-impl",
-             "name": "Transformer-এর implementation",
-             "definition": "প্রশ্ন: Transformer-এর কোড কোথা থেকে আসবে? তিনটা বিকল্পই পাওয়া কোড থেকে শুরু করার পথ: প্রচলিত model-এর তৈরি definition-সহ Hugging Face Transformers, পড়ে বোঝার মতো ছোট nanoGPT, আর recipe-সহ LitGPT। শূন্য থেকে নিজে লেখার চেয়ে এগুলো দ্রুত।",
+             "id": "sc-mixer",
+             "name": "token mixer — layer-এ token-গুলোর তথ্য কীভাবে মেশে?",
              "kind": "decision",
-             "pick": "one",
-             "need": "optional",
-             "needWhy": "তৈরি implementation না নিয়ে নিজে লিখলেও পথ চলে",
+             "pick": "many",
+             "need": "required",
+             "needWhy": "block-stack-এ অন্তত একটা mixer লাগে; একাধিক বাছলে hybrid হয়",
+             "definition": "প্রশ্ন: block-এর ভেতরে তথ্য-মেশানো অংশ কোন ধরনের? তিন পরিবার: full attention (প্রতিটা token প্রতিটাকে দেখে), linear attention পরিবার (আগের তথ্য একটা স্থির state-এ জমে), SSM পরিবার (state ঘুরে ঘুরে বদলায়)। একটা বাছলে সব layer এক রকম; একাধিক বাছলে hybrid, তখন সাজানোর ছকও ঠিক করতে হয়।",
              "children": [
               {
-               "id": "tool-transformers-sc",
-               "name": "Hugging Face Transformers (model definitions)",
-               "definition": "Hugging Face-এর library: বহু পরিচিত model-এর definition দেয়, আর Trainer নামের একটা অংশ দেয় যা training loop নিজে চালায় এবং bf16, gradient accumulation, checkpoint-এর মতো সেটিং কনফিগ হিসেবে নেয়। লেখা, ছবি, speech সবখানেই ব্যবহার হয়।",
-               "kind": "tool",
-               "basis": "tool-doc",
-               "tool": {
-                "repo": "https://github.com/huggingface/transformers",
-                "license": "Apache-2.0",
-                "archived": false,
-                "pushed": "২০২৬-১০-১৭",
-                "checked": "২০২৬-১০-১৭",
-                "src": "GitHub API ও README",
-                "docs": "https://huggingface.co/docs/transformers"
-               },
-               "when": "প্রচলিত architecture-এর পাওয়া কোড"
+               "id": "opt-sc-mix-attn",
+               "name": "Full attention (softmax)",
+               "kind": "option",
+               "when": "প্রমাণিত মান ও recall দরকার, context ছোট–মাঝারি",
+               "basis": "course",
+               "ref": "transformer-block--attention",
+               "children": [
+                {
+                 "id": "sc-position",
+                 "name": "অবস্থান-তথ্য",
+                 "definition": "প্রশ্ন: Transformer-কে token-এর অবস্থান কীভাবে জানাবে? Attention নিজে ক্রম বোঝে না, তাই 'কোন token কত নম্বরে' তথ্য আলাদা করে ঢোকাতে হয়। দুটো পথ: RoPE (query ও key vector ঘুরিয়ে) আর ALiBi (attention-এর নম্বর থেকে দূরত্ব অনুযায়ী বাড়তি বিয়োগ)।",
+                 "kind": "decision",
+                 "pick": "one",
+                 "need": "optional",
+                 "needWhy": "attention বাছলেই আসে; না বাছলেও পথ চলে",
+                 "children": [
+                  {
+                   "id": "opt-sc-rope",
+                   "name": "RoPE — Rotary Position Embedding",
+                   "ref": "rope",
+                   "kind": "option",
+                   "when": "আধুনিক LLM-এর প্রচলিত পছন্দ",
+                   "basis": "paper"
+                  },
+                  {
+                   "id": "opt-sc-alibi",
+                   "name": "ALiBi — Attention with Linear Biases",
+                   "ref": "alibi",
+                   "kind": "option",
+                   "when": "ছোট দৈর্ঘ্যে training, লম্বায় চালানো",
+                   "basis": "paper"
+                  }
+                 ]
+                },
+                {
+                 "id": "sc-attn-eff",
+                 "name": "attention-এর দক্ষতা",
+                 "definition": "প্রশ্ন: লম্বা লেখায় attention-এর খরচ কীভাবে কমাবে? Attention-এ প্রতিটা token প্রতিটাকে দেখে, তাই ক্রম লম্বা হলে হিসাব ও memory দ্রুত বাড়ে; generation-এ আগের token-এর হিসাব জমিয়ে রাখার (KV cache) memory-ও বাড়ে। তিনটা কৌশল আছে, একসাথে একাধিকও নেওয়া যায়।",
+                 "kind": "decision",
+                 "pick": "many",
+                 "need": "optional",
+                 "needWhy": "attention-এর বাড়তি দক্ষতা; না বাছলেও পথ চলে",
+                 "children": [
+                  {
+                   "id": "opt-sc-flash",
+                   "name": "FlashAttention — IO-aware attention",
+                   "ref": "flash-attention",
+                   "kind": "option",
+                   "when": "লম্বা sequence",
+                   "basis": "paper"
+                  },
+                  {
+                   "id": "opt-sc-gqa",
+                   "name": "Multi-Query ও Grouped-Query Attention",
+                   "ref": "mqa-gqa",
+                   "kind": "option",
+                   "when": "generation-এর KV cache ছোট চাইলে",
+                   "basis": "paper"
+                  },
+                  {
+                   "id": "opt-sc-window",
+                   "name": "Sliding-window (local) Attention",
+                   "ref": "sliding-window-attention",
+                   "kind": "option",
+                   "when": "খুব লম্বা নথি",
+                   "basis": "paper"
+                  }
+                 ]
+                },
+                {
+                 "id": "sc-transformer-impl",
+                 "name": "Transformer-এর implementation",
+                 "definition": "প্রশ্ন: Transformer-এর কোড কোথা থেকে আসবে? তিনটা বিকল্পই পাওয়া কোড থেকে শুরু করার পথ: প্রচলিত model-এর তৈরি definition-সহ Hugging Face Transformers, পড়ে বোঝার মতো ছোট nanoGPT, আর recipe-সহ LitGPT। শূন্য থেকে নিজে লেখার চেয়ে এগুলো দ্রুত।",
+                 "kind": "decision",
+                 "pick": "one",
+                 "need": "optional",
+                 "needWhy": "তৈরি implementation না নিয়ে নিজে লিখলেও পথ চলে",
+                 "children": [
+                  {
+                   "id": "tool-transformers-sc",
+                   "name": "Hugging Face Transformers (model definitions)",
+                   "definition": "Hugging Face-এর library: বহু পরিচিত model-এর definition দেয়, আর Trainer নামের একটা অংশ দেয় যা training loop নিজে চালায় এবং bf16, gradient accumulation, checkpoint-এর মতো সেটিং কনফিগ হিসেবে নেয়। লেখা, ছবি, speech সবখানেই ব্যবহার হয়।",
+                   "kind": "tool",
+                   "basis": "tool-doc",
+                   "tool": {
+                    "repo": "https://github.com/huggingface/transformers",
+                    "license": "Apache-2.0",
+                    "archived": false,
+                    "pushed": "২০২৬-১০-১৭",
+                    "checked": "২০২৬-১০-১৭",
+                    "src": "GitHub API ও README",
+                    "docs": "https://huggingface.co/docs/transformers"
+                   },
+                   "when": "প্রচলিত architecture-এর পাওয়া কোড"
+                  },
+                  {
+                   "id": "tool-nanogpt",
+                   "name": "nanoGPT",
+                   "definition": "মাঝারি মাপের GPT model শেখানো ও fine-tune করার সরল ও খুব ছোট repository। কোড এত কম যে পুরোটা পড়ে বোঝা যায়, তাই GPT আসলে কীভাবে লেখা হয় তা শেখার জন্য বা ছোট GPT-র সরল ভিত্তি হিসেবে কাজে লাগে।",
+                   "kind": "tool",
+                   "basis": "tool-doc",
+                   "tool": {
+                    "repo": "https://github.com/karpathy/nanoGPT",
+                    "license": "MIT",
+                    "archived": false,
+                    "pushed": "২০২৫-১১-১২",
+                    "checked": "২০২৬-১০-১৭",
+                    "src": "GitHub API ও README",
+                    "docs": "https://github.com/karpathy/nanoGPT#readme",
+                    "note": "শেষ push ২০২৫-১১-১২: অন্য tool-এর চেয়ে কম সক্রিয়।"
+                   },
+                   "when": "শেখার জন্য বা ছোট GPT-র সরল ভিত্তি"
+                  },
+                  {
+                   "id": "tool-litgpt",
+                   "name": "LitGPT",
+                   "definition": "২০+ বড় ভাষা-model (LLM)-এর জন্য pretrain, fine-tune ও deploy-এর তৈরি recipe (ধাপে ধাপে চালানোর কাঠামো) একসাথে দেওয়া Lightning AI-র library। পরিচিত LLM নিয়ে এই recipe চালিয়েই দ্রুত কাজ শুরু করা যায়।",
+                   "kind": "tool",
+                   "basis": "tool-doc",
+                   "tool": {
+                    "repo": "https://github.com/Lightning-AI/litgpt",
+                    "license": "Apache-2.0",
+                    "archived": false,
+                    "pushed": "২০২৬-১০-১৩",
+                    "checked": "২০২৬-১০-১৭",
+                    "src": "GitHub API ও README",
+                    "docs": "https://github.com/Lightning-AI/litgpt#readme"
+                   },
+                   "when": "প্রচলিত LLM-এর recipe-ভিত্তিক শুরু"
+                  }
+                 ]
+                }
+               ]
               },
               {
-               "id": "tool-nanogpt",
-               "name": "nanoGPT",
-               "definition": "মাঝারি মাপের GPT model শেখানো ও fine-tune করার সরল ও খুব ছোট repository। কোড এত কম যে পুরোটা পড়ে বোঝা যায়, তাই GPT আসলে কীভাবে লেখা হয় তা শেখার জন্য বা ছোট GPT-র সরল ভিত্তি হিসেবে কাজে লাগে।",
-               "kind": "tool",
-               "basis": "tool-doc",
-               "tool": {
-                "repo": "https://github.com/karpathy/nanoGPT",
-                "license": "MIT",
-                "archived": false,
-                "pushed": "২০২৫-১১-১২",
-                "checked": "২০২৬-১০-১৭",
-                "src": "GitHub API ও README",
-                "docs": "https://github.com/karpathy/nanoGPT#readme",
-                "note": "শেষ push ২০২৫-১১-১২: অন্য tool-এর চেয়ে কম সক্রিয়।"
-               },
-               "when": "শেখার জন্য বা ছোট GPT-র সরল ভিত্তি"
+               "id": "opt-sc-mix-linear",
+               "name": "Linear attention পরিবার",
+               "kind": "option",
+               "when": "স্থির state আর সমান্তরাল training দুটোই চাই",
+               "basis": "paper",
+               "ref": "recurrent-alternatives",
+               "children": [
+                {
+                 "id": "sc-linear-kind",
+                 "name": "linear attention-এর রূপ",
+                 "kind": "decision",
+                 "pick": "one",
+                 "need": "required",
+                 "needWhy": "linear attention বাছলে কোন রূপ, তা না ঠিক করলে layer-এর হিসাবই ঠিক হয় না",
+                 "definition": "প্রশ্ন: linear attention পরিবারের কোন রূপ? পাঁচটা রূপ: মূল Linear Attention (state-এ শুধু যোগ), RWKV (চ্যানেল-ভিত্তিক decay), RetNet (স্থির decay), DeltaNet (পুরোনো value সংশোধন), আর Gated DeltaNet (decay আর সংশোধন দুটোই)।",
+                 "children": [
+                  {
+                   "id": "opt-sc-lin-linattn",
+                   "name": "Linear Attention — Transformers are RNNs",
+                   "kind": "option",
+                   "when": "মূল ধারণা বুঝতে বা সরল baseline",
+                   "basis": "paper",
+                   "ref": "linear-attention"
+                  },
+                  {
+                   "id": "opt-sc-lin-rwkv",
+                   "name": "RWKV",
+                   "kind": "option",
+                   "when": "RNN-মতো inference, বড় dense RNN",
+                   "basis": "paper",
+                   "ref": "rwkv"
+                  },
+                  {
+                   "id": "opt-sc-lin-retnet",
+                   "name": "RetNet — Retention",
+                   "kind": "option",
+                   "when": "parallel, recurrent আর chunkwise তিন রূপই চাই",
+                   "basis": "paper",
+                   "ref": "retnet"
+                  },
+                  {
+                   "id": "opt-sc-lin-deltanet",
+                   "name": "DeltaNet — delta rule",
+                   "kind": "option",
+                   "when": "পুরোনো তথ্য সংশোধন (overwrite) করা দরকার",
+                   "basis": "paper",
+                   "ref": "deltanet"
+                  },
+                  {
+                   "id": "opt-sc-lin-gdn",
+                   "name": "Gated DeltaNet",
+                   "kind": "option",
+                   "when": "দ্রুত মোছা আর নির্দিষ্ট সংশোধন দুটোই, hybrid-এর সস্তা অংশ হিসেবে",
+                   "basis": "paper",
+                   "ref": "gated-deltanet"
+                  }
+                 ]
+                },
+                {
+                 "id": "sc-linear-impl",
+                 "name": "linear attention-এর implementation",
+                 "kind": "decision",
+                 "pick": "one",
+                 "need": "optional",
+                 "needWhy": "তৈরি kernel না নিয়ে নিজে লিখলেও পথ চলে",
+                 "definition": "প্রশ্ন: linear attention layer-এর দ্রুত GPU kernel কোথা থেকে নেবে? এখানে বিকল্প একটাই: flash-linear-attention library, যাতে RetNet, DeltaNet, Gated DeltaNet, RWKV6/7, Mamba2-সহ অনেক layer আছে।",
+                 "children": [
+                  {
+                   "id": "tool-fla",
+                   "name": "flash-linear-attention (fla-org)",
+                   "kind": "tool",
+                   "basis": "tool-doc",
+                   "definition": "Linear attention ও delta-rule ধরনের layer-এর দ্রুত GPU kernel আর model-এর library। RetNet, DeltaNet, Gated DeltaNet, RWKV6, RWKV7, Mamba2, GLA-সহ অনেক layer এখানে তৈরি পাওয়া যায়, নিজের model-এ জোড়ার জন্য।",
+                   "tool": {
+                    "repo": "https://github.com/fla-org/flash-linear-attention",
+                    "license": "MIT",
+                    "archived": false,
+                    "pushed": "২০২৬-১০-১৯",
+                    "checked": "২০২৬-১০-১৯",
+                    "src": "GitHub API ও README",
+                    "docs": "https://github.com/fla-org/flash-linear-attention#readme",
+                    "supports": [
+                     "RetNet",
+                     "DeltaNet",
+                     "Gated DeltaNet",
+                     "RWKV6",
+                     "RWKV7",
+                     "Mamba2"
+                    ]
+                   },
+                   "when": "linear attention বা delta-rule layer নিজের model-এ জুড়তে"
+                  }
+                 ]
+                }
+               ]
               },
               {
-               "id": "tool-litgpt",
-               "name": "LitGPT",
-               "definition": "২০+ বড় ভাষা-model (LLM)-এর জন্য pretrain, fine-tune ও deploy-এর তৈরি recipe (ধাপে ধাপে চালানোর কাঠামো) একসাথে দেওয়া Lightning AI-র library। পরিচিত LLM নিয়ে এই recipe চালিয়েই দ্রুত কাজ শুরু করা যায়।",
-               "kind": "tool",
-               "basis": "tool-doc",
-               "tool": {
-                "repo": "https://github.com/Lightning-AI/litgpt",
-                "license": "Apache-2.0",
-                "archived": false,
-                "pushed": "২০২৬-১০-১৩",
-                "checked": "২০২৬-১০-১৭",
-                "src": "GitHub API ও README",
-                "docs": "https://github.com/Lightning-AI/litgpt#readme"
-               },
-               "when": "প্রচলিত LLM-এর recipe-ভিত্তিক শুরু"
+               "id": "opt-sc-mix-ssm",
+               "name": "State Space Model (SSM) পরিবার",
+               "kind": "option",
+               "when": "খুব লম্বা ক্রম, inference-এ constant memory চাই",
+               "basis": "paper",
+               "ref": "state-space-models",
+               "children": [
+                {
+                 "id": "sc-ssm-kind",
+                 "name": "SSM-এর রূপ",
+                 "kind": "decision",
+                 "pick": "one",
+                 "need": "required",
+                 "needWhy": "SSM বাছলে কোন রূপ, তা না ঠিক করলে layer-এর হিসাবই ঠিক হয় না",
+                 "definition": "প্রশ্ন: SSM পরিবারের কোন রূপ? তিনটা রূপ: S4 (সময়-স্থির, লম্বা ক্রমের প্রথম কার্যকর রূপ), Mamba (প্রতি token দেখে কী মনে রাখবে ঠিক করে), আর Mamba-2 (Mamba-র সরল, GPU-ঘেঁষা রূপ যা attention-এর সাথে একই পরিবারের)।",
+                 "children": [
+                  {
+                   "id": "opt-sc-ssm-s4",
+                   "name": "S4 — Structured State Space",
+                   "kind": "option",
+                   "when": "SSM-এর মূল ধারণা ও লম্বা ক্রমের ভিত্তি",
+                   "basis": "paper",
+                   "ref": "s4"
+                  },
+                  {
+                   "id": "opt-sc-ssm-mamba",
+                   "name": "Mamba — Selective State Space",
+                   "kind": "option",
+                   "when": "ভাষায় input-নির্ভর বাছাই দরকার",
+                   "basis": "paper",
+                   "ref": "mamba"
+                  },
+                  {
+                   "id": "opt-sc-ssm-mamba2",
+                   "name": "Mamba-2 ও State Space Duality (SSD)",
+                   "kind": "option",
+                   "when": "Mamba-র দ্রুততর, attention-ঘেঁষা রূপ",
+                   "basis": "paper",
+                   "ref": "mamba-2"
+                  }
+                 ]
+                },
+                {
+                 "id": "sc-ssm-impl",
+                 "name": "Mamba-র implementation",
+                 "definition": "প্রশ্ন: Mamba layer নিজের model-এ ব্যবহার করতে কোন implementation নেবে? Mamba হলো State Space Model পরিবারের layer, যা Transformer-এর attention-এর বিকল্প। এখানে বিকল্প একটাই: Mamba-র মূল repository।",
+                 "kind": "decision",
+                 "pick": "one",
+                 "need": "optional",
+                 "needWhy": "তৈরি implementation না নিয়ে নিজে লিখলেও পথ চলে",
+                 "children": [
+                  {
+                   "id": "tool-mamba",
+                   "name": "Mamba (state-spaces/mamba)",
+                   "definition": "State Space Model (SSM)-ভিত্তিক Mamba architecture-এর মূল repository। এর layer নিজের model-এ জুড়ে ব্যবহার করা যায়, Transformer-এর attention-এর একটা বিকল্প হিসেবে।",
+                   "kind": "tool",
+                   "basis": "tool-doc",
+                   "tool": {
+                    "repo": "https://github.com/state-spaces/mamba",
+                    "license": "Apache-2.0",
+                    "archived": false,
+                    "pushed": "২০২৬-০৭-২২",
+                    "checked": "২০২৬-১০-১৭",
+                    "src": "GitHub API ও README",
+                    "docs": "https://github.com/state-spaces/mamba#readme"
+                   },
+                   "when": "Mamba-ধরনের layer নিজে ব্যবহার করতে"
+                  }
+                 ]
+                }
+               ]
               }
              ]
-            }
-           ]
-          },
-          {
-           "id": "opt-sc-ssm",
-           "name": "State Space Model (SSM / Mamba)",
-           "ref": "state-space-models",
-           "kind": "option",
-           "when": "খুব লম্বা ক্রম, inference-এ constant memory চাই",
-           "basis": "paper",
-           "children": [
+            },
             {
-             "id": "sc-ssm-impl",
-             "name": "Mamba-র implementation",
-             "definition": "প্রশ্ন: Mamba layer নিজের model-এ ব্যবহার করতে কোন implementation নেবে? Mamba হলো State Space Model পরিবারের layer, যা Transformer-এর attention-এর বিকল্প। এখানে বিকল্প একটাই: Mamba-র মূল repository।",
+             "id": "sc-layout",
+             "name": "layer সাজানোর ছক (একাধিক mixer বাছলে)",
              "kind": "decision",
              "pick": "one",
              "need": "optional",
-             "needWhy": "তৈরি implementation না নিয়ে নিজে লিখলেও পথ চলে",
+             "needWhy": "একাধিক mixer বাছলে আবশ্যক (সতর্কতা মনে করায়); একটা হলে দরকার নেই",
+             "definition": "প্রশ্ন: একাধিক mixer থাকলে সেগুলো কীভাবে সাজাবে? তিন ছক: সব layer এক ধরন (hybrid নয়), layer ধরে পালা করে নির্দিষ্ট অনুপাতে (interleave), অথবা একই layer-এর ভেতরে দুই ধরনের head পাশাপাশি (parallel)।",
              "children": [
               {
-               "id": "tool-mamba",
-               "name": "Mamba (state-spaces/mamba)",
-               "definition": "State Space Model (SSM)-ভিত্তিক Mamba architecture-এর মূল repository। এর layer নিজের model-এ জুড়ে ব্যবহার করা যায়, Transformer-এর attention-এর একটা বিকল্প হিসেবে।",
-               "kind": "tool",
-               "basis": "tool-doc",
-               "tool": {
-                "repo": "https://github.com/state-spaces/mamba",
-                "license": "Apache-2.0",
-                "archived": false,
-                "pushed": "২০২৬-০৭-২২",
-                "checked": "২০২৬-১০-১৭",
-                "src": "GitHub API ও README",
-                "docs": "https://github.com/state-spaces/mamba#readme"
-               },
-               "when": "Mamba-ধরনের layer নিজে ব্যবহার করতে"
+               "id": "opt-sc-layout-uniform",
+               "name": "সব layer এক ধরন (hybrid নয়)",
+               "kind": "option",
+               "when": "একটাই mixer বাছলে",
+               "basis": "paper",
+               "definition": "প্রতিটা block-এ একই mixer। সবচেয়ে সরল: একটাই layer-ধরন, একটাই kernel, সহজে debug। তবে সেই পরিবারের দুর্বলতা পুরো model-এ থেকে যায়।"
+              },
+              {
+               "id": "opt-sc-layout-interleave",
+               "name": "layer ধরে পালা করে (interleave)",
+               "kind": "option",
+               "when": "দুই বা বেশি mixer বাছলে, সবচেয়ে পরিচিত ছক",
+               "basis": "paper",
+               "definition": "কিছু layer attention, বাকিগুলো সস্তা mixer, একটা নির্দিষ্ট ছকে (যেমন প্রতি ৪টায় ১টা attention)। দেখা অনুপাত ১:৩ (Qwen3-Next) ও ১:৭ (Jamba, MiniMax-01); অনুপাত ও কোন layer-এ attention যাবে, দুটোই ঠিক করতে হয়।"
+              },
+              {
+               "id": "opt-sc-layout-parallel",
+               "name": "একই layer-এ সমান্তরাল head",
+               "kind": "option",
+               "when": "প্রতি layer-এই দুই ধরনের সুবিধা চাইলে",
+               "basis": "paper",
+               "definition": "একই block-এ attention head আর SSM head পাশাপাশি চলে ও তাদের output মেশে (Hymba)। layer পালা না করে প্রতি layer-এই দুই ধরনের তথ্য-মেশানো পাওয়া যায়, তবে block বেশি জটিল।"
+              }
+             ]
+            },
+            {
+             "id": "sc-ffn",
+             "name": "channel mixer — প্রতি token-এর অংশ",
+             "kind": "decision",
+             "pick": "one",
+             "need": "optional",
+             "needWhy": "না বাছলেও পথ দাঁড়ায়; এটা মোট parameter আর প্রতি token-এর খরচের ভারসাম্য ঠিক করে",
+             "definition": "প্রশ্ন: প্রতিটা token আলাদা করে প্রক্রিয়া করার অংশ কেমন হবে? দুটো পথ: সাধারণ dense FFN (সব token একই network দিয়ে যায়), অথবা MoE (অনেক ছোট expert, প্রতি token-এ মাত্র কয়েকটা চলে)।",
+             "children": [
+              {
+               "id": "opt-sc-ffn-dense",
+               "name": "Dense FFN",
+               "kind": "option",
+               "when": "সরল ও সবচেয়ে প্রচলিত",
+               "basis": "course",
+               "ref": "transformer-block--transformer-ffn"
+              },
+              {
+               "id": "opt-sc-ffn-moe",
+               "name": "Mixture of Experts (MoE)",
+               "kind": "option",
+               "when": "মোট parameter বাড়াতে চাই, প্রতি token-এর খরচ কম রেখে",
+               "basis": "paper",
+               "ref": "mixture-of-experts-moe"
               }
              ]
             }
@@ -5595,68 +6025,6 @@
            "kind": "option",
            "when": "CNN, বড় batch",
            "basis": "course"
-          }
-         ]
-        },
-        {
-         "id": "sc-position",
-         "name": "অবস্থান-তথ্য (Transformer হলে)",
-         "definition": "প্রশ্ন: Transformer-কে token-এর অবস্থান কীভাবে জানাবে? Attention নিজে ক্রম বোঝে না, তাই 'কোন token কত নম্বরে' তথ্য আলাদা করে ঢোকাতে হয়। দুটো পথ: RoPE (query ও key vector ঘুরিয়ে) আর ALiBi (attention-এর নম্বর থেকে দূরত্ব অনুযায়ী বাড়তি বিয়োগ)।",
-         "kind": "decision",
-         "pick": "one",
-         "need": "optional",
-         "needWhy": "শুধু Transformer হলে লাগে",
-         "children": [
-          {
-           "id": "opt-sc-rope",
-           "name": "RoPE — Rotary Position Embedding",
-           "ref": "rope",
-           "kind": "option",
-           "when": "আধুনিক LLM-এর প্রচলিত পছন্দ",
-           "basis": "paper"
-          },
-          {
-           "id": "opt-sc-alibi",
-           "name": "ALiBi — Attention with Linear Biases",
-           "ref": "alibi",
-           "kind": "option",
-           "when": "ছোট দৈর্ঘ্যে training, লম্বায় চালানো",
-           "basis": "paper"
-          }
-         ]
-        },
-        {
-         "id": "sc-attn-eff",
-         "name": "attention-এর দক্ষতা (Transformer হলে)",
-         "definition": "প্রশ্ন: লম্বা লেখায় attention-এর খরচ কীভাবে কমাবে? Attention-এ প্রতিটা token প্রতিটাকে দেখে, তাই ক্রম লম্বা হলে হিসাব ও memory দ্রুত বাড়ে; generation-এ আগের token-এর হিসাব জমিয়ে রাখার (KV cache) memory-ও বাড়ে। তিনটা কৌশল আছে, একসাথে একাধিকও নেওয়া যায়।",
-         "kind": "decision",
-         "pick": "many",
-         "need": "optional",
-         "needWhy": "শুধু Transformer হলে লাগে, আর এটা attention-এর বাড়তি দক্ষতা",
-         "children": [
-          {
-           "id": "opt-sc-flash",
-           "name": "FlashAttention — IO-aware attention",
-           "ref": "flash-attention",
-           "kind": "option",
-           "when": "লম্বা sequence",
-           "basis": "paper"
-          },
-          {
-           "id": "opt-sc-gqa",
-           "name": "Multi-Query ও Grouped-Query Attention",
-           "ref": "mqa-gqa",
-           "kind": "option",
-           "when": "generation-এর KV cache ছোট চাইলে",
-           "basis": "paper"
-          },
-          {
-           "id": "opt-sc-window",
-           "name": "Sliding-window (local) Attention",
-           "ref": "sliding-window-attention",
-           "kind": "option",
-           "when": "খুব লম্বা নথি",
-           "basis": "paper"
           }
          ]
         }

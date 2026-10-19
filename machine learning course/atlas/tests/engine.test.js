@@ -95,7 +95,7 @@ test('info, decision, step, stepref বাছা যায় না', () => {
 
 test('export: markdown, json, লিংক ঠিক আকারে', () => {
   const m = fresh();
-  for (const id of ['mode-scratch', 'opt-sc-ssm', 'tool-mamba', 'tool-vllm', 'tool-tgi']) m.plan.toggle(id);
+  for (const id of ['mode-scratch', 'opt-sc-mix-ssm', 'tool-mamba', 'tool-vllm', 'tool-tgi']) m.plan.toggle(id);
   const md = m.plan.markdown('2026-01-01');
   assert.match(md, /^# আমার পথ: শূন্য থেকে Train করব/);
   assert.match(md, /## Architecture বাছা/);

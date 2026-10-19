@@ -167,6 +167,24 @@
   },
   "sc-eval-basic": {
    "slot": "eval_basic"
+  },
+  "sc-mixer": {
+   "slot": "mixer"
+  },
+  "sc-linear-kind": {
+   "slot": "linear_kind"
+  },
+  "sc-ssm-kind": {
+   "slot": "ssm_kind"
+  },
+  "sc-layout": {
+   "slot": "layout"
+  },
+  "sc-ffn": {
+   "slot": "ffn"
+  },
+  "sc-linear-impl": {
+   "slot": "arch_impl"
   }
  },
  "labels": {
@@ -206,7 +224,7 @@
   "quant": "serving-quantization",
   "iterate": "ভুল থেকে নতুন data",
   "need": "শূন্য থেকে লাগবে কি",
-  "family": "model-এর পরিবার",
+  "family": "কাঠামো",
   "arch_impl": "implementation",
   "norm": "normalization",
   "position": "অবস্থান-তথ্য",
@@ -219,7 +237,12 @@
   "eval_basic": "মৌলিক মাপ",
   "fwd_ctx": "precision-ক্ষেত্র",
   "accum_step": "accumulation",
-  "accum": "accumulation"
+  "accum": "accumulation",
+  "mixer": "token mixer",
+  "linear_kind": "linear attention-এর রূপ",
+  "ssm_kind": "SSM-এর রূপ",
+  "layout": "layer সাজানোর ছক",
+  "ffn": "channel mixer"
  },
  "join": {
   "schedule": " + ",
@@ -230,7 +253,8 @@
   "eval_open": ", ",
   "corpus": ", ",
   "attn": ", ",
-  "ckpt": ", "
+  "ckpt": ", ",
+  "mixer": " + "
  },
  "options": {
   "opt-accuracy": "accuracy",
@@ -362,8 +386,6 @@
   "opt-sc-mlp": "MLP",
   "opt-sc-cnn": "CNN",
   "opt-sc-rnn": "RNN",
-  "opt-sc-transformer": "Transformer",
-  "opt-sc-ssm": "State Space Model (e.g. Mamba)",
   "opt-sc-layernorm": "LayerNorm",
   "opt-sc-rmsnorm": "RMSNorm",
   "opt-sc-batchnorm": "BatchNorm",
@@ -385,7 +407,24 @@
   "opt-sc-init-random": "small random values (never all zero)",
   "opt-sc-val-loss": "validation loss",
   "opt-sc-heldout": "a held-out test set, used once at the end",
-  "opt-sc-plain": "a hand-written loop"
+  "opt-sc-plain": "a hand-written loop",
+  "opt-sc-blockstack": "a stack of identical blocks (token mixer + channel mixer + norm + residual)",
+  "opt-sc-mix-attn": "full softmax attention",
+  "opt-sc-mix-linear": "linear attention",
+  "opt-sc-mix-ssm": "state space model",
+  "opt-sc-lin-linattn": "Linear Attention (kernel feature map)",
+  "opt-sc-lin-rwkv": "RWKV",
+  "opt-sc-lin-retnet": "RetNet (retention)",
+  "opt-sc-lin-deltanet": "DeltaNet (delta rule)",
+  "opt-sc-lin-gdn": "Gated DeltaNet",
+  "opt-sc-ssm-s4": "S4",
+  "opt-sc-ssm-mamba": "Mamba (selective SSM)",
+  "opt-sc-ssm-mamba2": "Mamba-2 (SSD)",
+  "opt-sc-layout-uniform": "all layers use the same mixer",
+  "opt-sc-layout-interleave": "interleave the mixers layer by layer at a fixed ratio",
+  "opt-sc-layout-parallel": "attention heads and SSM heads in parallel inside each layer",
+  "opt-sc-ffn-dense": "dense FFN",
+  "opt-sc-ffn-moe": "mixture-of-experts FFN"
  },
  "templates": {
   "mode-finetune": [
@@ -464,6 +503,11 @@
    "",
    "# ধাপ ২ — Architecture",
    "model = {{family}}",
+   "?mixer token_mixer = {{mixer}}",
+   "?linear_kind linear_attention = {{linear_kind}}",
+   "?ssm_kind ssm = {{ssm_kind}}",
+   "?layout layer_layout = {{layout}}",
+   "?ffn channel_mixer = {{ffn}}",
    "?arch_impl implementation = {{arch_impl}}",
    "?norm normalization = {{norm}}",
    "?position position_info = {{position}}",
