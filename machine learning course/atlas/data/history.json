@@ -611,6 +611,86 @@
      "url": "https://arxiv.org/abs/2606.16429"
     }
    ]
+  },
+  {
+   "names": [
+    "Hybrid — একাধিক mixer একই model-এ"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (ফেব্রুয়ারি)",
+     "text": "Griffin: recurrent আর local attention মেশানো।",
+     "src": "arXiv: Griffin paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2402.19427"
+    },
+    {
+     "year": "২০২৪ (মার্চ)",
+     "text": "Jamba: attention, Mamba আর MoE একসঙ্গে।",
+     "src": "arXiv: Jamba paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2403.19887"
+    },
+    {
+     "year": "২০২৪ (নভেম্বর)",
+     "text": "Hymba: একই layer-এ attention ও SSM head।",
+     "src": "arXiv: Hymba paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2411.13676"
+    },
+    {
+     "year": "২০২৫ (জানুয়ারি)",
+     "text": "MiniMax-01: ৭টা linear layer-এর পরে ১টা softmax।",
+     "src": "arXiv: MiniMax-01 paper, ২০২৫",
+     "url": "https://arxiv.org/abs/2501.08313"
+    },
+    {
+     "year": "২০২৫ (সেপ্টেম্বর)",
+     "text": "Qwen3-Next: ৩টা Gated DeltaNet-এর পরে ১টা Gated Attention।",
+     "src": "Hugging Face: Qwen3-Next model card",
+     "url": "https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct"
+    },
+    {
+     "year": "২০২৫ (অক্টোবর)",
+     "text": "Kimi Linear: Kimi Delta Attention আর MLA।",
+     "src": "arXiv: Kimi Linear paper, ২০২৫",
+     "url": "https://arxiv.org/abs/2510.26692"
+    }
+   ]
+  },
+  {
+   "names": [
+    "এক architecture থেকে আরেকটায় রূপান্তর"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (আগস্ট)",
+     "text": "The Mamba in the Llama ও MOHAWK, দুটোই প্রায় একই সময়ে।",
+     "src": "arXiv: Mamba in the Llama, MOHAWK, ২০২৪",
+     "url": "https://arxiv.org/abs/2408.15237"
+    },
+    {
+     "year": "২০২৪ (অক্টোবর)",
+     "text": "LoLCATs: attention transfer আর LoRA।",
+     "src": "arXiv: LoLCATs paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2410.10254"
+    },
+    {
+     "year": "২০২৫ (ডিসেম্বর)",
+     "text": "KL-নির্দেশিত layer বাছাই।",
+     "src": "arXiv: KL-Guided Layer Selection, ২০২৫",
+     "url": "https://arxiv.org/abs/2512.20569"
+    },
+    {
+     "year": "২০২৬ (জানুয়ারি)",
+     "text": "Distill-then-Replace: কাজ-নির্দিষ্ট hybrid।",
+     "src": "arXiv: Distill-then-Replace, ২০২৬",
+     "url": "https://arxiv.org/abs/2601.11667"
+    },
+    {
+     "year": "২০২৬ (জুন)",
+     "text": "Taylor-Calibrate: teacher-এর পরিসংখ্যান থেকে শুরুর মান।",
+     "src": "arXiv: Taylor-Calibrate, ২০২৬",
+     "url": "https://arxiv.org/abs/2606.16429"
+    }
+   ]
   }
  ]
 }

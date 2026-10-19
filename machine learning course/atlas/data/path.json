@@ -102,6 +102,22 @@
     "Generalization",
     "Metrics"
    ]
+  },
+  {
+   "title": "৯. Transformer-এর পরের architecture (গবেষণার সীমানা)",
+   "intro": "Attention-এর খরচ কমাতে স্থির state, সেটার সীমা, আর দুটো মিশিয়ে hybrid; তারপর পুরোনো model থেকে জ্ঞান সরানো আর যা এখনো খোলা।",
+   "steps": [
+    "Transformer-এর বিকল্প — রৈখিক হিসাবের পরিবার",
+    "Linear Attention — Transformers are RNNs",
+    "DeltaNet — delta rule",
+    "Gated DeltaNet",
+    "State Space Model (SSM) পরিবার",
+    "Mamba — Selective State Space",
+    "Hybrid — একাধিক mixer একই model-এ",
+    "Knowledge Distillation",
+    "এক architecture থেকে আরেকটায় রূপান্তর",
+    "খোলা প্রশ্ন — যেখানে গবেষণার জায়গা আছে"
+   ]
   }
  ]
 }

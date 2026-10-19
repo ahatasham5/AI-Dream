@@ -5769,7 +5769,12 @@
                   }
                  ]
                 }
-               ]
+               ],
+               "jump": {
+                "to": "transformer",
+                "label": "Transformer-এর গল্প পড়ো",
+                "why": "Attention কেন এল, আর Transformer RNN-এর কোন সমস্যা মেটায়।"
+               }
               },
               {
                "id": "opt-sc-mix-linear",
@@ -5866,7 +5871,12 @@
                   }
                  ]
                 }
-               ]
+               ],
+               "jump": {
+                "to": "recurrent-alternatives",
+                "label": "linear attention পরিবারের গল্প",
+                "why": "Attention-এর খরচ কমাতে কেন স্থির state, আর Linear Attention থেকে DeltaNet পর্যন্ত ধাপগুলো।"
+               }
               },
               {
                "id": "opt-sc-mix-ssm",
@@ -5939,7 +5949,12 @@
                   }
                  ]
                 }
-               ]
+               ],
+               "jump": {
+                "to": "state-space-models",
+                "label": "SSM পরিবারের গল্প",
+                "why": "State থেকে S4, Mamba, Mamba-2 পর্যন্ত কীভাবে এল।"
+               }
               }
              ]
             },
@@ -6011,11 +6026,21 @@
                "kind": "option",
                "when": "মোট parameter বাড়াতে চাই, প্রতি token-এর খরচ কম রেখে",
                "basis": "paper",
-               "ref": "mixture-of-experts-moe"
+               "ref": "mixture-of-experts-moe",
+               "jump": {
+                "to": "mixture-of-experts-moe",
+                "label": "MoE-র গল্প",
+                "why": "মোট parameter আর সক্রিয় parameter কেন আলাদা হতে পারে।"
+               }
               }
              ]
             }
-           ]
+           ],
+           "jump": {
+            "to": "transformer-block",
+            "label": "block কী দিয়ে গড়া",
+            "why": "প্রতি block-এ mixer, FFN, normalization আর residual কীভাবে জোড়া লাগে তা Transformer block-এর গল্পে।"
+           }
           }
          ]
         },
