@@ -218,6 +218,9 @@
   },
   "kd-filter": {
    "slot": "kd_filter"
+  },
+  "kd-teachers": {
+   "slot": "kd_teachers"
   }
  },
  "labels": {
@@ -285,7 +288,8 @@
   "kd_access": "teacher-এর কতটুকু দেখা",
   "kd_arch": "student-এর গঠন",
   "kd_data": "সংকেত কোন text-এ",
-  "kd_filter": "teacher-এর উত্তর বাছাই"
+  "kd_filter": "teacher-এর উত্তর বাছাই",
+  "kd_teachers": "teacher-দের ভাগ"
  },
  "join": {
   "schedule": " + ",
@@ -500,7 +504,10 @@
   "opt-kd-filter-answer": "keep only answers that match the known correct answer",
   "opt-kd-filter-steps": "also check each reasoning step",
   "opt-kd-filter-agree": "keep answers the teacher repeats consistently",
-  "opt-kd-filter-human": "have people check risky cases"
+  "opt-kd-filter-human": "have people check risky cases",
+  "opt-kd-one-teacher": "one teacher for every example",
+  "opt-kd-teachers-split": "one teacher per language or task; each example learns from its own teacher",
+  "opt-kd-teachers-avg": "all teachers on every example; average their probabilities"
  },
  "templates": {
   "mode-finetune": [
@@ -523,6 +530,7 @@
    "?labeling labeling = {{labeling}}",
    "train, val, test = split(data, by = {{split}})   # test তুলে রাখো, শেষে একবারই দেখো",
    "signal = {{signal}}",
+   "?kd_teachers teachers = {{kd_teachers}}",
    "?kd_access teacher_access = {{kd_access}}",
    "?kd_arch student_architecture = {{kd_arch}}",
    "?kd_data distill_on = {{kd_data}}",
@@ -606,6 +614,7 @@
    "?data_tool data = load({{data_tool}})",
    "!data_tool data = load(your_dataset)",
    "?signal learning_signal = {{signal}}",
+   "?kd_teachers teachers = {{kd_teachers}}",
    "?kd_access teacher_access = {{kd_access}}",
    "?kd_arch student_architecture = {{kd_arch}}",
    "?kd_data distill_on = {{kd_data}}",

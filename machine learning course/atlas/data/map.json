@@ -6392,20 +6392,68 @@
              "id": "kd-multi-sc",
              "name": "একাধিক teacher থেকে শেখা",
              "kind": "info",
-             "definition": "একটা student-কে কয়েকটা teacher থেকে একসঙ্গে শেখানো যায়। সবচেয়ে সরল পথ: প্রতিটা teacher-এর probability গড় করে সেটাকে লক্ষ্য বানানো। যেমন teacher A [০.৯৫, ০.০৪৭, ০.০০২], B [০.৭৩, ০.২৬৮, ০.০০২] হলে গড় [০.৮৪, ০.১৫৮, ০.০০২]। Teacher যত বাড়ে, তাদের output জোগাড় আর ভুল যাচাই তত বাড়ে; tokenizer আলাদা হলে probability মেলানো জটিল।",
+             "definition": "একাধিক teacher থেকে শেখার দুই রকম। (১) ভাগ করে: প্রতিটা উদাহরণ তার ভাষা বা কাজের সেরা teacher থেকে, যেমন বাংলা উদাহরণ বাংলা teacher, আরবি আরবি teacher, ইংরেজি ইংরেজি teacher; student একটাই। (২) গড়: সব teacher প্রতিটা উদাহরণে, probability গড় করে এক লক্ষ্য। প্রথমটায় teacher-রা আলাদা ভাষার, তাই tokenizer আলাদা হতে পারে; তখন teacher-এর লেখা উত্তর দিয়ে শেখানো সহজ।",
              "insight": {
-              "fact": "Hinton et al.: একটা ensemble-এর জ্ঞান একটা model-এ ঢোকানো যায়। FuseLLM আলাদা architecture-এর কয়েকটা LLM-এর generative distribution একটা target model-এ জড়ো করেছে।",
+              "fact": "ভাগ করে শেখানোর প্রমাণ: ৪৪ ভাষা পর্যন্ত একটা student আলাদা model-গুলোর সমান বা ভালো (Tan et al.); balanced data দিলে দুর্বল ভাষায় ভালো, সবল ভাষায় একই (Limisiewicz et al.)। গড়ের প্রমাণ: ensemble এক model-এ (Hinton)।",
               "sources": [
+               {
+                "title": "Tan et al., ২০১৯",
+                "url": "https://arxiv.org/abs/1902.10461"
+               },
+               {
+                "title": "Limisiewicz et al., ২০২২",
+                "url": "https://arxiv.org/abs/2210.07135"
+               },
+               {
+                "title": "Bijoy et al., ২০২৫",
+                "url": "https://arxiv.org/abs/2506.08717"
+               },
                {
                 "title": "Hinton et al., ২০১৫",
                 "url": "https://arxiv.org/abs/1503.02531"
-               },
-               {
-                "title": "FuseLLM (Wan et al.), ২০২৪",
-                "url": "https://arxiv.org/abs/2401.10491"
                }
               ]
+             },
+             "mathDetail": {
+              "formula": "ভাগ করে:  loss(x) = KL( teacher_ভাষা(x)(x) ‖ student(x) )\nগড়:       loss(x) = KL( (teacher₁(x) + teacher₂(x) + …) ÷ n ‖ student(x) )",
+              "meaning": "দুটোতেই student একটা, loss একই KL। বদলায় শুধু লক্ষ্য কে দেয়: ভাগ করে হলে x-এর ভাষা যে teacher-এর, সে একাই; গড়ে হলে সব teacher-এর probability-র গড়।",
+              "example": "তিন উদাহরণ: [বাংলা বাক্য → বাংলা-teacher-এর probability], [আরবি বাক্য → আরবি-teacher-এর], [ইংরেজি বাক্য → ইংরেজি-teacher-এর]। প্রতিটায় student একই, শুধু লক্ষ্য-দাতা বদলায়। গড়ে হলে (যেমন দুই teacher [০.৯৫, ০.০৪৭, ০.০০২] ও [০.৭৩, ০.২৬৮, ০.০০২]) লক্ষ্য [০.৮৪, ০.১৫৮, ০.০০২]।"
              }
+            },
+            {
+             "id": "kd-teachers-sc",
+             "name": "কয়টা teacher, আর কীভাবে ভাগ করবে?",
+             "kind": "decision",
+             "pick": "one",
+             "need": "optional",
+             "needWhy": "না বাছলে একটাই teacher ধরা হয়; একাধিক হলে কোন উদাহরণ কোন teacher থেকে শিখবে, তা এই সিদ্ধান্ত",
+             "definition": "প্রশ্ন: teacher একটা, না কয়েকটা? কয়েকটা হলে দুই পথ: ভাগ করে (ভাষা বা কাজ ধরে প্রতিটা উদাহরণ তার সেরা teacher থেকে, যেমন বাংলা উদাহরণ বাংলা teacher থেকে), অথবা সবাই সব উদাহরণে আর probability গড় করে।",
+             "children": [
+              {
+               "id": "opt-kd-one-teacher-sc",
+               "name": "একটাই teacher",
+               "kind": "option",
+               "when": "সরল শুরু, একটা teacher-ই যথেষ্ট ভালো",
+               "basis": "course",
+               "definition": "সব উদাহরণ একই teacher থেকে শেখে। সবচেয়ে সরল: একটা teacher, একটা tokenizer, একটা loss। Teacher-এর ভুল আর সীমা student-এ যায়।"
+              },
+              {
+               "id": "opt-kd-teachers-split-sc",
+               "name": "ভাগ করে: ভাষা বা কাজ ধরে আলাদা teacher",
+               "kind": "option",
+               "when": "প্রতিটা ভাষা বা কাজে আলাদা সেরা teacher আছে, student একটাই চাই",
+               "basis": "paper",
+               "definition": "প্রতিটা উদাহরণ শেখে তার ভাষা বা কাজের জন্য সেরা teacher থেকে: বাংলা উদাহরণ বাংলা teacher থেকে, আরবি আরবি থেকে, ইংরেজি ইংরেজি থেকে। Loss একই, শুধু কোন teacher তা উদাহরণের ভাষাই ঠিক করে। Student একটাই, সব ভাষা শেখে।"
+              },
+              {
+               "id": "opt-kd-teachers-avg-sc",
+               "name": "সবাই সব উদাহরণে, probability গড় করে",
+               "kind": "option",
+               "when": "teacher-রা একই কাজে সমান ভালো, যেমন একই কাজের কয়েকটা model (ensemble)",
+               "basis": "paper",
+               "definition": "প্রতিটা উদাহরণে সব teacher-এর probability গড় করে একটা লক্ষ্য বানানো। Teacher-রা একই কাজে সমান ভালো হলে এটা ensemble-কে একটা model-এ ঢোকানোর পথ। আলাদা ভাষার teacher হলে এক ভাষার উদাহরণে অন্য ভাষার teacher-ও গড়ে ঢোকে।"
+              }
+             ]
             },
             {
              "id": "kd-access-sc",
@@ -8390,20 +8438,68 @@
                "id": "kd-multi",
                "name": "একাধিক teacher থেকে শেখা",
                "kind": "info",
-               "definition": "একটা student-কে কয়েকটা teacher থেকে একসঙ্গে শেখানো যায়। সবচেয়ে সরল পথ: প্রতিটা teacher-এর probability গড় করে সেটাকে লক্ষ্য বানানো। যেমন teacher A [০.৯৫, ০.০৪৭, ০.০০২], B [০.৭৩, ০.২৬৮, ০.০০২] হলে গড় [০.৮৪, ০.১৫৮, ০.০০২]। Teacher যত বাড়ে, তাদের output জোগাড় আর ভুল যাচাই তত বাড়ে; tokenizer আলাদা হলে probability মেলানো জটিল।",
+               "definition": "একাধিক teacher থেকে শেখার দুই রকম। (১) ভাগ করে: প্রতিটা উদাহরণ তার ভাষা বা কাজের সেরা teacher থেকে, যেমন বাংলা উদাহরণ বাংলা teacher, আরবি আরবি teacher, ইংরেজি ইংরেজি teacher; student একটাই। (২) গড়: সব teacher প্রতিটা উদাহরণে, probability গড় করে এক লক্ষ্য। প্রথমটায় teacher-রা আলাদা ভাষার, তাই tokenizer আলাদা হতে পারে; তখন teacher-এর লেখা উত্তর দিয়ে শেখানো সহজ।",
                "insight": {
-                "fact": "Hinton et al.: একটা ensemble-এর জ্ঞান একটা model-এ ঢোকানো যায়। FuseLLM আলাদা architecture-এর কয়েকটা LLM-এর generative distribution একটা target model-এ জড়ো করেছে।",
+                "fact": "ভাগ করে শেখানোর প্রমাণ: ৪৪ ভাষা পর্যন্ত একটা student আলাদা model-গুলোর সমান বা ভালো (Tan et al.); balanced data দিলে দুর্বল ভাষায় ভালো, সবল ভাষায় একই (Limisiewicz et al.)। গড়ের প্রমাণ: ensemble এক model-এ (Hinton)।",
                 "sources": [
+                 {
+                  "title": "Tan et al., ২০১৯",
+                  "url": "https://arxiv.org/abs/1902.10461"
+                 },
+                 {
+                  "title": "Limisiewicz et al., ২০২২",
+                  "url": "https://arxiv.org/abs/2210.07135"
+                 },
+                 {
+                  "title": "Bijoy et al., ২০২৫",
+                  "url": "https://arxiv.org/abs/2506.08717"
+                 },
                  {
                   "title": "Hinton et al., ২০১৫",
                   "url": "https://arxiv.org/abs/1503.02531"
-                 },
-                 {
-                  "title": "FuseLLM (Wan et al.), ২০২৪",
-                  "url": "https://arxiv.org/abs/2401.10491"
                  }
                 ]
+               },
+               "mathDetail": {
+                "formula": "ভাগ করে:  loss(x) = KL( teacher_ভাষা(x)(x) ‖ student(x) )\nগড়:       loss(x) = KL( (teacher₁(x) + teacher₂(x) + …) ÷ n ‖ student(x) )",
+                "meaning": "দুটোতেই student একটা, loss একই KL। বদলায় শুধু লক্ষ্য কে দেয়: ভাগ করে হলে x-এর ভাষা যে teacher-এর, সে একাই; গড়ে হলে সব teacher-এর probability-র গড়।",
+                "example": "তিন উদাহরণ: [বাংলা বাক্য → বাংলা-teacher-এর probability], [আরবি বাক্য → আরবি-teacher-এর], [ইংরেজি বাক্য → ইংরেজি-teacher-এর]। প্রতিটায় student একই, শুধু লক্ষ্য-দাতা বদলায়। গড়ে হলে (যেমন দুই teacher [০.৯৫, ০.০৪৭, ০.০০২] ও [০.৭৩, ০.২৬৮, ০.০০২]) লক্ষ্য [০.৮৪, ০.১৫৮, ০.০০২]।"
                }
+              },
+              {
+               "id": "kd-teachers",
+               "name": "কয়টা teacher, আর কীভাবে ভাগ করবে?",
+               "kind": "decision",
+               "pick": "one",
+               "need": "optional",
+               "needWhy": "না বাছলে একটাই teacher ধরা হয়; একাধিক হলে কোন উদাহরণ কোন teacher থেকে শিখবে, তা এই সিদ্ধান্ত",
+               "definition": "প্রশ্ন: teacher একটা, না কয়েকটা? কয়েকটা হলে দুই পথ: ভাগ করে (ভাষা বা কাজ ধরে প্রতিটা উদাহরণ তার সেরা teacher থেকে, যেমন বাংলা উদাহরণ বাংলা teacher থেকে), অথবা সবাই সব উদাহরণে আর probability গড় করে।",
+               "children": [
+                {
+                 "id": "opt-kd-one-teacher",
+                 "name": "একটাই teacher",
+                 "kind": "option",
+                 "when": "সরল শুরু, একটা teacher-ই যথেষ্ট ভালো",
+                 "basis": "course",
+                 "definition": "সব উদাহরণ একই teacher থেকে শেখে। সবচেয়ে সরল: একটা teacher, একটা tokenizer, একটা loss। Teacher-এর ভুল আর সীমা student-এ যায়।"
+                },
+                {
+                 "id": "opt-kd-teachers-split",
+                 "name": "ভাগ করে: ভাষা বা কাজ ধরে আলাদা teacher",
+                 "kind": "option",
+                 "when": "প্রতিটা ভাষা বা কাজে আলাদা সেরা teacher আছে, student একটাই চাই",
+                 "basis": "paper",
+                 "definition": "প্রতিটা উদাহরণ শেখে তার ভাষা বা কাজের জন্য সেরা teacher থেকে: বাংলা উদাহরণ বাংলা teacher থেকে, আরবি আরবি থেকে, ইংরেজি ইংরেজি থেকে। Loss একই, শুধু কোন teacher তা উদাহরণের ভাষাই ঠিক করে। Student একটাই, সব ভাষা শেখে।"
+                },
+                {
+                 "id": "opt-kd-teachers-avg",
+                 "name": "সবাই সব উদাহরণে, probability গড় করে",
+                 "kind": "option",
+                 "when": "teacher-রা একই কাজে সমান ভালো, যেমন একই কাজের কয়েকটা model (ensemble)",
+                 "basis": "paper",
+                 "definition": "প্রতিটা উদাহরণে সব teacher-এর probability গড় করে একটা লক্ষ্য বানানো। Teacher-রা একই কাজে সমান ভালো হলে এটা ensemble-কে একটা model-এ ঢোকানোর পথ। আলাদা ভাষার teacher হলে এক ভাষার উদাহরণে অন্য ভাষার teacher-ও গড়ে ঢোকে।"
+                }
+               ]
               },
               {
                "id": "kd-access",

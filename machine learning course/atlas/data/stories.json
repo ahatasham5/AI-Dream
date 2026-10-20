@@ -6598,8 +6598,8 @@
     "একাধিক teacher থেকে শেখা"
    ],
    "story": {
-    "problem": "একটা teacher-এর ভুল আর সীমা student-এ হুবহু যায়। কয়েকটা teacher মেলালে কি ভালো হয়?",
-    "idea": "প্রতিটা teacher-এর probability গড় করা সবচেয়ে সরল। Ensemble থেকে একটা model-এ জ্ঞান ঢোকানো যায় (Hinton), আর আলাদা architecture-এর LLM-ও (FuseLLM)। দাম: প্রতিটা teacher-এর output, আর tokenizer আলাদা হলে জটিলতা।",
+    "problem": "একটা teacher সব ভাষায় সমান ভালো নয়: বাংলায় এক model সেরা, আরবিতে আরেকটা, ইংরেজিতে আরেকটা। একটা student কি সবার সেরাটা শিখতে পারে?",
+    "idea": "হ্যাঁ, দুই পথে। ভাগ করে: প্রতিটা উদাহরণ তার ভাষার teacher থেকে শেখো, student একটাই (Tan: ৪৪ ভাষা পর্যন্ত)। অথবা সবার probability গড় করো (Hinton)। দাম: প্রতিটা teacher-এর output, ভাষা-প্রতি data-র ভারসাম্য, আর আলাদা tokenizer-এর জটিলতা।",
     "next": [
      {
       "to": "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই",

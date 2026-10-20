@@ -991,6 +991,18 @@
   "opt-kd-filter-human": {
    "why": "ভুলের দাম বেশি হলে মানুষের যাচাই সবচেয়ে নির্ভরযোগ্য ধাপ।",
    "tradeoff": "ধীর ও ব্যয়বহুল, তাই সাধারণত নমুনার ওপর।"
+  },
+  "opt-kd-one-teacher": {
+   "why": "সরল: একটা teacher, একটা tokenizer, একটা loss।",
+   "tradeoff": "Teacher-এর ভুল আর সীমা student-এ হুবহু যায় (distillation-এর মূল ঝুঁকি)।"
+  },
+  "opt-kd-teachers-split": {
+   "why": "প্রতিটা ভাষা বা কাজে সেরা teacher-এর জ্ঞান পায়, অথচ model একটাই: Tan et al.-এ ৪৪ ভাষা পর্যন্ত একটা student আলাদা model-গুলোর সমান বা ভালো।",
+   "tradeoff": "ভাষা-প্রতি data কতটা দেবে তা আলাদা সিদ্ধান্ত: Limisiewicz et al. balanced (sub-sample করা) data দিয়ে দুর্বল ভাষায় ভালো, সবল ভাষায় আগের ফল ধরে রেখেছে (abstract)। প্রতিটা ভাষার teacher জোগাড় ও আলাদা মাপ লাগে।"
+  },
+  "opt-kd-teachers-avg": {
+   "why": "ensemble-এর জ্ঞান একটা model-এ ঢোকে (Hinton et al.); কয়েকটা teacher এক student-এ, একই computational complexity-তে সাধারণ পদ্ধতির চেয়ে ভালো (Zuchniak)।",
+   "tradeoff": "সবাইকে সমান গুরুত্ব দেওয়া সবসময় ভালো নয়, এমন দাবি survey-সারাংশে (আমি সরাসরি যাচাই করিনি); আলাদা ভাষার teacher হলে এক ভাষার উদাহরণে অন্য ভাষার teacher-এর output গড়ে মিশে যাবে (আমার যুক্তি, সূত্রের দাবি নয়)।"
   }
  }
 }

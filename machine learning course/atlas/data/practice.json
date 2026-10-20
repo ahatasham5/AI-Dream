@@ -2952,27 +2952,38 @@
     "একাধিক teacher থেকে শেখা"
    ],
    "practice": {
-    "scenario": "কয়েকটা আলাদা model একেকটা কাজে ভালো; সবার জ্ঞান একটা ছোট model-এ আনতে চাই।",
+    "scenario": "বাংলা, আরবি আর ইংরেজির আলাদা তিনটা teacher আছে; একটাই ছোট student চাই যে তিন ভাষাই চালায়: প্রতিটা উদাহরণ তার ভাষার teacher থেকে।",
     "facts": [
      {
-      "t": "একটা ensemble-এর জ্ঞান একটা model-এ সংকুচিত করা সম্ভব, যা চালানো সহজ; একটা বাণিজ্যিক acoustic model ensemble-কে distill করে 'significantly' উন্নত হয়েছে।",
+      "t": "আলাদা ভাষা-জোড়ার model আগে teacher হিসেবে train হয়, তারপর একটা বহুভাষী model data আর ওই teacher-দের output একসঙ্গে মেলাতে শেখে; ৪৪ ভাষা পর্যন্ত একটা model আলাদা model-গুলোর 'comparable or even better' accuracy পেয়েছে।",
+      "s": "Tan et al., ২০১৯ (abstract)",
+      "u": "https://arxiv.org/abs/1902.10461"
+     },
+     {
+      "t": "ভাষা-ভিত্তিক teacher আর balanced (sub-sample করা) data দিয়ে একটা বহুভাষী student: দুর্বল (low-resource) ভাষায় সাধারণ training-কে ছাড়ায়, সবল ভাষায় আগের ফল ধরে রাখে, একই পরিমাণ data-তে।",
+      "s": "Limisiewicz et al., ২০২২ (abstract)",
+      "u": "https://arxiv.org/abs/2210.07135"
+     },
+     {
+      "t": "Wav2Vec2.0-ভিত্তিক একভাষী teacher থেকে একটা বহুভাষী student (speech emotion recognition): ইংরেজিতে weighted recall ৭২.৯, ফিনিশে unweighted recall ৬৩.৪, fine-tuning ও সাধারণ distillation baseline ছাড়িয়ে; abstract-এ বলা নেই কোন teacher কীভাবে বরাদ্দ হয়।",
+      "s": "Bijoy et al., ২০২৫ (abstract)",
+      "u": "https://arxiv.org/abs/2506.08717"
+     },
+     {
+      "t": "ensemble-এর জ্ঞান একটা model-এ সংকুচিত করা সম্ভব (গড়-করার পথ)।",
       "s": "Hinton et al., ২০১৫ (abstract)",
       "u": "https://arxiv.org/abs/1503.02531"
      },
      {
-      "t": "Multi-teacher distillation কয়েকটা teacher-এর জ্ঞান একটা student-এ জড়ো করে, একই computational complexity-তে সাধারণ পদ্ধতির চেয়ে ভালো model পেয়েছে; লেখক সব teacher-এর উত্তর একসঙ্গে নকল করার নিজের পদ্ধতি দেন।",
+      "t": "কয়েকটা teacher-এর জ্ঞান একটা student-এ, একই computational complexity-তে সাধারণ পদ্ধতির চেয়ে ভালো model।",
       "s": "Zuchniak, ২০২৩ (abstract)",
       "u": "https://arxiv.org/abs/2302.07215"
-     },
-     {
-      "t": "FuseLLM: আলাদা architecture-এর তিনটা LLM (Llama-2, MPT, OpenLLaMA)-এর generative distribution একটা target LLM-এ জড়ো; reasoning, commonsense আর code-এ উন্নতি জানানো হয়েছে।",
-      "s": "FuseLLM (Wan et al.), ২০২৪ (abstract)",
-      "u": "https://arxiv.org/abs/2401.10491"
      }
     ],
     "pitfalls": [
-     "Teacher-দের tokenizer আলাদা হলে token ধরে probability মেলানো জটিল (কোর্সের Response distillation পাঠ); FuseLLM ঠিক এই আলাদা-architecture সমস্যা মেটাতেই বানানো, সহজ গড়ে হয় না।",
-     "সব teacher-কে সমান গুরুত্ব দেওয়া সবসময় ভালো নয়, এমন দাবি survey-গুলোর সারাংশে পেয়েছি; আমি সেগুলোর পাতা সরাসরি পড়িনি।"
+     "Teacher-দের tokenizer আলাদা হলে token ধরে probability মেলানো জটিল (কোর্সের Response distillation পাঠ); ভাগ করে শেখাতে teacher-এর লেখা উত্তর (text) দিয়ে শেখানো সহজ।",
+     "ভাষা-প্রতি data সমান না হলে কী হয় তার সরাসরি প্রমাণ এখানে নেই; Limisiewicz et al. শুধু balanced data নিয়েছে, তাই একটা সিদ্ধান্ত হিসেবে রাখা।",
+     "'সব teacher-কে সমান গুরুত্ব দেওয়া সবসময় ভালো নয়' দাবিটা survey-সারাংশ থেকে, সরাসরি যাচাই হয়নি।"
     ],
     "outside": "এই বিষয় কোর্সে নেই; সূত্র paper-এর abstract থেকে।"
    }
