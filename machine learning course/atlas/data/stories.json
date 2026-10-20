@@ -6569,6 +6569,48 @@
      }
     ]
    }
+  },
+  {
+   "names": [
+    "Fine-tuning বনাম Distillation: একই লুপ, শুধু লক্ষ্য আলাদা"
+   ],
+   "story": {
+    "problem": "Fine-tuning-এ data দেখে ঠিক উত্তরের সাথে মেলাই। Distillation-এ তাহলে কী বদলায়? Data কি লাগে না?",
+    "idea": "Data লাগে, একই লুপও: উদাহরণ, output, loss, update। বদলায় শুধু লক্ষ্য: মানুষের label-এর জায়গায় (বা সাথে) teacher-এর output। Teacher স্থির, শেখে শুধু student।",
+    "next": [
+     {
+      "to": "Teacher ও Student",
+      "why": "কে কার থেকে শেখে"
+     },
+     {
+      "to": "Response ও Sequence Distillation",
+      "why": "teacher শুধু text দিলে"
+     },
+     {
+      "to": "Distillation loss — KL divergence",
+      "why": "teacher-এর probability পেলে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "একাধিক teacher থেকে শেখা"
+   ],
+   "story": {
+    "problem": "একটা teacher-এর ভুল আর সীমা student-এ হুবহু যায়। কয়েকটা teacher মেলালে কি ভালো হয়?",
+    "idea": "প্রতিটা teacher-এর probability গড় করা সবচেয়ে সরল। Ensemble থেকে একটা model-এ জ্ঞান ঢোকানো যায় (Hinton), আর আলাদা architecture-এর LLM-ও (FuseLLM)। দাম: প্রতিটা teacher-এর output, আর tokenizer আলাদা হলে জটিলতা।",
+    "next": [
+     {
+      "to": "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই",
+      "why": "একাধিক teacher-এ ভুল কীভাবে ধরবে"
+     },
+     {
+      "to": "Distillation loss — KL divergence",
+      "why": "গড়-করা লক্ষ্যে loss কীভাবে"
+     }
+    ]
+   }
   }
  ]
 }

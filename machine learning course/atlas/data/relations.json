@@ -735,6 +735,27 @@
    "type": "needs",
    "why": "Soft Target ধারণা আগে: target যখন একটা probability-র তালিকা",
    "basis": "concept"
+  },
+  {
+   "from": "kd-flow",
+   "to": "gradient-step",
+   "type": "needs",
+   "why": "training-লুপের একটা ধাপ কী, তা আগে",
+   "basis": "concept"
+  },
+  {
+   "from": "kd-l01",
+   "to": "kd-flow",
+   "type": "needs",
+   "why": "আগে দেখো ডেটা-লুপে কী বদলায়, তারপর teacher ও student",
+   "basis": "concept"
+  },
+  {
+   "from": "kd-multi",
+   "to": "kd-l04",
+   "type": "needs",
+   "why": "গড়-করা লক্ষ্যে loss একই KL",
+   "basis": "concept"
   }
  ]
 }

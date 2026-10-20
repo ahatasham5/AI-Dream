@@ -6311,6 +6311,20 @@
            },
            "children": [
             {
+             "id": "kd-flow-sc",
+             "name": "Fine-tuning বনাম Distillation: একই লুপ, শুধু লক্ষ্য আলাদা",
+             "kind": "info",
+             "definition": "দুটোতেই একই কাজ: data-র উদাহরণ model-এ দাও, output লক্ষ্যের সাথে মেলাও, loss থেকে parameter বদলাও। Data (প্রশ্ন বা লেখা) দুটোতেই লাগে। পার্থক্য শুধু লক্ষ্য কোথা থেকে আসে: fine-tuning-এ মানুষের দেওয়া ঠিক উত্তর (label), distillation-এ teacher সেই একই উদাহরণ দেখে যে output দেয়। Teacher স্থির থাকে, শেখে শুধু student।",
+             "mathDetail": {
+              "formula": "fine-tuning:  loss = CE(student, ঠিক label)\ndistillation: loss = CE(student, ঠিক label) + T² × KL(teacher ‖ student)",
+              "meaning": "লুপ একই: উদাহরণ → student-এর output → loss → gradient → update। বদলায় শুধু loss-এর লক্ষ্য। Teacher-এর output আগে বানিয়ে রাখা যায় (offline) বা student-এর লেখার ওপর প্রতি ধাপে নেওয়া যায় (on-policy)।",
+              "example": "একটা উদাহরণ, তিন class। ঠিক label [১, ০, ০]। Teacher-এর logits [৫, ২, −১] থেকে probability [০.৯৫০, ০.০৪৭, ০.০০২]। Student-এর এখনকার probability [০.৭০৫, ০.২৫৯, ০.০৩৫]। Fine-tuning-এ লক্ষ্য শুধু [১, ০, ০]: loss = −ln ০.৭০৫ = ০.৩৪৯। Distillation-এ student-কে teacher-এর [০.৯৫০, ০.০৪৭, ০.০০২]-এর কাছেও আনা হয়: KL = ০.১৯৬, আর logit-এর gradient (q − p) = [−০.২৪৫, ০.২১২, ০.০৩৩]: প্রথমটা কম দিয়েছে তাই বাড়বে, বাকি দুটো বেশি দিয়েছে তাই কমবে।"
+             },
+             "insight": {
+              "fact": "Data ছাড়া distillation হয় না: teacher-কে দেখানোর উদাহরণ লাগেই। শুধু ঠিক উত্তরটা মানুষকে দিতে হয় না, সেটা teacher দেয় (কোর্সের Response distillation পাঠে teacher-এর লেখা উত্তরই student-এর training data)।"
+             }
+            },
+            {
              "id": "kd-course-sc",
              "name": "Distillation-এর পাঠক্রম",
              "kind": "info",
@@ -6373,6 +6387,25 @@
                "definition": "Distillation শেখার signal বদলায়, quantization precision বদলায়, LoRA কোন parameter শেখা হবে তা বদলায়: তিনটা আলাদা সমস্যায় কাজ করে। ৭B model ১৬-bit-এ ১৪.০ GB, ৪-bit-এ ৩.৫ GB। Memory না কমলে LoRA সমাধান নয়; ছোট student বা quantization দরকার। যেকোনো পদ্ধতির পরে একই held-out data-য় মান, latency আর memory মাপতে হয়।"
               }
              ]
+            },
+            {
+             "id": "kd-multi-sc",
+             "name": "একাধিক teacher থেকে শেখা",
+             "kind": "info",
+             "definition": "একটা student-কে কয়েকটা teacher থেকে একসঙ্গে শেখানো যায়। সবচেয়ে সরল পথ: প্রতিটা teacher-এর probability গড় করে সেটাকে লক্ষ্য বানানো। যেমন teacher A [০.৯৫, ০.০৪৭, ০.০০২], B [০.৭৩, ০.২৬৮, ০.০০২] হলে গড় [০.৮৪, ০.১৫৮, ০.০০২]। Teacher যত বাড়ে, তাদের output জোগাড় আর ভুল যাচাই তত বাড়ে; tokenizer আলাদা হলে probability মেলানো জটিল।",
+             "insight": {
+              "fact": "Hinton et al.: একটা ensemble-এর জ্ঞান একটা model-এ ঢোকানো যায়। FuseLLM আলাদা architecture-এর কয়েকটা LLM-এর generative distribution একটা target model-এ জড়ো করেছে।",
+              "sources": [
+               {
+                "title": "Hinton et al., ২০১৫",
+                "url": "https://arxiv.org/abs/1503.02531"
+               },
+               {
+                "title": "FuseLLM (Wan et al.), ২০২৪",
+                "url": "https://arxiv.org/abs/2401.10491"
+               }
+              ]
+             }
             },
             {
              "id": "kd-access-sc",
@@ -8276,6 +8309,20 @@
              },
              "children": [
               {
+               "id": "kd-flow",
+               "name": "Fine-tuning বনাম Distillation: একই লুপ, শুধু লক্ষ্য আলাদা",
+               "kind": "info",
+               "definition": "দুটোতেই একই কাজ: data-র উদাহরণ model-এ দাও, output লক্ষ্যের সাথে মেলাও, loss থেকে parameter বদলাও। Data (প্রশ্ন বা লেখা) দুটোতেই লাগে। পার্থক্য শুধু লক্ষ্য কোথা থেকে আসে: fine-tuning-এ মানুষের দেওয়া ঠিক উত্তর (label), distillation-এ teacher সেই একই উদাহরণ দেখে যে output দেয়। Teacher স্থির থাকে, শেখে শুধু student।",
+               "mathDetail": {
+                "formula": "fine-tuning:  loss = CE(student, ঠিক label)\ndistillation: loss = CE(student, ঠিক label) + T² × KL(teacher ‖ student)",
+                "meaning": "লুপ একই: উদাহরণ → student-এর output → loss → gradient → update। বদলায় শুধু loss-এর লক্ষ্য। Teacher-এর output আগে বানিয়ে রাখা যায় (offline) বা student-এর লেখার ওপর প্রতি ধাপে নেওয়া যায় (on-policy)।",
+                "example": "একটা উদাহরণ, তিন class। ঠিক label [১, ০, ০]। Teacher-এর logits [৫, ২, −১] থেকে probability [০.৯৫০, ০.০৪৭, ০.০০২]। Student-এর এখনকার probability [০.৭০৫, ০.২৫৯, ০.০৩৫]। Fine-tuning-এ লক্ষ্য শুধু [১, ০, ০]: loss = −ln ০.৭০৫ = ০.৩৪৯। Distillation-এ student-কে teacher-এর [০.৯৫০, ০.০৪৭, ০.০০২]-এর কাছেও আনা হয়: KL = ০.১৯৬, আর logit-এর gradient (q − p) = [−০.২৪৫, ০.২১২, ০.০৩৩]: প্রথমটা কম দিয়েছে তাই বাড়বে, বাকি দুটো বেশি দিয়েছে তাই কমবে।"
+               },
+               "insight": {
+                "fact": "Data ছাড়া distillation হয় না: teacher-কে দেখানোর উদাহরণ লাগেই। শুধু ঠিক উত্তরটা মানুষকে দিতে হয় না, সেটা teacher দেয় (কোর্সের Response distillation পাঠে teacher-এর লেখা উত্তরই student-এর training data)।"
+               }
+              },
+              {
                "id": "kd-course",
                "name": "Distillation-এর পাঠক্রম",
                "kind": "info",
@@ -8338,6 +8385,25 @@
                  "definition": "Distillation শেখার signal বদলায়, quantization precision বদলায়, LoRA কোন parameter শেখা হবে তা বদলায়: তিনটা আলাদা সমস্যায় কাজ করে। ৭B model ১৬-bit-এ ১৪.০ GB, ৪-bit-এ ৩.৫ GB। Memory না কমলে LoRA সমাধান নয়; ছোট student বা quantization দরকার। যেকোনো পদ্ধতির পরে একই held-out data-য় মান, latency আর memory মাপতে হয়।"
                 }
                ]
+              },
+              {
+               "id": "kd-multi",
+               "name": "একাধিক teacher থেকে শেখা",
+               "kind": "info",
+               "definition": "একটা student-কে কয়েকটা teacher থেকে একসঙ্গে শেখানো যায়। সবচেয়ে সরল পথ: প্রতিটা teacher-এর probability গড় করে সেটাকে লক্ষ্য বানানো। যেমন teacher A [০.৯৫, ০.০৪৭, ০.০০২], B [০.৭৩, ০.২৬৮, ০.০০২] হলে গড় [০.৮৪, ০.১৫৮, ০.০০২]। Teacher যত বাড়ে, তাদের output জোগাড় আর ভুল যাচাই তত বাড়ে; tokenizer আলাদা হলে probability মেলানো জটিল।",
+               "insight": {
+                "fact": "Hinton et al.: একটা ensemble-এর জ্ঞান একটা model-এ ঢোকানো যায়। FuseLLM আলাদা architecture-এর কয়েকটা LLM-এর generative distribution একটা target model-এ জড়ো করেছে।",
+                "sources": [
+                 {
+                  "title": "Hinton et al., ২০১৫",
+                  "url": "https://arxiv.org/abs/1503.02531"
+                 },
+                 {
+                  "title": "FuseLLM (Wan et al.), ২০২৪",
+                  "url": "https://arxiv.org/abs/2401.10491"
+                 }
+                ]
+               }
               },
               {
                "id": "kd-access",

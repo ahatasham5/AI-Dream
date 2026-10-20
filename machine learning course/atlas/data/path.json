@@ -127,6 +127,7 @@
    "intro": "Teacher থেকে student শেখা: কী মেলাবে, কোন text-এ, ভুল কীভাবে ঠেকাবে; তারপর আলাদা গঠনে নেওয়া আর যা এখনো খোলা।",
    "steps": [
     "Knowledge Distillation",
+    "Fine-tuning বনাম Distillation: একই লুপ, শুধু লক্ষ্য আলাদা",
     "Teacher ও Student",
     "Response ও Sequence Distillation",
     "Soft target ও temperature",
@@ -135,6 +136,7 @@
     "On-policy বনাম offline distillation",
     "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই",
     "Distillation, quantization ও LoRA — কখন কোনটা",
+    "একাধিক teacher থেকে শেখা",
     "এক architecture থেকে আরেকটায় রূপান্তর",
     "খোলা প্রশ্ন — যেখানে গবেষণার জায়গা আছে"
    ]

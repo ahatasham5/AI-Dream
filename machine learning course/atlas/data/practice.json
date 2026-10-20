@@ -2930,6 +2930,52 @@
     ],
     "outside": "Hyperparameter বাছাই ও grid কোর্সে আছে; random বনাম grid-এর যুক্তি কোর্সে নেই।"
    }
+  },
+  {
+   "names": [
+    "Fine-tuning বনাম Distillation: একই লুপ, শুধু লক্ষ্য আলাদা"
+   ],
+   "practice": {
+    "scenario": "একই প্রশ্ন-তালিকা দুই উপায়ে: মানুষের লেখা উত্তর দিয়ে fine-tune, বা বড় teacher-কে প্রশ্ন করে তার উত্তর (আর চাইলে probability) দিয়ে distill।",
+    "facts": [],
+    "typical": [
+     "Teacher-কে দেখানোর উদাহরণ (প্রশ্ন বা লেখা) আগে জোগাড় করতে হয়; শুধু ঠিক উত্তরের জায়গায় teacher-এর output।"
+    ],
+    "pitfalls": [
+     "'Distillation-এ data লাগে না' ধরে নেওয়া: input লাগেই, না লাগে শুধু মানুষের label।"
+    ],
+    "outside": "এই ধারণা কোর্সে (Module 18-এর প্রথম ও চতুর্থ পাঠ) আছে; পাশাপাশি তুলনার ছকটা এখানে।"
+   }
+  },
+  {
+   "names": [
+    "একাধিক teacher থেকে শেখা"
+   ],
+   "practice": {
+    "scenario": "কয়েকটা আলাদা model একেকটা কাজে ভালো; সবার জ্ঞান একটা ছোট model-এ আনতে চাই।",
+    "facts": [
+     {
+      "t": "একটা ensemble-এর জ্ঞান একটা model-এ সংকুচিত করা সম্ভব, যা চালানো সহজ; একটা বাণিজ্যিক acoustic model ensemble-কে distill করে 'significantly' উন্নত হয়েছে।",
+      "s": "Hinton et al., ২০১৫ (abstract)",
+      "u": "https://arxiv.org/abs/1503.02531"
+     },
+     {
+      "t": "Multi-teacher distillation কয়েকটা teacher-এর জ্ঞান একটা student-এ জড়ো করে, একই computational complexity-তে সাধারণ পদ্ধতির চেয়ে ভালো model পেয়েছে; লেখক সব teacher-এর উত্তর একসঙ্গে নকল করার নিজের পদ্ধতি দেন।",
+      "s": "Zuchniak, ২০২৩ (abstract)",
+      "u": "https://arxiv.org/abs/2302.07215"
+     },
+     {
+      "t": "FuseLLM: আলাদা architecture-এর তিনটা LLM (Llama-2, MPT, OpenLLaMA)-এর generative distribution একটা target LLM-এ জড়ো; reasoning, commonsense আর code-এ উন্নতি জানানো হয়েছে।",
+      "s": "FuseLLM (Wan et al.), ২০২৪ (abstract)",
+      "u": "https://arxiv.org/abs/2401.10491"
+     }
+    ],
+    "pitfalls": [
+     "Teacher-দের tokenizer আলাদা হলে token ধরে probability মেলানো জটিল (কোর্সের Response distillation পাঠ); FuseLLM ঠিক এই আলাদা-architecture সমস্যা মেটাতেই বানানো, সহজ গড়ে হয় না।",
+     "সব teacher-কে সমান গুরুত্ব দেওয়া সবসময় ভালো নয়, এমন দাবি survey-গুলোর সারাংশে পেয়েছি; আমি সেগুলোর পাতা সরাসরি পড়িনি।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper-এর abstract থেকে।"
+   }
   }
  ]
 }

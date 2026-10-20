@@ -1,5 +1,25 @@
 # Changelog — ML Learning Atlas
 
+## ২০২৬-১০-২০ (২৪) — Distillation-এ আসলে কী ঘটে, আর একাধিক teacher
+
+### সমস্যা (আপনার ধরা ফাঁক)
+map থেকে বোঝা যাচ্ছিল না distillation-এ ডেটার ভূমিকা কী: fine-tuning-এ ডেটা থেকে ঠিক উত্তরের সাথে মেলাই, কিন্তু distillation-এ তাহলে কী করা হয়, ডেটা লাগে কি না। আর একাধিক teacher থেকে শেখা যায় কি না, তা map-এ ছিলই না।
+
+### পরিবর্তন
+- **নতুন node "Fine-tuning বনাম Distillation: একই লুপ, শুধু লক্ষ্য আলাদা"** (Knowledge Distillation-এর প্রথম সন্তান, Fine-tuning ও From-scratch দুই কপিতে): সংজ্ঞা, দুই loss পাশাপাশি, আর একটা সংখ্যার উদাহরণ (ঠিক label [১,০,০], teacher [০.৯৫০, ০.০৪৭, ০.০০২], student [০.৭০৫, ০.২৫৯, ০.০৩৫]; fine-tuning loss ০.৩৪৯, KL ০.১৯৬, gradient q−p)। সংখ্যা Python-এ হিসাব করা।
+- **নতুন node "একাধিক teacher থেকে শেখা"** (দুই কপিতে): গড়-করা probability, দুই teacher-এর হাতে-হিসাবের উদাহরণ, তিনটা সূত্র (Hinton ২০১৫, Zuchniak ২০২৩, FuseLLM ২০২৪; প্রতিটার abstract পড়া) আর দুটো সতর্কতা।
+- গল্প দুটো, সূত্রসহ practice দুটো, সম্পর্ক তিনটা (`kd-flow` ← Gradient Step; Teacher ও Student ← `kd-flow`; `kd-multi` ← Distillation loss), গল্পের পথের অধ্যায় ১০-এ দুটো নতুন ধাপ, `kd-flow`-এর পাঠ-link (Module 18-এর ০১ ও ০৪)।
+- পড়ার ক্রম এখন Distillation পাঠ শুরুর আগে "Gradient Step → এই তুলনা" দিয়ে চলে।
+
+### যাচাই
+- `bash atlas/check.sh` পাস (৫৬টা data test, ৭৭টা Node test)।
+- browser-এ: node খোলে, হিসাবের সংখ্যা দেখায়, সম্পর্ক ও গল্প আসে; From-scratch-এর কপিতেও (`kd-multi-sc`), সম্পর্ক মূল node থেকে।
+
+### সীমা
+- "সব teacher-কে সমান গুরুত্ব দেওয়া সবসময় ভালো নয়" দাবিটা survey-গুলোর search-সারাংশ থেকে, আমি ওই paper-এর পাতা সরাসরি পড়িনি; node-এও সেটাই লেখা।
+- একাধিক teacher কীভাবে *ওজন* করবে (সমান, না শেখা-ওজন) তা নিয়ে সিদ্ধান্ত বসাইনি; শুধু ধারণা ও সূত্র।
+- এই দুটো নতুন node-এর আওয়াজ শোনা হয়নি (audio-pack এখনো বানানো হয়নি)।
+
 ## ২০২৬-১০-১৯ (২৩) — jump আর গাছ নাড়ায় না; "← ফিরে যাও"
 
 ### সমস্যা (আপনার ধরা বাগ)
