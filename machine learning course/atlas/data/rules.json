@@ -1,0 +1,231 @@
+{
+ "_নিয়ম": "বাছাইয়ের বিরোধ ও নির্ভরতা। kind: conflict (লাল: একসঙ্গে চলে না), warn (সতর্কতা), requires (অ্যাম্বার: 'if' বাছলে 'anyOf'-এর অন্তত একটা লাগে)। 'if' সবগুলো বাছা হলে এবং 'with'-এর যেকোনোটা বাছা হলে conflict/warn; requires-এ 'anyOf'-এর কোনোটাই বাছা না থাকলে। প্রতিটা নিয়মের সূত্র লাগে (course-এর lecture বা paper)। সবই কোর্স বা paper থেকে মেলানো; আন্দাজের নিয়ম নয়।",
+ "rules": [
+  {
+   "id": "merge-vs-nonmergeable",
+   "kind": "conflict",
+   "if": [
+    "opt-deploy-merge"
+   ],
+   "with": [
+    "adapter-layer",
+    "soft-prompt-prefix"
+   ],
+   "text": "merge করে একটাই model বানানো যাবে না: bottleneck adapter সাধারণত merge হয় না, আর soft prompt/prefix কোনো weight বদলায় না, বাড়তি vector জোড়ে। 'base + adapter আলাদা' বাছো।",
+   "src": "Module 13, Lecture 13",
+   "path": "module-13-pretraining-finetuning-and-lora/lecture-13-other-peft-adapters-prompts-ia3.md"
+  },
+  {
+   "id": "merge-on-quantized",
+   "kind": "warn",
+   "if": [
+    "opt-deploy-merge"
+   ],
+   "with": [
+    "qlora",
+    "loftq"
+   ],
+   "text": "quantized base-এ merge করতে base-এর মান ফিরিয়ে ΔW যোগ করে আবার কম bit-এ রাখতে হয়; এই দ্বিতীয় rounding-এ output সামান্য সরতে পারে। merge-এর পর test input-এ মিলিয়ে দেখো।",
+   "src": "Module 13, Lecture 09",
+   "path": "module-13-pretraining-finetuning-and-lora/lecture-09-merge-save-load.md"
+  },
+  {
+   "id": "sft-needs-pairs",
+   "kind": "requires",
+   "if": [
+    "supervised-fine-tuning-sft"
+   ],
+   "anyOf": [
+    "opt-fmt-qa",
+    "opt-fmt-chat",
+    "opt-fmt-image-text",
+    "opt-fmt-image-label",
+    "opt-fmt-audio-text",
+    "opt-fmt-tabular"
+   ],
+   "text": "SFT-র জন্য input→target জোড়ার data-ছাঁচ লাগে (প্রশ্ন–উত্তর, chat, ছবি+লেখা, ছবি+label, অডিও+transcript বা ছক); 'data-র format কী?'-তে একটা বাছো।",
+   "src": "Module 15, Lecture 02",
+   "path": "module-15-domain-and-task-adaptation/lecture-02-sft-and-instruction-tuning.md"
+  },
+  {
+   "id": "cpt-needs-text",
+   "kind": "requires",
+   "if": [
+    "continued-pretraining"
+   ],
+   "anyOf": [
+    "opt-fmt-text"
+   ],
+   "text": "Continued Pretraining-এ label লাগে না, নথিই data: data-ছাঁচে 'শুধু text' বাছো।",
+   "src": "Module 15, Lecture 04",
+   "path": "module-15-domain-and-task-adaptation/lecture-04-continued-pretraining-dapt-tapt.md"
+  },
+  {
+   "id": "pref-needs-pairs",
+   "kind": "requires",
+   "if": [
+    "preference-optimization"
+   ],
+   "anyOf": [
+    "opt-fmt-pref"
+   ],
+   "text": "Preference optimization-এ প্রতিটা prompt-এর সঙ্গে chosen ও rejected উত্তর লাগে: data-ছাঁচে 'তুলনা-জোড়া' বাছো।",
+   "src": "Module 16, Lecture 01",
+   "path": "module-16-preference-learning-and-dpo/lecture-01-preference-data.md"
+  },
+  {
+   "id": "pairs-need-preference-or-rl",
+   "kind": "requires",
+   "if": [
+    "opt-fmt-pref"
+   ],
+   "anyOf": [
+    "preference-optimization",
+    "rl-based-tuning"
+   ],
+   "text": "তুলনা-জোড়া কাজে লাগে preference optimization বা RL-ভিত্তিক tuning-এ (reward model ওই তুলনা থেকেই শেখে, InstructGPT)। 'কী থেকে শিখবে?'-তে সেটা বাছো।",
+   "src": "Module 16, Lecture 01; InstructGPT paper",
+   "path": "module-16-preference-learning-and-dpo/lecture-01-preference-data.md"
+  },
+  {
+   "id": "raw-text-needs-cpt",
+   "kind": "requires",
+   "if": [
+    "opt-fmt-text"
+   ],
+   "anyOf": [
+    "continued-pretraining"
+   ],
+   "text": "label-ছাড়া text ('শুধু text') শেখার সংকেত হিসেবে Continued Pretraining-এর সঙ্গে চলে; 'কী থেকে শিখবে?'-তে সেটা বাছো।",
+   "src": "Module 15, Lecture 04",
+   "path": "module-15-domain-and-task-adaptation/lecture-04-continued-pretraining-dapt-tapt.md"
+  },
+  {
+   "id": "lora-lr-on-full",
+   "kind": "warn",
+   "if": [
+    "opt-lr-lora"
+   ],
+   "with": [
+    "full-fine-tuning"
+   ],
+   "text": "2e-4 LoRA/QLoRA-র শুরুর বিন্দু। Full fine-tuning-এ paper-এর খোঁজা পরিসর 1e-6 থেকে 5e-5; বড় learning rate আগের জ্ঞান নষ্ট করতে পারে।",
+   "src": "QLoRA paper (arXiv 2305.14314)",
+   "url": "https://arxiv.org/abs/2305.14314"
+  },
+  {
+   "id": "full-lr-on-peft",
+   "kind": "warn",
+   "if": [
+    "opt-lr-full"
+   ],
+   "with": [
+    "parameter-efficient-fine-tuning-peft"
+   ],
+   "text": "1e-6 থেকে 5e-5 full fine-tuning-এর খোঁজা পরিসর। LoRA-ধরনে QLoRA paper 2e-4 ব্যবহার করেছিল; এত ছোট মানে শেখা খুব ধীর হতে পারে। নিজে মেপে নাও।",
+   "src": "QLoRA paper (arXiv 2305.14314)",
+   "url": "https://arxiv.org/abs/2305.14314"
+  },
+  {
+   "id": "gguf-needs-llamacpp",
+   "kind": "requires",
+   "if": [
+    "opt-gguf"
+   ],
+   "anyOf": [
+    "tool-llamacpp",
+    "tool-ollama"
+   ],
+   "text": "GGUF llama.cpp-এর ফরম্যাট; Ollama-ও GGUF import করে। serving engine হিসেবে llama.cpp বা Ollama না বাছলে এই ফরম্যাট কাজে আসে না।",
+   "src": "llama.cpp README; Ollama docs (import)",
+   "url": "https://github.com/ollama/ollama/blob/main/docs/import.mdx"
+  },
+  {
+   "id": "hybrid-needs-layout-attn-linear",
+   "kind": "requires",
+   "if": [
+    "opt-sc-mix-attn",
+    "opt-sc-mix-linear"
+   ],
+   "anyOf": [
+    "opt-sc-layout-interleave",
+    "opt-sc-layout-parallel"
+   ],
+   "text": "full attention আর linear attention, দুই ধরনের mixer বাছলে সাজানোর ছক ঠিক করতে হয়: layer ধরে পালা করে (অনুপাতসহ, যেমন Jamba ১:৭, Qwen3-Next ১:৩) অথবা একই layer-এ সমান্তরাল head (Hymba)।",
+   "src": "Jamba paper; Qwen3-Next model card",
+   "url": "https://arxiv.org/abs/2403.19887"
+  },
+  {
+   "id": "hybrid-vs-uniform-attn-linear",
+   "kind": "conflict",
+   "if": [
+    "opt-sc-mix-attn",
+    "opt-sc-layout-uniform"
+   ],
+   "with": [
+    "opt-sc-mix-linear"
+   ],
+   "text": "'সব layer এক ধরন' বাছলে full attention আর linear attention একসঙ্গে থাকতে পারে না। হয় একটা mixer রাখো, নয় ছক (interleave বা parallel) বাছো।",
+   "src": "Jamba paper; Qwen3-Next model card",
+   "url": "https://arxiv.org/abs/2403.19887"
+  },
+  {
+   "id": "hybrid-needs-layout-attn-ssm",
+   "kind": "requires",
+   "if": [
+    "opt-sc-mix-attn",
+    "opt-sc-mix-ssm"
+   ],
+   "anyOf": [
+    "opt-sc-layout-interleave",
+    "opt-sc-layout-parallel"
+   ],
+   "text": "full attention আর SSM, দুই ধরনের mixer বাছলে সাজানোর ছক ঠিক করতে হয়: layer ধরে পালা করে (অনুপাতসহ, যেমন Jamba ১:৭, Qwen3-Next ১:৩) অথবা একই layer-এ সমান্তরাল head (Hymba)।",
+   "src": "Jamba paper; Qwen3-Next model card",
+   "url": "https://arxiv.org/abs/2403.19887"
+  },
+  {
+   "id": "hybrid-vs-uniform-attn-ssm",
+   "kind": "conflict",
+   "if": [
+    "opt-sc-mix-attn",
+    "opt-sc-layout-uniform"
+   ],
+   "with": [
+    "opt-sc-mix-ssm"
+   ],
+   "text": "'সব layer এক ধরন' বাছলে full attention আর SSM একসঙ্গে থাকতে পারে না। হয় একটা mixer রাখো, নয় ছক (interleave বা parallel) বাছো।",
+   "src": "Jamba paper; Qwen3-Next model card",
+   "url": "https://arxiv.org/abs/2403.19887"
+  },
+  {
+   "id": "hybrid-needs-layout-linear-ssm",
+   "kind": "requires",
+   "if": [
+    "opt-sc-mix-linear",
+    "opt-sc-mix-ssm"
+   ],
+   "anyOf": [
+    "opt-sc-layout-interleave",
+    "opt-sc-layout-parallel"
+   ],
+   "text": "linear attention আর SSM, দুই ধরনের mixer বাছলে সাজানোর ছক ঠিক করতে হয়: layer ধরে পালা করে (অনুপাতসহ, যেমন Jamba ১:৭, Qwen3-Next ১:৩) অথবা একই layer-এ সমান্তরাল head (Hymba)।",
+   "src": "Jamba paper; Qwen3-Next model card",
+   "url": "https://arxiv.org/abs/2403.19887"
+  },
+  {
+   "id": "hybrid-vs-uniform-linear-ssm",
+   "kind": "conflict",
+   "if": [
+    "opt-sc-mix-linear",
+    "opt-sc-layout-uniform"
+   ],
+   "with": [
+    "opt-sc-mix-ssm"
+   ],
+   "text": "'সব layer এক ধরন' বাছলে linear attention আর SSM একসঙ্গে থাকতে পারে না। হয় একটা mixer রাখো, নয় ছক (interleave বা parallel) বাছো।",
+   "src": "Jamba paper; Qwen3-Next model card",
+   "url": "https://arxiv.org/abs/2403.19887"
+  }
+ ]
+}

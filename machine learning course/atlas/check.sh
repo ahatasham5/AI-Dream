@@ -11,8 +11,8 @@ echo "▶ ২. data test (Python unittest)"
 python3 -m unittest discover -s atlas/tests
 
 echo "▶ ৩. বাছাই-engine test (Node, property-based)"
-node --test atlas/tests/engine.test.js | grep -E "^# (tests|pass|fail)"
-node --test atlas/tests/engine.test.js >/dev/null
+node --test atlas/tests/*.test.js | grep -E "^# (tests|pass|fail)"
+node --test atlas/tests/*.test.js >/dev/null
 
 if [ -f ml-mapping.html ]; then
   echo "▶ ৪. ml-mapping.html আপডেট আছে কি"

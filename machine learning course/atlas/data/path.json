@@ -56,7 +56,13 @@
     "Gradient",
     "Gradient Descent",
     "Learning Rate",
-    "Optimizer"
+    "Optimizer",
+    "Batch size ও learning rate",
+    "Weight Decay",
+    "Gradient Clipping",
+    "Cosine Decay",
+    "Early Stopping",
+    "Hyperparameter খোঁজা — grid বনাম random"
    ]
   },
   {
@@ -101,6 +107,38 @@
     "Underfitting",
     "Generalization",
     "Metrics"
+   ]
+  },
+  {
+   "title": "৯. Transformer-এর পরের architecture (গবেষণার সীমানা)",
+   "intro": "Attention-এর খরচ কমাতে স্থির state, সেটার সীমা, আর দুটো মিশিয়ে hybrid; তারপর পুরোনো model থেকে জ্ঞান সরানো আর যা এখনো খোলা।",
+   "steps": [
+    "Transformer-এর বিকল্প — রৈখিক হিসাবের পরিবার",
+    "Linear Attention — Transformers are RNNs",
+    "DeltaNet — delta rule",
+    "Gated DeltaNet",
+    "State Space Model (SSM) পরিবার",
+    "Mamba — Selective State Space",
+    "Hybrid — একাধিক mixer একই model-এ"
+   ]
+  },
+  {
+   "title": "১০. এক model থেকে আরেকটায় (Distillation ও রূপান্তর)",
+   "intro": "Teacher থেকে student শেখা: কী মেলাবে, কোন text-এ, ভুল কীভাবে ঠেকাবে; তারপর আলাদা গঠনে নেওয়া আর যা এখনো খোলা।",
+   "steps": [
+    "Knowledge Distillation",
+    "Fine-tuning বনাম Distillation: একই লুপ, শুধু লক্ষ্য আলাদা",
+    "Teacher ও Student",
+    "Response ও Sequence Distillation",
+    "Soft target ও temperature",
+    "Distillation loss — KL divergence",
+    "Feature ও intermediate distillation",
+    "On-policy বনাম offline distillation",
+    "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই",
+    "Distillation, quantization ও LoRA — কখন কোনটা",
+    "একাধিক teacher থেকে শেখা",
+    "এক architecture থেকে আরেকটায় রূপান্তর",
+    "খোলা প্রশ্ন — যেখানে গবেষণার জায়গা আছে"
    ]
   }
  ]

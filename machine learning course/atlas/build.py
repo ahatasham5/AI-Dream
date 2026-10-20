@@ -12,6 +12,7 @@ lessons.json-এর প্রতিটা পাঠ-path সত্যিই আ�
 কোনো node-এ id না থাকলে বানিয়ে map.json-এ লিখে রাখে (স্থির থাকে বলে deep link ভাঙে না)।
 """
 import argparse
+import copy
 import datetime
 import hashlib
 import json
@@ -29,8 +30,11 @@ STORIES = HERE / "data" / "stories.json"
 HISTORY = HERE / "data" / "history.json"
 PATH = HERE / "data" / "path.json"
 PRACTICE = HERE / "data" / "practice.json"
+SHARED = HERE / "data" / "shared.json"
 GUIDANCE = HERE / "data" / "guidance.json"
 ALIASES = HERE / "data" / "aliases.json"
+PSEUDO = HERE / "data" / "pseudo.json"
+RULES = HERE / "data" / "rules.json"
 SRC = HERE / "src"
 DIST = HERE / "dist"
 MAX_LESSONS = 3
@@ -106,6 +110,52 @@ def resolve_refs(root):
     return count
 
 
+RELATIONS = HERE / "data" / "relations.json"
+
+
+def load_relations(ids):
+    """data/relations.json: node-দের মধ্যে `needs` (from-কে বুঝতে আগে to লাগে) ও `contrasts` (পাশাপাশি তুলনা)।
+    id আছে, নিজের দিকে নয়, কারণ লেখা, একই সম্পর্ক দুবার নয়, আর `needs`-এ চক্র নেই; নইলে build থামে।"""
+    if not RELATIONS.exists():
+        return []
+    edges = json.loads(RELATIONS.read_text(encoding="utf-8"))["edges"]
+    seen, needs = set(), {}
+    for e in edges:
+        t = e.get("type")
+        if t not in ("needs", "contrasts"):
+            fail(f"সম্পর্কের ধরন অচেনা: {e}")
+        for k in ("from", "to"):
+            if e.get(k) not in ids:
+                fail(f"সম্পর্কে অজানা id ({k}): {e.get(k)}")
+        if e["from"] == e["to"]:
+            fail(f"সম্পর্ক নিজের দিকেই: {e['from']}")
+        if not str(e.get("why", "")).strip():
+            fail(f"সম্পর্কে কারণ (why) নেই: {e['from']} → {e['to']}")
+        if e.get("basis") not in ("course", "concept"):
+            fail(f"সম্পর্কের basis লাগে (course বা concept): {e['from']} → {e['to']}")
+        key = (t, e["from"], e["to"]) if t == "needs" else (t,) + tuple(sorted((e["from"], e["to"])))
+        if key in seen:
+            fail(f"একই সম্পর্ক দুবার: {key}")
+        seen.add(key)
+        if t == "needs":
+            needs.setdefault(e["from"], []).append(e["to"])
+    state = {}
+
+    def visit(n, stack):
+        if state.get(n) == 2:
+            return
+        if state.get(n) == 1:
+            fail("'আগে লাগে'-তে চক্র: " + " → ".join(stack[stack.index(n):] + [n]))
+        state[n] = 1
+        for m in needs.get(n, []):
+            visit(m, stack + [n])
+        state[n] = 2
+
+    for n in list(needs):
+        visit(n, [])
+    return edges
+
+
 def write_json(path, obj):
     # id আর name আগে থাকুক, children সবার শেষে; পড়তে সুবিধা
     def order(n):
@@ -120,6 +170,12 @@ def write_json(path, obj):
 
 def validate(root):
     seen = {}
+    ids = {n['id'] for n, _, _ in walk(root)}
+    for n, _, _ in walk(root):
+        if n.get('jump') and n['jump'].get('to') not in ids:
+            fail(f"jump-এর লক্ষ্য নেই: {n['id']} → {n['jump'].get('to')}")
+        if n.get('jump') and n['jump'].get('to') == n['id']:
+            fail(f"jump নিজের দিকেই: {n['id']}")
     for node, _, _ in walk(root):
         for key in ("id", "name", "definition"):
             if not str(node.get(key, "")).strip():
@@ -127,6 +183,11 @@ def validate(root):
         if node["id"] in seen:
             fail(f"id দুবার: {node['id']} ({seen[node['id']]} ও {node['name']})")
         seen[node["id"]] = node["name"]
+        j = node.get("jump")
+        if isinstance(j, dict) and j.get("onSelect") and node.get("kind") != "option":
+            fail(f"jump.onSelect শুধু option-এ (বাছলে যাওয়া): {node['id']}")
+        if j is not None and not (isinstance(j, dict) and str(j.get("to", "")).strip() and str(j.get("label", "")).strip() and str(j.get("why", "")).strip()):
+            fail(f"jump-এ to, label, why তিনটাই লাগে: {node['id']}")
         if "children" in node and not node["children"]:
             fail(f"খালি children: {node['id']}")
         if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", node["id"]):
@@ -173,8 +234,37 @@ def attach_guidance(root):
     return len(used)
 
 
+def expand_includes(root):
+    """`"include": "<কী>"` থাকলে data/shared.json-এর ওই উপগাছ (একবারই লেখা) সন্তান হিসেবে কপি হয়ে বসে।
+    `"id_suffix"` প্রতিটা কপির id-তে জোড়া লাগে (খালি = মূল id), নইলে id দুবার পড়ত। নাম একই থাকে, তাই নাম-ধরা
+    গল্প/পাঠ/ইতিহাস সব কপিতে একসাথে পৌঁছায়। শুধু memory-তে হয়; map.json বদলায় না।"""
+    lib, n = None, 0
+    def suffix(node, sfx):
+        node["id"] += sfx
+        for c in node.get("children") or []:
+            suffix(c, sfx)
+    for node, _, _ in list(walk(root)):
+        key = node.pop("include", None)
+        sfx = node.pop("id_suffix", "")
+        if not key:
+            continue
+        if lib is None:
+            lib = json.loads(SHARED.read_text(encoding="utf-8"))
+        if key.startswith("_") or key not in lib:
+            fail(f"include-এর উৎস shared.json-এ নেই: {key} (node {node['id']})")
+        if node.get("children"):
+            fail(f"include-node-এ নিজস্ব children থাকতে পারে না: {node['id']}")
+        kids = copy.deepcopy(lib[key])
+        for k in kids:
+            suffix(k, sfx)
+        node["children"] = kids
+        n += 1
+    return n
+
+
 def prepare(root):
-    """resolve_refs + attach_guidance: build ও test একই পথে root বানায়।"""
+    """expand_includes + resolve_refs + attach_guidance: build ও test একই পথে root বানায়।"""
+    expand_includes(root)
     refs = resolve_refs(root)
     attach_guidance(root)
     return refs
@@ -185,6 +275,19 @@ def validate_plan(root):
     tool-এর repo https না হলে বা licence/যাচাই-তারিখ না থাকলে build থামে।
     stepref-এর goto আর mode-option-এর steps সত্যিকারের step-node-এ পৌঁছাতে হবে।"""
     by_id = {n["id"]: n for n, _, _ in walk(root)}
+    for node, parent, _ in walk(root):
+        # তুলনার সংকেত: compare শুধু "alternatives" (parent-এ), peer শুধু false (সন্তানে)
+        if node.get("compare") is not None:
+            if node["compare"] != "alternatives":
+                fail(f"compare শুধু \"alternatives\" হতে পারে: {node['name']} ({node['id']})")
+            peers = [c for c in node.get("children") or [] if c.get("kind") not in ("step", "stepref") and c.get("peer") is not False]
+            if len(peers) < 2:
+                fail(f"compare:alternatives-এ কমপক্ষে ২টা তুলনার-যোগ্য সন্তান লাগে: {node['name']} ({node['id']})")
+        if node.get("peer") is not None:
+            if node["peer"] is not False:
+                fail(f"peer শুধু false হতে পারে: {node['name']} ({node['id']})")
+            if not parent or parent.get("compare") != "alternatives":
+                fail(f"peer:false শুধু compare:alternatives-ওয়ালা parent-এর সন্তানে অর্থ রাখে: {node['name']} ({node['id']})")
     for node, _, _ in walk(root):
         if node.get("kind") == "stepref":
             t = by_id.get(node.get("goto"))
@@ -195,10 +298,19 @@ def validate_plan(root):
         for sid in node.get("steps") or []:
             if by_id.get(sid, {}).get("kind") != "step":
                 fail(f"mode-এর steps-এ step নয় এমন id: {node['name']} → {sid}")
-    for node, _, _ in walk(root):
+    for node, parent, _ in walk(root):
         k = node.get("kind")
         if k is None:
             continue
+        part = node.get("part")
+        if part is not None:
+            # option-এর ভেতরে তার নিজেরই অংশ: core = সাথে আসে (info), optional = আলাদা করে বাছা যায় (option)
+            if part not in ("core", "optional"):
+                fail(f"part core বা optional হতে হবে: {node['name']} ({node['id']})")
+            if (part == "core") != (k == "info") or (part == "optional") != (k == "option"):
+                fail(f"part:{part} শুধু {'info' if part == 'core' else 'option'}-এ চলে, এটা {k}: {node['id']}")
+            if not parent or parent.get("kind") not in ("option", "tool"):
+                fail(f"part-ওয়ালা node-এর parent option বা tool হতে হবে: {node['id']}")
         if k not in KINDS:
             fail(f"অচেনা kind '{k}': {node['name']}")
         kids = node.get("children") or []
@@ -207,6 +319,18 @@ def validate_plan(root):
                 fail(f"decision-এ pick (one/many) নেই: {node['name']}")
             if not kids:
                 fail(f"decision-এ কোনো বিকল্প নেই: {node['name']}")
+            if node.get("need") not in ("required", "optional"):
+                fail(f"decision-এ need (required/optional) নেই: {node['name']} ({node['id']})")
+            if not str(node.get("needWhy", "")).strip():
+                fail(f"decision-এ needWhy (আবশ্যক বা ঐচ্ছিক কেন) নেই: {node['name']} ({node['id']})")
+            dflt = node.get("defaultOption")
+            if dflt is not None:
+                if node["need"] != "optional" or node["pick"] != "one":
+                    fail(f"defaultOption শুধু ঐচ্ছিক, একটা-বাছার decision-এ: {node['name']} ({node['id']})")
+                if dflt not in [c["id"] for c in kids]:
+                    fail(f"defaultOption এই decision-এর বিকল্প নয়: {node['id']} → {dflt}")
+            if node.get("group") is not None and node["need"] != "required":
+                fail(f"group শুধু আবশ্যক decision-এ: {node['name']} ({node['id']})")
             bad = [c["name"] for c in kids if c.get("kind") not in ("option", "tool")]
             if bad:
                 fail(f"decision-এর সন্তান option/tool নয়: {node['name']} → {bad}")
@@ -215,7 +339,8 @@ def validate_plan(root):
                 if not str(node.get(f, "")).strip():
                     fail(f"{k}-এ '{f}' (বাছার কারণ) নেই: {node['name']} ({node['id']})")
             ok = ("decision", "tool", "stepref", "info") if k == "option" else ("decision", "info")
-            bad = [c["name"] for c in kids if c.get("kind") not in ok]
+            # option-এর সন্তান option হতে পারে শুধু তার ঐচ্ছিক অংশ (part: optional) হলে
+            bad = [c["name"] for c in kids if c.get("kind") not in ok and not (k == "option" and c.get("kind") == "option" and c.get("part") == "optional")]
             if bad:
                 fail(f"{k}-এর সন্তান {'/'.join(ok)} ছাড়া হতে পারে না: {node['name']} → {bad}")
         for u in [node.get("docs")] + [h.get("u") for h in node.get("how", [])]:
@@ -450,7 +575,38 @@ def main():
             fail(f"alias-এর লক্ষ্য নেই: {old} → {new}")
         if old in ids_now:
             fail(f"alias-এর পুরোনো id এখনও আছে (alias লাগে না): {old}")
-    cfg = {"lessonLinks": not args.no_lesson_links, "path": PATH_OUT, "aliases": aliases}
+    pseudo = json.loads(PSEUDO.read_text(encoding="utf-8"))
+    base = lambda i: i[:-3] if i.endswith("-sc") else i
+    known = {base(i) for i in ids_now} | ids_now
+    for table in ("slots", "options"):
+        for k in pseudo[table]:
+            if k not in known:
+                fail(f"pseudo.json-এর {table}-এ অজানা id: {k}")
+    for mode, lines in pseudo["templates"].items():
+        if mode not in ids_now:
+            fail(f"pseudo-ছাঁচের mode নেই: {mode}")
+        for ln in lines:
+            for s_ in re.findall(r"\{\{(\w+)\}\}", ln):
+                if s_ not in pseudo["labels"]:
+                    fail(f"pseudo-ছাঁচে label-হীন slot: {s_}")
+    rules = json.loads(RULES.read_text(encoding="utf-8"))
+    for r in rules["rules"]:
+        if r["kind"] not in ("conflict", "warn", "requires"):
+            fail(f"নিয়মের kind অচেনা: {r['id']}")
+        if not (r.get("src") and r.get("text")):
+            fail(f"নিয়মে সূত্র বা লেখা নেই: {r['id']}")
+        rule_ids = r["if"] + r.get("with", []) + r.get("anyOf", [])
+        for i in rule_ids:
+            if i not in ids_now:
+                fail(f"নিয়ম '{r['id']}'-এ অজানা id: {i}")
+        if r["kind"] == "requires" and not r.get("anyOf"):
+            fail(f"requires-নিয়মে anyOf নেই: {r['id']}")
+        if r["kind"] != "requires" and not r.get("with"):
+            fail(f"{r['kind']}-নিয়মে with নেই: {r['id']}")
+        if r.get("path") and not (ROOT / r["path"]).exists():
+            fail(f"নিয়মের পাঠ-ফাইল নেই: {r['path']}")
+    relations = load_relations(ids_now)
+    cfg = {"lessonLinks": not args.no_lesson_links, "path": PATH_OUT, "aliases": aliases, "pseudo": pseudo, "rules": rules, "relations": relations}
     page = (SRC / "template.html").read_text(encoding="utf-8")
     for key, val in {
         "__CSS__": (SRC / "style.css").read_text(encoding="utf-8"),

@@ -95,7 +95,7 @@ test('info, decision, step, stepref বাছা যায় না', () => {
 
 test('export: markdown, json, লিংক ঠিক আকারে', () => {
   const m = fresh();
-  for (const id of ['mode-scratch', 'opt-sc-ssm', 'tool-mamba', 'tool-vllm', 'tool-tgi']) m.plan.toggle(id);
+  for (const id of ['mode-scratch', 'opt-sc-mix-ssm', 'tool-mamba', 'tool-vllm', 'tool-tgi']) m.plan.toggle(id);
   const md = m.plan.markdown('2026-01-01');
   assert.match(md, /^# আমার পথ: শূন্য থেকে Train করব/);
   assert.match(md, /## Architecture বাছা/);
@@ -129,4 +129,339 @@ test('গাছের গঠন: প্রতিটা mode-এর steps আস�
   m.plan.toggle('mode-finetune'); m.plan.toggle('opt-accuracy'); m.plan.toggle('opt-f1');
   assert.equal(m.plan.stepStat('wf-goal'), 2);
   assert.equal(m.plan.stepStat('ft-output'), 0);
+});
+
+// ---------- pseudo-code ----------
+const spec = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'pseudo.json'), 'utf8'));
+
+/** মোডের সব সিদ্ধান্তে (ভেতরের সিদ্ধান্তসহ) প্রথম বিকল্প বাছে, যতক্ষণ না আর কিছু বাকি থাকে। */
+function fillAll(m, modeId) {
+  m.plan.toggle(modeId);
+  const steps = new Set(m.byId.get(modeId).node.steps);
+  for (let round = 0; round < 12; round++) {
+    let changed = false;
+    for (const r of m.records) {
+      if (r.node.kind !== 'decision') continue;
+      let inStep = false; for (let x = r.parent; x; x = x.parent) if (steps.has(x.node.id)) inStep = true;
+      if (!inStep) continue;
+      const anc = []; for (let x = r.parent; x; x = x.parent) if (E.SELECTABLE.has(x.node.kind)) anc.push(x);
+      if (!anc.every((a) => m.plan.has(a.node.id))) continue;
+      if (!r.children.some((c) => m.plan.has(c.node.id))) { m.plan.toggle(r.children[0].node.id); changed = true; }
+    }
+    if (!changed) break;
+  }
+}
+
+test('pseudo: মোড না বাছলে নির্দেশ-লেখা, ছাঁচের চিহ্ন নয়', () => {
+  const m = fresh();
+  const t = m.plan.pseudo(spec);
+  assert.match(t, /পথের ধরন বাছোনি/);
+  assert.ok(!t.includes('{{'));
+});
+
+test('pseudo: শুধু মোড বাছলে অবাছা সিদ্ধান্ত ‹? …› চিহ্নে, কোনো {{ }} বাকি নেই', () => {
+  const m = fresh(); m.plan.toggle('mode-finetune');
+  const t = m.plan.pseudo(spec);
+  assert.ok(t.includes('‹?'), 'অবাছা চিহ্ন নেই');
+  assert.ok(!t.includes('{{') && !t.includes('}}'), 'ছাঁচ-চিহ্ন থেকে গেছে');
+  assert.match(t, /^# ===== আমার পথ: Fine-tune/);
+});
+
+for (const mode of ['mode-finetune', 'mode-scratch']) {
+  test(`pseudo: ${mode} — সব সিদ্ধান্ত বাছলে কোনো অবাছা চিহ্ন বা ছাঁচ-চিহ্ন থাকে না`, () => {
+    const m = fresh(); fillAll(m, mode);
+    const t = m.plan.pseudo(spec);
+    const left = t.split('\n').filter((l) => l.includes('‹?') && !l.startsWith('#'));
+    assert.deepEqual(left, [], 'অবাছা থেকে গেছে:\n' + left.join('\n'));
+    assert.ok(!t.includes('{{'));
+    assert.equal(t, m.plan.pseudo(spec), 'একই বাছাইয়ে ফল আলাদা');
+    checkInvariants(m, mode);
+  });
+}
+
+test('pseudo: বাছার ফল লেখায় বসে (LoRA সূত্র, memory, accumulation শাখা)', () => {
+  const m = fresh();
+  for (const id of ['mode-finetune', 'lora-low-rank-update', 'opt-grad-accum', 'opt-amp']) m.plan.toggle(id);
+  const t = m.plan.pseudo(spec);
+  assert.match(t, /\(alpha\/r\) · B · A/);
+  assert.match(t, /accumulation_steps = N/);
+  assert.match(t, /if micro_step % N == 0/);
+  assert.match(t, /mixed_precision_context\(\)/);
+  assert.ok(!/^\s*optimizer\.step.*\n.*optimizer\.step/m.test(t), 'step দুবার');
+  const m2 = fresh(); m2.plan.toggle('mode-finetune');   // accumulation ছাড়া: সরাসরি step
+  assert.match(m2.plan.pseudo(spec), /\n\s+optimizer\.step\(trainable only\)/);
+  assert.ok(!m2.plan.pseudo(spec).includes('micro_step %'));
+});
+
+test('pseudo: সংকেত বদলালে loss বদলায়; SFT-র mask-নোট শুধু SFT-তে', () => {
+  const m = fresh();
+  m.plan.toggle('mode-finetune'); m.plan.toggle('preference-optimization');
+  assert.match(m.plan.pseudo(spec), /preference_loss\(/);
+  assert.ok(!m.plan.pseudo(spec).includes('loss_mask:'));
+  m.plan.toggle('opt-loss-answer');       // SFT-র ভেতরের বিকল্প → SFT নিজে বাছা, preference বাদ
+  assert.match(m.plan.pseudo(spec), /cross_entropy\(next_token_prediction, target tokens\)/);
+  assert.match(m.plan.pseudo(spec), /loss_mask: only answer tokens/);
+});
+
+test('pseudo: শূন্য-থেকের নকল (-sc) সিদ্ধান্তের লেখাও বসে', () => {
+  const m = fresh();
+  for (const id of ['mode-scratch', 'opt-adamw-sc', 'opt-amp-sc', 'opt-accuracy-sc']) m.plan.toggle(id);
+  const t = m.plan.pseudo(spec);
+  assert.match(t, /optimizer = AdamW/);
+  assert.match(t, /metrics = accuracy/);
+  assert.match(t, /precision = mixed/);
+});
+
+// ---------- গাইড: মোডের সব ধাপ জুড়ে বাকি আবশ্যক ----------
+test('guide: মোড না বাছলে কিছু নেই; শুধু মোড বাছলেই সব ধাপের আবশ্যক গোনা হয় (ধাপে কিছু না বেছেও)', () => {
+  const m = fresh();
+  assert.deepEqual(m.plan.remaining(), []); assert.equal(m.plan.nextRequired(null), null);
+  m.plan.toggle('mode-finetune');
+  assert.equal(m.plan.pending().length, 0, 'আগের নিয়ম (শুধু বাছা-ধাপ) অক্ষত থাকার কথা');
+  const ids = m.plan.remaining().map((r) => r.node.id);
+  assert.equal(ids.length, 12, 'আবশ্যক ১৩টা decision, training-চালানোর group ১টা ধরে ১২: ' + ids);
+  for (const id of ids) assert.equal(m.byId.get(id).node.need, 'required', id);
+  for (const id of ['goal-metric', 'goal-baseline', 'base-kind', 'data-split', 'hp-lr-value', 'deploy-form']) assert.ok(ids.includes(id), id + ' নেই');
+  assert.ok(!ids.includes('hp-optimizer') && !ids.includes('run-track'), 'ঐচ্ছিক ঢুকেছে');
+  assert.equal(ids.filter((i) => i === 'run-highlevel' || i === 'run-compose').length, 1, 'group একবারই');
+  const order = m.plan.remaining().map((r) => r.order); assert.deepEqual(order, [...order].sort((a, b) => a - b), 'গাছের ক্রম নয়');
+  assert.equal([...m.plan.remainingByStep().values()].reduce((a, b) => a + b, 0), 12);
+});
+
+test('guide: উত্তর দিলে কমে; group একটায় পূর্ণ; শর্তসাপেক্ষ সিদ্ধান্ত parent বাছার পর আসে', () => {
+  const m = fresh(); m.plan.toggle('mode-finetune');
+  m.plan.toggle('opt-accuracy');
+  assert.ok(!m.plan.remaining().some((r) => r.node.id === 'goal-metric')); assert.equal(m.plan.remaining().length, 11);
+  m.plan.toggle('tool-trl');                                                // compose-group পূর্ণ
+  assert.equal(m.plan.remaining().length, 10);
+  assert.ok(!m.plan.remaining().some((r) => r.node.id === 'base-vlm-ckpt'), 'parent না বেছেই শর্তসাপেক্ষ এসেছে');
+  m.plan.toggle('opt-base-vlm');                                            // base-kind পূর্ণ, কিন্তু checkpoint-এর সিদ্ধান্ত নতুন আসে
+  const ids = m.plan.remaining().map((r) => r.node.id);
+  assert.ok(ids.includes('base-vlm-ckpt') && !ids.includes('base-kind'), ids.join());
+  assert.equal(ids.length, 10, 'একটা গেল, একটা এল: সংখ্যা বাড়তেও পারে বলেই tooltip-এ সতর্কতা');
+});
+
+test('guide: নিজে সব সিদ্ধান্ত বাছলে বাকি ০; nextRequired ঘোরে আর শেষে প্রথমে ফেরে', () => {
+  for (const mode of ['mode-finetune', 'mode-scratch']) {
+    const m = fresh(); fillAll(m, mode);
+    assert.deepEqual(m.plan.remaining().map((r) => r.node.id), [], mode + ': সব বাছার পরও বাকি');
+    assert.equal(m.plan.nextRequired(null), null);
+  }
+  const m = fresh(); m.plan.toggle('mode-finetune');
+  const list = m.plan.remaining();
+  assert.equal(m.plan.nextRequired(null), list[0]);
+  assert.equal(m.plan.nextRequired(list[0]), list[1]);
+  assert.equal(m.plan.nextRequired(list[list.length - 1]), list[0], 'শেষের পর প্রথমে ফেরার কথা');
+  const mid = { order: (list[2].order + list[3].order) / 2 };                // যেকোনো জায়গা থেকে (focus সারি যা-ই হোক)
+  assert.equal(m.plan.nextRequired(mid), list[3]);
+  assert.ok(m.plan.optionalRemaining().length > 10 && m.plan.optionalRemaining().every((r) => r.node.need === 'optional'));
+});
+
+// ---------- স্বাধীন বাছাইয়ের সংখ্যা ----------
+test('count: একটা checkpoint বাছলে সংখ্যা ১; তার ওপরের model-ধরন নিজে বাছা হলেও আলাদা গোনা হয় না', () => {
+  const m = fresh();
+  m.plan.toggle('tool-qwen25-vl');
+  assert.ok(m.plan.has('opt-base-vlm'), 'ওপরের বিকল্প নিজে বাছা হওয়ার কথা');
+  assert.equal(m.plan.size(), 2, 'বাছা node ২টা (ধরন + checkpoint)');
+  assert.equal(m.plan.count(), 1, 'কিন্তু সিদ্ধান্ত ১টা');
+  assert.deepEqual(m.plan.choices().map((r) => r.node.id), ['tool-qwen25-vl']);
+  assert.equal(m.plan.stepStat('ft-input'), 1);
+  assert.ok(!m.plan.markdown('2026-01-01').includes('- আগের model › কোন ধরনের model? › Vision-Language model (ছবি + লেখা → লেখা)\n'), 'ওপরের বিকল্প আলাদা সারিতে এসেছে');
+  assert.match(m.plan.markdown('2026-01-01'), /· 1টা বাছাই/);
+  const js = JSON.parse(m.plan.json('2026-01-01T00:00:00Z'));
+  assert.deepEqual(js.items.map((i) => [i.id, i.choice]), [['opt-base-vlm', false], ['tool-qwen25-vl', true]], 'JSON-এ সব node থাকে, choice-চিহ্নসহ');
+  m.plan.toggle('tool-qwen25-vl');                          // checkpoint বাদ: ধরনটাই এখন সিদ্ধান্ত
+  assert.equal(m.plan.count(), 1);
+  assert.deepEqual(m.plan.choices().map((r) => r.node.id), ['opt-base-vlm']);
+});
+
+test('count: একই decision-এ দুটো আলাদা বাছলে ২; এলোমেলো ক্লিকে সূত্র সবসময় ঠিক', () => {
+  const m = fresh();
+  m.plan.toggle('opt-accuracy'); m.plan.toggle('opt-f1');   // মাপকাঠি: many
+  assert.equal(m.plan.count(), 2);
+  for (const seed of [11, 12, 13]) {
+    const f = fresh(), rand = rng(seed), sel = f.records.filter((r) => E.SELECTABLE.has(r.node.kind));
+    for (let i = 0; i < 3000; i++) {
+      f.plan.toggle(sel[Math.floor(rand() * sel.length)].node.id);
+      if (i % 50) continue;
+      const ch = f.plan.choiceIds();
+      assert.ok(f.plan.count() <= f.plan.size() && (f.plan.size() === 0 || f.plan.count() >= 1));
+      for (const id of f.plan.ids()) {
+        let below = false;
+        (function rec(r) { for (const c of r.children) { if (f.plan.has(c.node.id)) below = true; rec(c); } })(f.byId.get(id));
+        assert.equal(ch.has(id), !below, `${id}: choice=${ch.has(id)} অথচ নিচে বাছা ${below}`);
+      }
+    }
+  }
+});
+
+// ---------- পদ্ধতির নিজের অংশ: core (সাথে আসে) ও optional (বাছা যায়) ----------
+test('part: "সাথে আসে" অংশ বাছা যায় না, গোনাও হয় না; ঐচ্ছিক অংশ বাছলে parent আসে ও আলাদা সিদ্ধান্ত গোনা হয়', () => {
+  const m = fresh();
+  for (const id of ['sft-input-target', 'sft-learning-cycle', 'loss-mask', 'lora-rank', 'quantization']) {
+    assert.equal(m.byId.get(id).node.part, 'core', id);
+    assert.equal(m.plan.toggle(id).ok, false, id + ' বাছা যাওয়ার কথা না');
+  }
+  assert.equal(m.plan.size(), 0);
+  m.plan.toggle('instruction-tuning');                               // ঐচ্ছিক অংশ (SFT-র ব্যবহার)
+  assert.ok(m.plan.has('supervised-fine-tuning-sft'), 'ঐচ্ছিক অংশ বাছলে তার parent (SFT) নিজে আসার কথা');
+  assert.equal(m.plan.count(), 1);
+  m.plan.toggle('opt-loss-all');                                      // একই parent-এর নিচে আরেকটা, আলাদা সিদ্ধান্ত
+  assert.equal(m.plan.count(), 2);
+  assert.deepEqual(m.plan.choices().map((r) => r.node.id).sort(), ['instruction-tuning', 'opt-loss-all']);
+  m.plan.toggle('supervised-fine-tuning-sft');                       // parent বাদ → অংশও যায়
+  assert.equal(m.plan.size(), 0, 'parent বাদ দিলে ঐচ্ছিক অংশ থেকে যাচ্ছে');
+});
+
+test('part: ঐচ্ছিক অংশ pick-one ভাঙে না (parent option, decision নয়) আর সব মিলিয়ে সূত্র ঠিক থাকে', () => {
+  const m = fresh();
+  for (const id of ['lora-low-rank-update', 'lora-dropout', 'opt-lora-small']) m.plan.toggle(id);
+  assert.ok(m.plan.has('lora-dropout') && m.plan.has('opt-lora-small'), 'দুটো একসাথে থাকার কথা');
+  assert.equal(m.plan.count(), 2);
+  checkInvariants(m, 'part');
+});
+
+// ---------- আবশ্যক / ঐচ্ছিক / default ----------
+test('need: বাকি-তালিকায় শুধু আবশ্যক; ঐচ্ছিক আলাদা তালিকায়', () => {
+  const m = fresh();
+  m.plan.toggle('mode-finetune'); m.plan.toggle('opt-accuracy');          // ধাপ ১ সক্রিয়
+  m.plan.toggle('supervised-fine-tuning-sft'); m.plan.toggle('opt-amp');    // ধাপ ২ ও ৩ সক্রিয়
+  const req = m.plan.pending().map((r) => r.node.id), opt = m.plan.optionalOpen().map((r) => r.node.id);
+  assert.ok(req.includes('goal-baseline') && req.includes('base-kind'), 'আবশ্যক বাকি ধরা পড়েনি');
+  assert.ok(!req.includes('hp-optimizer') && !req.includes('run-track'), 'ঐচ্ছিক বাকি-তালিকায়');
+  assert.ok(opt.includes('hp-optimizer') && opt.includes('run-track') && opt.includes('sft-loss-where'));
+  for (const id of req) assert.equal(m.byId.get(id).node.need, 'required', id);
+  for (const id of opt) assert.equal(m.byId.get(id).node.need, 'optional', id);
+  assert.equal(new Set([...req, ...opt]).size, req.length + opt.length, 'একই decision দুই তালিকায়');
+});
+
+test('need: একই group-এর যেকোনো একটা পূর্ণ হলে পুরো group পূর্ণ, অপূর্ণ থাকলে একটাই দেখায়', () => {
+  const m = fresh(); m.plan.toggle('mode-finetune'); m.plan.toggle('opt-accuracy'); m.plan.toggle('supervised-fine-tuning-sft');
+  const ids = () => m.plan.pending().map((r) => r.node.id).filter((i) => i === 'run-highlevel' || i === 'run-compose');
+  // তার ধাপ (ft-cycle) তখনই সক্রিয় যখন সেখানে কিছু বাছা
+  m.plan.toggle('opt-amp');
+  assert.equal(ids().length, 1, 'group অপূর্ণ: ঠিক একটা দেখানোর কথা, পেয়েছি ' + ids());
+  m.plan.toggle('tool-trl');
+  assert.deepEqual(ids(), [], 'compose পূর্ণ হলে highlevel-ও বাকি দেখাচ্ছে');
+  m.plan.toggle('tool-trl'); m.plan.toggle('tool-unsloth');
+  assert.deepEqual(ids(), [], 'highlevel পূর্ণ হলে compose বাকি দেখাচ্ছে');
+});
+
+test('default: না-বাছা ঐচ্ছিক decision-এর ডিফল্ট pseudo-code-এ ‹সাধারণ মান› চিহ্নে বসে', () => {
+  const m = fresh(); m.plan.toggle('mode-finetune');
+  const t = m.plan.pseudo(spec);
+  assert.match(t, /optimizer = AdamW\(decoupled weight decay\) ‹সাধারণ মান›/);
+  assert.match(t, /stop_rule = stop when validation loss rises.* ‹সাধারণ মান›/);
+  assert.match(t, /parallel = single device ‹সাধারণ মান›/);
+  assert.ok(!/optimizer = ‹\?/.test(t) && !/parallel = ‹\?/.test(t), 'ডিফল্ট থাকতেও অবাছা চিহ্ন');
+  assert.ok(/metrics\s+= ‹\?/.test(t), 'আবশ্যক অবাছা থাকলে ‹?› চিহ্ন থাকার কথা');
+});
+
+test('default: নিজে বাছলে ডিফল্ট-চিহ্ন যায়; SFT-র ডিফল্ট শুধু SFT বাছলে', () => {
+  const m = fresh(); m.plan.toggle('mode-finetune');
+  assert.ok(!m.plan.pseudo(spec).includes('loss_mask:'), 'SFT ছাড়া mask-নোট');
+  m.plan.toggle('supervised-fine-tuning-sft');
+  assert.match(m.plan.pseudo(spec), /loss_mask: only answer tokens.* ‹সাধারণ মান›/);
+  m.plan.toggle('opt-loss-all');
+  const t = m.plan.pseudo(spec);
+  assert.match(t, /loss_mask: no mask: every token counts\n/);
+  assert.ok(!/loss_mask:.*‹সাধারণ মান›/.test(t), 'নিজে বাছার পরও ডিফল্ট-চিহ্ন');
+  assert.ok(!t.includes('loss_mask: only answer'), 'ডিফল্ট আর বাছা দুটোই বসেছে');
+  m.plan.toggle('opt-adam');
+  assert.match(m.plan.pseudo(spec), /optimizer = Adam\n/);
+  assert.ok(!/optimizer = .*‹সাধারণ মান›/.test(m.plan.pseudo(spec)));
+});
+
+test('default: -sc পথেও ডিফল্ট বসে, আর ঐচ্ছিক-অবাছা ছাঁচ-লাইন বাদ যায় (engine, iterate)', () => {
+  const m = fresh(); m.plan.toggle('mode-scratch');
+  const t = m.plan.pseudo(spec);
+  assert.match(t, /optimizer = AdamW.* ‹সাধারণ মান›/);
+  assert.match(t, /data = load\(your_dataset\)/);
+  assert.ok(!t.includes('serve_with'), 'অবাছা ঐচ্ছিক engine-এর লাইন থাকার কথা না');
+  m.plan.toggle('tool-vllm-sc');
+  assert.match(m.plan.pseudo(spec), /serve_with vLLM/);
+  const f = fresh(); f.plan.toggle('mode-finetune');
+  assert.ok(!f.plan.pseudo(spec).includes('ভুল থেকে নতুন data'), 'অবাছা ঐচ্ছিক iterate ফাঁকা চিহ্ন হয়ে এসেছে');
+});
+
+test('default: প্রতিটা defaultOption ঐচ্ছিক, একটা-বাছার decision-এর নিজের বিকল্প', () => {
+  const m = fresh(); let n = 0;
+  for (const r of m.records) {
+    if (!r.node.defaultOption) continue; n++;
+    assert.equal(r.node.need, 'optional', r.node.id); assert.equal(r.node.pick, 'one', r.node.id);
+    assert.ok(m.plan.defaultOf(r), 'defaultOption এই decision-এর সন্তান নয়: ' + r.node.id);
+  }
+  assert.ok(n >= 8);
+});
+
+// ---------- বিরোধ ও নির্ভরতা ----------
+const rules = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'rules.json'), 'utf8'));
+const issueIds = (m) => m.plan.issues(rules).map((i) => i.rule);
+
+test('rules: কিছু না বাছলে কোনো সতর্কতা নেই', () => { assert.deepEqual(issueIds(fresh()), []); });
+
+test('rules: merge + merge-হয়-না adapter = বিরোধ; আলাদা adapter বাছলে মিটে যায়', () => {
+  const m = fresh();
+  m.plan.toggle('opt-deploy-merge'); m.plan.toggle('adapter-layer');
+  const i = m.plan.issues(rules).find((x) => x.rule === 'merge-vs-nonmergeable');
+  assert.ok(i && i.kind === 'conflict');
+  assert.ok(i.nodes.includes('opt-deploy-merge') && i.nodes.includes('adapter-layer'));
+  m.plan.toggle('opt-deploy-adapter');           // pick:one → merge বাদ
+  assert.ok(!issueIds(m).includes('merge-vs-nonmergeable'));
+});
+
+test('rules: QLoRA + merge = সতর্কতা (দ্বিতীয় rounding)', () => {
+  const m = fresh(); m.plan.toggle('qlora'); m.plan.toggle('opt-deploy-merge');
+  assert.ok(issueIds(m).includes('merge-on-quantized'));
+  const m2 = fresh(); m2.plan.toggle('lora-low-rank-update'); m2.plan.toggle('opt-deploy-merge');
+  assert.ok(!issueIds(m2).includes('merge-on-quantized'), 'সাধারণ LoRA-তে এই সতর্কতা নয়');
+});
+
+test('rules: সংকেত ও data-ছাঁচের মিল (SFT, CPT, preference)', () => {
+  const m = fresh(); m.plan.toggle('preference-optimization');
+  assert.ok(issueIds(m).includes('pref-needs-pairs'));
+  m.plan.toggle('opt-fmt-pref'); assert.ok(!issueIds(m).includes('pref-needs-pairs'));
+  const a = fresh(); a.plan.toggle('supervised-fine-tuning-sft'); assert.ok(issueIds(a).includes('sft-needs-pairs'));
+  a.plan.toggle('opt-fmt-chat'); assert.ok(!issueIds(a).includes('sft-needs-pairs'));
+  const c = fresh(); c.plan.toggle('continued-pretraining'); assert.ok(issueIds(c).includes('cpt-needs-text'));
+  c.plan.toggle('opt-fmt-text'); assert.ok(!issueIds(c).includes('cpt-needs-text'));
+  const t = fresh(); t.plan.toggle('opt-fmt-text'); assert.ok(issueIds(t).includes('raw-text-needs-cpt'));
+});
+
+test('rules: learning rate ও পদ্ধতির অমিল, GGUF ও engine', () => {
+  const m = fresh(); m.plan.toggle('full-fine-tuning'); m.plan.toggle('opt-lr-lora');
+  assert.ok(issueIds(m).includes('lora-lr-on-full'));
+  const n = fresh(); n.plan.toggle('lora-low-rank-update'); n.plan.toggle('opt-lr-full');
+  assert.ok(issueIds(n).includes('full-lr-on-peft'));
+  const g = fresh(); g.plan.toggle('opt-gguf'); assert.ok(issueIds(g).includes('gguf-needs-llamacpp'));
+  g.plan.toggle('tool-ollama'); assert.ok(!issueIds(g).includes('gguf-needs-llamacpp'));
+});
+
+test('rules: সতর্কতা pseudo-code ও markdown-এ আসে, না থাকলে আসে না', () => {
+  const m = fresh();
+  for (const id of ['mode-finetune', 'opt-deploy-merge', 'soft-prompt-prefix']) m.plan.toggle(id);
+  assert.match(m.plan.pseudo(spec, rules), /# সতর্কতা ও বিরোধ/);
+  assert.match(m.plan.markdown('2026-01-01', rules), /## সতর্কতা ও বিরোধ/);
+  const clean = fresh(); clean.plan.toggle('mode-finetune');
+  assert.ok(!clean.plan.pseudo(spec, rules).includes('সতর্কতা ও বিরোধ'));
+});
+
+test('rules: এলোমেলো ক্লিকে সতর্কতা শুধু বাছা node নিয়ে, আর কখনো ভাঙে না', () => {
+  const m = fresh(), rnd = rng(77);
+  const pool = m.records.filter((r) => E.SELECTABLE.has(r.node.kind)).map((r) => r.node.id);
+  for (let i = 0; i < 4000; i++) {
+    m.plan.toggle(pool[Math.floor(rnd() * pool.length)]);
+    if (i % 40 === 0) for (const x of m.plan.issues(rules)) for (const id of x.nodes) assert.ok(m.plan.has(id), `${x.rule}: ${id} বাছা নয়`);
+  }
+});
+
+test('pseudo: বিকল্পের ঠিক নিচের tool (CER/WER → jiwer, merge → PEFT) লেখায় আসে', () => {
+  const m = fresh();
+  for (const id of ['mode-finetune', 'opt-cer-wer', 'tool-jiwer', 'opt-deploy-merge', 'tool-peft-merge', 'opt-paged', 'tool-bnb-optim']) m.plan.toggle(id);
+  const t = m.plan.pseudo(spec, rules);
+  assert.match(t, /CER\/WER[^\n]*\[tool: jiwer\]/);
+  assert.match(t, /merge:[^\n]*\[tool: PEFT merge_and_unload\]/);
+  assert.match(t, /optimizer = paged[^\n]*\[tool: bitsandbytes \(8-bit optimizer\)\]/);
+  const m2 = fresh(); for (const id of ['mode-finetune', 'opt-cer-wer']) m2.plan.toggle(id);
+  assert.ok(!m2.plan.pseudo(spec, rules).includes('[tool:'), 'tool না বাছলে [tool:] আসে না');
 });

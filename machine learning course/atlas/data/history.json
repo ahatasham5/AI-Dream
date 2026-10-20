@@ -203,8 +203,8 @@
     {
      "year": "১৮৪৭",
      "text": "Cauchy ১৮ অক্টোবর Académie des Sciences-এ gradient পদ্ধতির ছোট একটা নোট দেন ('Méthode générale pour la résolution des systèmes d'équations simultanées'), জ্যোতির্বিদ্যার হিসাব সমাধানের জন্য।",
-     "src": "Lemaréchal: Cauchy and the Gradient Method",
-     "url": "https://emis.univie.ac.at/journals/DMJDMV/vol-ismp/40_lemarechal-claude.html"
+     "src": "Lemaréchal: Cauchy and the Gradient Method (EMIS mirror, PDF)",
+     "url": "https://emis.muni.cz/journals/DMJDMV/vol-ismp/40_lemarechal-claude.pdf"
     }
    ]
   },
@@ -440,6 +440,352 @@
      "text": "Longformer প্রকাশ।",
      "src": "arXiv: Longformer paper (Beltagy et al.), ২০২০",
      "url": "https://arxiv.org/abs/2004.05150"
+    }
+   ]
+  },
+  {
+   "names": [
+    "DeltaNet — delta rule"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (জুন, arXiv-এ প্রথম জমা)",
+     "text": "DeltaNet-এর সমান্তরাল training algorithm প্রকাশ।",
+     "src": "arXiv: DeltaNet paper (Yang et al.), ২০২৪",
+     "url": "https://arxiv.org/abs/2406.06484"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Gated DeltaNet"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (ডিসেম্বর, arXiv-এ প্রথম জমা)",
+     "text": "Gated DeltaNet প্রকাশ; ICLR ২০২৫।",
+     "src": "arXiv: Gated Delta Networks paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2412.06464"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Griffin ও RecurrentGemma — recurrence + local attention"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (ফেব্রুয়ারি, arXiv-এ প্রথম জমা)",
+     "text": "Griffin ও Hawk প্রকাশ।",
+     "src": "arXiv: Griffin paper (Google DeepMind), ২০২৪",
+     "url": "https://arxiv.org/abs/2402.19427"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Hymba — একই layer-এ attention head ও SSM head"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (নভেম্বর, arXiv-এ প্রথম জমা)",
+     "text": "Hymba প্রকাশ।",
+     "src": "arXiv: Hymba paper (NVIDIA), ২০২৪",
+     "url": "https://arxiv.org/abs/2411.13676"
+    }
+   ]
+  },
+  {
+   "names": [
+    "MiniMax-01 — lightning attention + softmax"
+   ],
+   "items": [
+    {
+     "year": "২০২৫ (জানুয়ারি, arXiv-এ প্রথম জমা)",
+     "text": "MiniMax-01 প্রকাশ।",
+     "src": "arXiv: MiniMax-01 paper, ২০২৫",
+     "url": "https://arxiv.org/abs/2501.08313"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Qwen3-Next ও Qwen3.5 — Gated DeltaNet + Gated Attention"
+   ],
+   "items": [
+    {
+     "year": "২০২৫ (সেপ্টেম্বর, Hugging Face repo তৈরি)",
+     "text": "Qwen3-Next-80B-A3B model card প্রকাশ; Qwen3.5 পরের repo (২০২৬)।",
+     "src": "Hugging Face: Qwen3-Next model card",
+     "url": "https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Kimi Linear — Kimi Delta Attention + MLA"
+   ],
+   "items": [
+    {
+     "year": "২০২৫ (অক্টোবর, arXiv-এ প্রথম জমা)",
+     "text": "Kimi Linear প্রকাশ।",
+     "src": "arXiv: Kimi Linear paper, ২০২৫",
+     "url": "https://arxiv.org/abs/2510.26692"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Mamba in the Llama — Q, K, V থেকে C, B, X"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (আগস্ট, arXiv-এ প্রথম জমা)",
+     "text": "The Mamba in the Llama প্রকাশ; NeurIPS ২০২৪।",
+     "src": "arXiv: The Mamba in the Llama, ২০২৪",
+     "url": "https://arxiv.org/abs/2408.15237"
+    }
+   ]
+  },
+  {
+   "names": [
+    "MOHAWK ও Phi-Mamba — তিন ধাপের alignment"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (আগস্ট, arXiv-এ প্রথম জমা)",
+     "text": "MOHAWK ও Phi-Mamba প্রকাশ।",
+     "src": "arXiv: Transformers to SSMs (MOHAWK), ২০২৪",
+     "url": "https://arxiv.org/abs/2408.10189"
+    }
+   ]
+  },
+  {
+   "names": [
+    "LoLCATs — attention transfer ও LoRA"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (অক্টোবর, arXiv-এ প্রথম জমা)",
+     "text": "LoLCATs প্রকাশ; ICLR ২০২৫।",
+     "src": "arXiv: LoLCATs paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2410.10254"
+    }
+   ]
+  },
+  {
+   "names": [
+    "KL-নির্দেশিত layer বাছাই — কোন attention layer রাখবে"
+   ],
+   "items": [
+    {
+     "year": "২০২৫ (ডিসেম্বর, arXiv-এ জমা)",
+     "text": "KL-নির্দেশিত layer বাছাই প্রকাশ।",
+     "src": "arXiv: KL-Guided Layer Selection, ২০২৫",
+     "url": "https://arxiv.org/abs/2512.20569"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Distill-then-Replace — কাজ-নির্দিষ্ট hybrid"
+   ],
+   "items": [
+    {
+     "year": "২০২৬ (জানুয়ারি, arXiv-এ প্রথম জমা)",
+     "text": "Distill-then-Replace প্রকাশ।",
+     "src": "arXiv: Distill-then-Replace, ২০২৬",
+     "url": "https://arxiv.org/abs/2601.11667"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Taylor-Calibrate — teacher থেকে শুরুর মান"
+   ],
+   "items": [
+    {
+     "year": "২০২৬ (জুন, arXiv-এ জমা)",
+     "text": "Taylor-Calibrate প্রকাশ।",
+     "src": "arXiv: Taylor-Calibrate, ২০২৬",
+     "url": "https://arxiv.org/abs/2606.16429"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Hybrid — একাধিক mixer একই model-এ"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (ফেব্রুয়ারি)",
+     "text": "Griffin: recurrent আর local attention মেশানো।",
+     "src": "arXiv: Griffin paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2402.19427"
+    },
+    {
+     "year": "২০২৪ (মার্চ)",
+     "text": "Jamba: attention, Mamba আর MoE একসঙ্গে।",
+     "src": "arXiv: Jamba paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2403.19887"
+    },
+    {
+     "year": "২০২৪ (নভেম্বর)",
+     "text": "Hymba: একই layer-এ attention ও SSM head।",
+     "src": "arXiv: Hymba paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2411.13676"
+    },
+    {
+     "year": "২০২৫ (জানুয়ারি)",
+     "text": "MiniMax-01: ৭টা linear layer-এর পরে ১টা softmax।",
+     "src": "arXiv: MiniMax-01 paper, ২০২৫",
+     "url": "https://arxiv.org/abs/2501.08313"
+    },
+    {
+     "year": "২০২৫ (সেপ্টেম্বর)",
+     "text": "Qwen3-Next: ৩টা Gated DeltaNet-এর পরে ১টা Gated Attention।",
+     "src": "Hugging Face: Qwen3-Next model card",
+     "url": "https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct"
+    },
+    {
+     "year": "২০২৫ (অক্টোবর)",
+     "text": "Kimi Linear: Kimi Delta Attention আর MLA।",
+     "src": "arXiv: Kimi Linear paper, ২০২৫",
+     "url": "https://arxiv.org/abs/2510.26692"
+    }
+   ]
+  },
+  {
+   "names": [
+    "এক architecture থেকে আরেকটায় রূপান্তর"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (আগস্ট)",
+     "text": "The Mamba in the Llama ও MOHAWK, দুটোই প্রায় একই সময়ে।",
+     "src": "arXiv: Mamba in the Llama, MOHAWK, ২০২৪",
+     "url": "https://arxiv.org/abs/2408.15237"
+    },
+    {
+     "year": "২০২৪ (অক্টোবর)",
+     "text": "LoLCATs: attention transfer আর LoRA।",
+     "src": "arXiv: LoLCATs paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2410.10254"
+    },
+    {
+     "year": "২০২৫ (ডিসেম্বর)",
+     "text": "KL-নির্দেশিত layer বাছাই।",
+     "src": "arXiv: KL-Guided Layer Selection, ২০২৫",
+     "url": "https://arxiv.org/abs/2512.20569"
+    },
+    {
+     "year": "২০২৬ (জানুয়ারি)",
+     "text": "Distill-then-Replace: কাজ-নির্দিষ্ট hybrid।",
+     "src": "arXiv: Distill-then-Replace, ২০২৬",
+     "url": "https://arxiv.org/abs/2601.11667"
+    },
+    {
+     "year": "২০২৬ (জুন)",
+     "text": "Taylor-Calibrate: teacher-এর পরিসংখ্যান থেকে শুরুর মান।",
+     "src": "arXiv: Taylor-Calibrate, ২০২৬",
+     "url": "https://arxiv.org/abs/2606.16429"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Batch size ও learning rate"
+   ],
+   "items": [
+    {
+     "year": "২০১৭ (জুন, arXiv-এ প্রথম জমা)",
+     "text": "Goyal et al.: batch ও learning rate-এর সরল নিয়ম, ৮১৯২ পর্যন্ত।",
+     "src": "arXiv: Accurate, Large Minibatch SGD, ২০১৭",
+     "url": "https://arxiv.org/abs/1706.02677"
+    },
+    {
+     "year": "২০১৮ (ডিসেম্বর, arXiv-এ প্রথম জমা)",
+     "text": "McCandlish et al.: gradient noise scale আর critical batch size।",
+     "src": "arXiv: An Empirical Model of Large-Batch Training, ২০১৮",
+     "url": "https://arxiv.org/abs/1812.06162"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Weight Decay"
+   ],
+   "items": [
+    {
+     "year": "২০১৭ (নভেম্বর, arXiv-এ প্রথম জমা)",
+     "text": "AdamW: weight decay আর L2 আলাদা।",
+     "src": "arXiv: Decoupled Weight Decay Regularization, ২০১৭",
+     "url": "https://arxiv.org/abs/1711.05101"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Gradient Clipping"
+   ],
+   "items": [
+    {
+     "year": "২০১২ (নভেম্বর, arXiv-এ প্রথম জমা)",
+     "text": "Pascanu et al.: gradient norm clipping।",
+     "src": "arXiv: On the difficulty of training RNNs, ২০১২",
+     "url": "https://arxiv.org/abs/1211.5063"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Cosine Decay"
+   ],
+   "items": [
+    {
+     "year": "২০১৬ (আগস্ট, arXiv-এ প্রথম জমা)",
+     "text": "SGDR: cosine learning-rate schedule (restart-সহ)।",
+     "src": "arXiv: SGDR paper, ২০১৬",
+     "url": "https://arxiv.org/abs/1608.03983"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Warmup–Stable–Decay (WSD)"
+   ],
+   "items": [
+    {
+     "year": "২০২৪ (এপ্রিল, arXiv-এ প্রথম জমা)",
+     "text": "MiniCPM-এ WSD schedule।",
+     "src": "arXiv: MiniCPM paper, ২০২৪",
+     "url": "https://arxiv.org/abs/2404.06395"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Early Stopping"
+   ],
+   "items": [
+    {
+     "year": "১৯৯৭ (ডিসেম্বর, technical report)",
+     "text": "Prechelt-এর স্বয়ংক্রিয় early stopping-এর নিয়ম-তুলনা।",
+     "src": "KIT: Prechelt technical report, ১৯৯৭",
+     "url": "https://publikationen.bibliothek.kit.edu/7398/1205"
+    }
+   ]
+  },
+  {
+   "names": [
+    "Hyperparameter খোঁজা — grid বনাম random"
+   ],
+   "items": [
+    {
+     "year": "২০১২ (JMLR ১৩)",
+     "text": "Bergstra ও Bengio: random search।",
+     "src": "JMLR: Random Search for Hyper-Parameter Optimization, ২০১২",
+     "url": "https://www.jmlr.org/papers/volume13/bergstra12a/bergstra12a.pdf"
     }
    ]
   }

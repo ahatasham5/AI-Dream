@@ -635,10 +635,6 @@
    "why": "ক্রম ধাপে ধাপে চলে, সরল; inference-এ constant memory।",
    "tradeoff": "সমান্তরালে শেখানো যায় না; লম্বা ক্রমে ভুলে যায় (LSTM/GRU কিছু সামলায়)।"
   },
-  "opt-sc-transformer": {
-   "why": "যেকোনো দুই অংশের সরাসরি সম্পর্ক, সমান্তরালে শেখা; সবচেয়ে বেশি tool ও checkpoint।",
-   "tradeoff": "attention-এর খরচ ক্রমের দৈর্ঘ্যের বর্গ; generation-এ KV cache বাড়ে।"
-  },
   "tool-transformers-sc": {
    "why": "প্রচলিত architecture-এর তৈরি model-definition।",
    "tradeoff": "Hugging Face-এর কাঠামোয় বাঁধা; একদম নতুন architecture-এ কাস্টম কোড।",
@@ -651,10 +647,6 @@
   "tool-litgpt": {
    "why": "২০+ LLM-এর pretrain, finetune, deploy-এর recipe একসঙ্গে।",
    "tradeoff": "recipe-র বাইরে বড় বদল করতে কোড পড়ে বুঝতে হয়।"
-  },
-  "opt-sc-ssm": {
-   "why": "লম্বা ক্রমে সরল খরচ, inference-এ constant memory (Mamba paper)।",
-   "tradeoff": "নতুন: tooling ও pretrained checkpoint কম; ছোট-মাঝারি scale-এর প্রমাণ বেশি (Mamba-2 paper)।"
   },
   "tool-mamba": {
    "why": "Mamba layer-এর মূল repository, নিজে layer জোড়ার জন্য।",
@@ -740,6 +732,277 @@
      "u": "https://huggingface.co/docs/transformers/main_classes/trainer"
     }
    ]
+  },
+  "opt-base-vision": {
+   "why": "বড় ছবি-সংগ্রহে শেখা backbone থেকে শুরু: কম data-য় ছবি-শ্রেণিবিন্যাস সম্ভব।",
+   "tradeoff": "আপনার ছবির ধরন (যেমন চিকিৎসা, উপগ্রহ) অনেক আলাদা হলে শুরুর জ্ঞান কম কাজে লাগে।"
+  },
+  "tool-vit": {
+   "why": "Apache-2.0; ছবি patch-এ ভেঙে Transformer-এ দেওয়া (Module 11)।",
+   "tradeoff": "২২৪ মাপের ইনপুটের জন্য তৈরি: অন্য মাপে মানাতে হয়।",
+   "when": "ছবি-শ্রেণিবিন্যাস, Transformer-ভিত্তিক backbone"
+  },
+  "tool-resnet50": {
+   "why": "Apache-2.0; CNN-পরিবারের পরিচিত, সরল backbone (Module 11)।",
+   "tradeoff": "পুরোনো architecture: নতুন ViT-ধরনের সঙ্গে নিজের কাজে তুলনা করে দেখো।",
+   "when": "ছবি-শ্রেণিবিন্যাস, CNN-ভিত্তিক backbone"
+  },
+  "opt-base-speech": {
+   "why": "অডিও থেকে লেখা বের করার জন্য তৈরি checkpoint আছে।",
+   "tradeoff": "অডিওর মান, ভাষা ও উচ্চারণ ভেদে ফল আলাদা: নিজের data-য় মাপতে হয়।"
+  },
+  "tool-whisper-small": {
+   "why": "Apache-2.0; speech recognition-এর জন্য প্রকাশিত।",
+   "tradeoff": "'small' ছোট মাপ: কঠিন উচ্চারণে ও আপনার ভাষায় মান নিজে মেপে নাও।",
+   "when": "speech recognition-এর ছোট শুরু"
+  },
+  "opt-fmt-image-label": {
+   "why": "ছবি-শ্রেণিবিন্যাসের সরলতম ফরম্যাট।",
+   "tradeoff": "class-সংখ্যা অসম হলে (কিছু class বিরল) সাধারণ accuracy বিভ্রান্তিকর।"
+  },
+  "opt-fmt-audio-text": {
+   "why": "speech recognition-এর সরাসরি ফরম্যাট।",
+   "tradeoff": "transcript নির্ভুল না হলে model ভুলই শেখে; অডিও-লেখা সারিবদ্ধ থাকতে হয়।"
+  },
+  "opt-fmt-tabular": {
+   "why": "ছকের data সরাসরি, সরল।",
+   "tradeoff": "feature scaling ও leakage (Module 05) সামলাতে হয়।"
+  },
+  "opt-mse-mae": {
+   "why": "সংখ্যা অনুমানের ভুল সরাসরি, দুই রূপে (বড় ভুলে সংবেদী বনাম স্থির)।",
+   "tradeoff": "MSE outlier-এ খুব সংবেদনশীল; MAE-তে বড় ভুলের বাড়তি শাস্তি নেই (Module 06)।"
+  },
+  "opt-perplexity": {
+   "why": "label ছাড়া data-তেও মাপা যায়; model পরের token-কে কতটা ধরছে তার সরাসরি মাপ।",
+   "tradeoff": "tokenizer বদলালে সংখ্যা তুলনীয় থাকে না; উত্তরের আসল মান (সঠিকতা) মাপে না।"
+  },
+  "opt-bleu-rouge": {
+   "why": "reference-এর সঙ্গে স্বয়ংক্রিয় তুলনা, সস্তা।",
+   "tradeoff": "শব্দ-মিলের মাপ: ভিন্ন শব্দে অর্থ-সঠিক উত্তরকে কম নম্বর দেয়।"
+  },
+  "tool-timm": {
+   "why": "ছবি-backbone-এর বড় সংগ্রহ; ছবি-শ্রেণিবিন্যাসে একই কাঠামোয় অনেক model তুলনা করা যায়।",
+   "tradeoff": "শুধু ছবির জন্য; লেখা বা speech-এ কাজে লাগে না। মালিক Hugging Face।"
+  },
+  "tool-torchvision": {
+   "why": "PyTorch-এর নিজস্ব ছবি-সরঞ্জাম: dataset, transform ও model একসঙ্গে।",
+   "tradeoff": "শুধু ছবির জন্য; লেখা বা speech-এ কাজে লাগে না।"
+  },
+  "tool-whisper-lib": {
+   "why": "Whisper model-এর মূল repository, MIT licence; speech recognition-এ সরাসরি।",
+   "tradeoff": "এই repo-র লক্ষ্য model ও তার ব্যবহার: fine-tuning-এর ধাপ README-তে আলাদা করে দেখে নাও।"
+  },
+  "instruction-tuning": {
+   "why": "লেখা চালিয়ে যাওয়া base model 'প্রশ্ন করলে উত্তর দেবে' আচরণ শেখে",
+   "tradeoff": "নানা ধরনের নির্দেশ আর তার ভালো উত্তরের জোড়া লাগে; এটা আলাদা algorithm নয়, SFT-এরই একটা ব্যবহার"
+  },
+  "lora-dropout": {
+   "why": "প্রতিবার পাশের পথের কিছু input লুকিয়ে ফেললে মুখস্থ করার ঝোঁক কমে",
+   "tradeoff": "শুধু training-এ কাজ করে, আর সাধারণত শুধু LoRA-র পাশের পথে বসে, মূল পথে নয়"
+  },
+  "opt-sc-blockstack": {
+   "why": "mixer বদলালেও বাকি কাঠামো (normalization, residual, FFN, training-এর সেটিং) একই থাকে, তাই Transformer, Mamba আর hybrid এক জায়গায় পাশাপাশি তুলনা করা যায় (Mamba-2 paper: attention আর SSM একই পরিবারের)।",
+   "tradeoff": "ভেতরে mixer, সাজানোর ছক আর FFN আলাদা আলাদা ঠিক করতে হয়: সিদ্ধান্ত বেশি, তবে প্রতিটা আলাদা করে মাপা যায়।"
+  },
+  "opt-sc-mix-attn": {
+   "why": "যেকোনো দুই token-এর সরাসরি সম্পর্ক, সমান্তরালে শেখা; copy আর in-context retrieval-এ শক্ত (Repeat After Me paper: Transformer SSM-কে ছাড়ায); সবচেয়ে বেশি tool ও checkpoint।",
+   "tradeoff": "attention-এর খরচ ক্রমের দৈর্ঘ্যের বর্গ; generation-এ KV cache বাড়তেই থাকে।"
+  },
+  "opt-sc-mix-linear": {
+   "why": "state স্থির আকারের, তাই generation-এ memory বাড়ে না; training-এ সমান্তরালে শেখানো যায় (Linear Attention paper-এর RNN-রূপ, RetNet paper-এর parallel ও recurrent দুই রূপ)।",
+   "tradeoff": "ছোট স্থির state-এ সব মনে রাখা যায় না: recall-ভারী কাজে দুর্বল (KL-নির্দেশিত hybrid paper: hidden-state bottleneck এখানে মৌলিক সীমা)।"
+  },
+  "opt-sc-mix-ssm": {
+   "why": "লম্বা ক্রমে সরল খরচ, inference-এ constant memory (Mamba paper)।",
+   "tradeoff": "খাঁটি SSM-এ copy ও in-context recall দুর্বল: NVIDIA-র গবেষণায় ১.১T token-এর পরে MMLU-তে Transformer-এর প্রায় ১৫ পয়েন্ট নিচে, ৩.৫T token-এ ফাঁক কমে কিন্তু মেটে না; tooling ও checkpoint কম।"
+  },
+  "opt-sc-lin-linattn": {
+   "why": "kernel feature map দিয়ে softmax-এর বদলে সরল গুণ; RNN-রূপে চলে (paper: ছবি বানানোয় softmax-এর চেয়ে ৪০০০ গুণ পর্যন্ত দ্রুত, CIFAR-10-এ bits/dim ৩.৪০ বনাম ৩.৪৭)।",
+   "tradeoff": "state-এ শুধু যোগ হয়, পুরোনো তথ্য মোছে না; paper-এর speech টেবিলে (WSJ) phoneme error ৮.০৮, softmax-এর ৫.১২: মান কমে।"
+  },
+  "opt-sc-lin-rwkv": {
+   "why": "paper-এর ১৪B model 'এ পর্যন্ত সবচেয়ে বড় dense RNN', সমআকারের Transformer-এর কাছাকাছি মান; inference-এ constant memory।",
+   "tradeoff": "একটা vector-state সূক্ষ্ম তথ্য দীর্ঘ context-এ ধরে রাখতে সীমিত, আর prompt-এর শব্দচয়নে সংবেদনশীল (paper §9)। RWKV-7 (paper ২০২৫) আরও expressive, কিন্তু kernel precision-এ সংবেদনশীল।"
+  },
+  "opt-sc-lin-retnet": {
+   "why": "তিন রূপ: parallel (training), recurrent (inference-এ O(1)), chunkwise (লম্বা ক্রমে)। paper: ৭B model, ৮k দৈর্ঘ্যে Transformer-এর চেয়ে decode ৮.৪ গুণ দ্রুত, ৭০% কম memory।",
+   "tradeoff": "decay স্থির (head-ভিত্তিক scalar), input-নির্ভর নয়; paper-এ আলাদা limitations অংশ নেই, শুধু ভবিষ্যৎ কাজের তালিকা।"
+  },
+  "opt-sc-lin-deltanet": {
+   "why": "state-এ শুধু যোগ না করে পুরোনো value শুধরায়। paper: ১.৩B, ১০০B token-এ Wikitext perplexity ১৬.৮৭ (conv-সহ), Mamba-র ১৭.০৬ ও GLA-র ১৭.২২-এর চেয়ে ভালো।",
+   "tradeoff": "paper নিজেই: training GLA-র চেয়ে ধীর; ১.৩B-এ recall-ভারী কাজে GLA-র পিছনে; decay নেই বলে length generalization সীমিত।"
+  },
+  "opt-sc-lin-gdn": {
+   "why": "decay gate (দ্রুত মোছা) আর delta rule (নির্দিষ্ট জায়গা শুধরানো) একসঙ্গে; paper-এ Mamba-2 ও DeltaNet-এর চেয়ে ভালো; Qwen3-Next ও Qwen3.5-এ ৩:১ অনুপাতে ব্যবহৃত।",
+   "tradeoff": "paper নিজেই বলে delta rule-এর তাত্ত্বিক সীমা আছে ও বাস্তব data-য় ফল মাঝারি, তাই sliding-window attention বা Mamba2-র সাথে hybrid-ও বানিয়েছে।"
+  },
+  "opt-sc-ssm-s4": {
+   "why": "লম্বা ক্রমে প্রথম সফল SSM: ১৬,৩৮৪ ধাপের Path-X কাজ সমাধান করা প্রথম model (S4 paper-এর দাবি)।",
+   "tradeoff": "সময়-স্থির: কোন token জরুরি তা বাছতে পারে না, ভাষায় এটাই সবচেয়ে দরকার (Mamba paper)।"
+  },
+  "opt-sc-ssm-mamba": {
+   "why": "B, C, Δ input-নির্ভর, তাই কী মনে রাখবে ও কী ভুলবে model নিজে ঠিক করে; inference-এ প্রতি ধাপে constant কাজ (Mamba paper: Transformer-এর ৫ গুণ throughput)।",
+   "tradeoff": "নতুন: tooling ও pretrained checkpoint কম; ছোট-মাঝারি scale-এর প্রমাণ বেশি (Mamba-2 paper)।"
+  },
+  "opt-sc-ssm-mamba2": {
+   "why": "SSD দিয়ে layer সরল (A = scalar × identity) ও বড় head dimension: Transformer-এর hardware-ব্যবহারের সাথে মানানসই, দ্রুত (Mamba-2 paper)।",
+   "tradeoff": "Mamba-র মতোই খাঁটি SSM হিসেবে recall-ভারী কাজে দুর্বল (NVIDIA-র গবেষণায় Mamba-2-ও)।"
+  },
+  "opt-sc-layout-uniform": {
+   "why": "সরল: একটাই layer-ধরন, একটাই kernel, সহজে debug।",
+   "tradeoff": "সেই পরিবারের দুর্বলতা পুরো model-এ থেকে যায়: খাঁটি SSM-এ copy ও recall দুর্বল, খাঁটি attention-এ cache বাড়ে।"
+  },
+  "opt-sc-layout-interleave": {
+   "why": "কিছু attention layer রাখলে recall ফেরে, বাকি সস্তা layer cache কমায়। NVIDIA-র গবেষণায় প্রায় ৮% layer attention হলে loss সবচেয়ে কম; Jamba-য় ১:৩ ও ১:৭ প্রায় সমান ভালো।",
+   "tradeoff": "অনুপাত আর কোন layer-এ attention যাবে, দুটোই খোলা প্রশ্ন; সমান ফাঁকে বসানো (uniform interleave) সব সময় সেরা নয় (KL-নির্দেশিত layer বাছাই paper)।"
+  },
+  "opt-sc-layout-parallel": {
+   "why": "প্রতি layer-এই দুই ধরনের head একসাথে। Hymba-য় ৩২ layer-এর ৩টায় global attention, বাকিতে সীমিত জানালা।",
+   "tradeoff": "block জটিল: দুই ধরনের head মেশানো, সাথে meta token ও layer-এর মধ্যে KV cache ভাগের মতো সহায়ক কৌশল paper-এ আছে।"
+  },
+  "opt-sc-ffn-dense": {
+   "why": "সরল ও সবচেয়ে প্রচলিত: প্রতিটা token একই FFN দিয়ে যায়।",
+   "tradeoff": "parameter বাড়ালে প্রতি token-এর হিসাবও সমান হারে বাড়ে।"
+  },
+  "opt-sc-ffn-moe": {
+   "why": "মোট parameter অনেক, কিন্তু প্রতি token-এ কয়েকটা expert সক্রিয়: Qwen3-Next-80B-এ সক্রিয় ৩B, Jamba-য় ৫২B মোটের ১২B সক্রিয়।",
+   "tradeoff": "সব expert-এর weight memory-তে রাখতে হয়; কোন token কোন expert-এ যাবে তা router-কে ঠিক করতে হয়।"
+  },
+  "tool-fla": {
+   "why": "RetNet, DeltaNet, Gated DeltaNet, RWKV6/7, Mamba2-সহ অনেক layer-এর kernel একটা library-তে।",
+   "tradeoff": "মূল RWKV-4 নেই (README-র তালিকা RWKV6 থেকে শুরু); plain Linear Attention-এর জন্য README-তে আলাদা সারি নেই, যদিও কোড আছে।"
+  },
+  "opt-bs-linear": {
+   "why": "Batch k গুণ হলে learning rate k গুণ: Goyal-এ batch ৮১৯২ (learning rate ৩.২) পর্যন্ত ImageNet ResNet-50-এর মান প্রায় অপরিবর্তিত (error ২৩.৭৪% বনাম ২৩.৬০%)।",
+   "tradeoff": "শর্ত: warmup লাগে; প্রায় ৮ হাজারের পরে মান দ্রুত নামে। প্রমাণ ImageNet/ResNet-50 ও momentum SGD-র; Adam-এর জন্য McCandlish: learning rate ∝ B^α, α ০.৫ থেকে ১।"
+  },
+  "opt-bs-noise": {
+   "why": "Gradient noise scale থেকে সর্বোচ্চ কাজের batch আন্দাজ করা যায়: তার নিচে batch দ্বিগুণ করলে step প্রায় অর্ধেক, ওপরে প্রায় লাভ নেই (McCandlish et al.)।",
+   "tradeoff": "মাপা কঠিন ও আনুমানিক; training-এ noise scale বদলায় (loss কমলে বাড়ে), তাই একবারের মাপ চিরকালের নয়। paper নিজেই কয়েকটা সীমা বলেছে।"
+  },
+  "opt-bs-accum": {
+   "why": "Memory-তে যত batch আঁটে তার চেয়ে বড় effective batch পাওয়া যায়: কয়েকটা ছোট batch-এর gradient জমিয়ে একবার update।",
+   "tradeoff": "বাড়তি forward-backward পাস, তাই ধীর (Hugging Face docs); বড় batch আঁটলে দরকার নেই। Token-ভিত্তিক loss-এ ঠিক loss হলো মোট loss ÷ মোট non-padding token, ছোট batch-এর গড়ের গড় নয়।"
+  },
+  "opt-wd-01": {
+   "why": "বড় language model-এ প্রচলিত: GPT-3 ও Llama 2 দুটোই ০.১।",
+   "tradeoff": "সেরা মান training-এর মোট update-সংখ্যার ওপর নির্ভর করে, লম্বা training-এ কম decay ভালো (AdamW paper); পরীক্ষা ছবির কাজে, বাকি কাজে নিজে মিলিয়ে দেখো।"
+  },
+  "opt-wd-search": {
+   "why": "AdamW-এ decay আর learning rate প্রায় স্বাধীন (AdamW paper), তাই আলাদা করে খোঁজা যায়।",
+   "tradeoff": "খোঁজার খরচ আছে; সেরা মান training কত লম্বা তার ওপর নির্ভর করে, তাই ছোট run-এর মান বড় run-এ বদলাতে পারে।"
+  },
+  "opt-clip-1": {
+   "why": "দুটো বড় recipe-এই global norm ১.০ (GPT-3, Llama 2); এক step-এ weight ছিটকে যাওয়া ঠেকায়।",
+   "tradeoff": "সীমা কাজ-ভেদে বদলায় (Pascanu-র উদাহরণে ৬, ৮, ৪৫); শুধু exploding gradient ঠেকায়, vanishing gradient-এ কিছু করে না।"
+  },
+  "opt-clip-avg": {
+   "why": "Pascanu-র নিয়ম: গড় gradient-দৈর্ঘ্য অনেক update জুড়ে দেখে সীমা ঠিক করা; training সীমার মানের প্রতি খুব সংবেদনশীল নয়।",
+   "tradeoff": "আগে কিছু run-এ gradient-দৈর্ঘ্য মাপতে হয়; paper RNN-এর জন্য লেখা, Transformer-এর সরাসরি প্রমাণ নয়।"
+  },
+  "opt-search-random": {
+   "why": "বেশির ভাগ hyperparameter-এর মধ্যে দু-একটাই জরুরি; random একই trial-সংখ্যায় জরুরি মানের বেশি আলাদা মান ছোঁয় (Bergstra ও Bengio)।",
+   "tradeoff": "ছোট মাত্রায় grid-এর চেয়ে সামান্য কম দক্ষ; paper-এর DBN পরীক্ষায় হাতে-বাছা + grid-কে সব ক্ষেত্রে হারায়নি।"
+  },
+  "opt-search-grid": {
+   "why": "মাত্রা কম (২–৩টা hyperparameter) হলে সরল ও আবার চালানো যায়; কম মাত্রায় random-এর চেয়ে সামান্য বেশি দক্ষ (Bergstra ও Bengio)।",
+   "tradeoff": "মাত্রা বাড়লে trial-সংখ্যা ঘাতে বাড়ে, আর জরুরি নয় এমন মানও বারবার পরীক্ষা হয়।"
+  },
+  "opt-cosine": {
+   "why": "Llama 2, GPT-3 আর Chinchilla তিনটাই cosine ব্যবহার করেছে; শেষে সর্বোচ্চের ১০%-এ (Chinchilla-তে ১০ গুণ কমা)।",
+   "tradeoff": "চক্রের দৈর্ঘ্য training step-এর সাথে মেলাতে হয়: ২৫%-এর বেশি ছাড়ালে মান লক্ষণীয়ভাবে নামে (Chinchilla); মোট step আগে জানতে হয়।"
+  },
+  "opt-wsd": {
+   "why": "Stable ভাগের checkpoint থেকে চালিয়ে যাওয়া যায়; প্রায় ১০% token-এর decay-এ cosine-এর সমান বা কম loss (MiniCPM)।",
+   "tradeoff": "ছোট model-এ পরীক্ষিত, বড় LLM-এ পুরো পরীক্ষিত নয় (paper নিজেই); ২.৫% decay যথেষ্ট ছিল না।"
+  },
+  "tool-optuna": {
+   "why": "Hyperparameter খোঁজার স্বয়ংক্রিয় framework, define-by-run API (README)।",
+   "tradeoff": "tool শুধু খোঁজা চালায়; কোন মান, কত trial আর কোন মাপকাঠি, তা তুমিই ঠিক করো।"
+  },
+  "opt-sc-stop-val": {
+   "why": "Validation loss বাড়তে শুরু করলে থামে, মুখস্থ করার আগেই; patience দিয়ে সামান্য ওঠানামায় থামে না (Goodfellow et al. §7.8)।",
+   "tradeoff": "validation set লাগে, কিছু data training-এ যায় না; আবার-train করার সময় একই update না একই pass, এর কোনো ভালো উত্তর নেই (Goodfellow et al.)। Prechelt: ধীর নিয়মে ~৪% ভালো, ~৪ গুণ সময়।"
+  },
+  "opt-sc-stop-budget": {
+   "why": "Step বা token আগে ঠিক, তাই cosine বা WSD-র দৈর্ঘ্যের সাথে মেলে (Chinchilla: চক্র ≈ training step)।",
+   "tradeoff": "ভুল হিসাবে অর্ধেক-শেখা বা বাড়তি-শেখা; validation দেখে না, তাই overfit ধরা পড়ে না।"
+  },
+  "opt-sc-lr-recipe": {
+   "why": "প্রকাশিত recipe: Llama 2-তে শীর্ষ learning rate ৩e-৪ (৭B, ১৩B) আর ১.৫e-৪ (৩৪B, ৭০B), batch ৪M token।",
+   "tradeoff": "ওই model-এর data ও optimizer-এ মাপা; তোমার ক্ষেত্রে ছোট run-এ মিলিয়ে নিতে হয়।"
+  },
+  "opt-sc-shape-depth-width": {
+   "why": "মোট আকার ঠিক থাকলে depth বনাম width-এর প্রভাব loss-এ খুবই কম: (৬ layer, ৪২৮৮ প্রস্থ) ও (৪৮, ১৬০০)-এর loss ৩%-এর মধ্যে (Kaplan et al.)।",
+   "tradeoff": "এটা শুধু loss-এর কথা; গতি, memory আর cache-এ depth-width আলাদা ফল দেয়, paper এসব মাপেনি।"
+  },
+  "opt-sc-shape-kv": {
+   "why": "KV cache ছোট: MHA থেকে MQA-তে head-সংখ্যা গুণ কম। GQA-৮ মান প্রায় MHA-র সমান (T5-XXL গড় ৪৭.১ বনাম ৪৭.২) আর সময় ১.৫১ থেকে ০.২৮ সেকেন্ড (GQA paper)।",
+   "tradeoff": "পরীক্ষা encoder-decoder T5-তে, শুধু decoder self-attention-এ; বড় decoder-only model-এ একই ফল ধরে নেওয়া যায় না।"
+  },
+  "opt-sc-shape-cache": {
+   "why": "লম্বা context-এ memory-র বাধা আগেই ধরা পড়ে; hybrid-এ কত layer attention হবে, তার প্রভাব সরাসরি দেখা যায় (সূত্র: DeepSeek-V2 paper, Table 1)।",
+   "tradeoff": "সূত্রটা শুধু attention-এর cache গোনে: weight, activation আর linear layer-এর state আলাদা; batch ও byte-এর গুণ আমার যোগ করা।"
+  },
+  "opt-sc-shape-tokens": {
+   "why": "Model-আকার দ্বিগুণ হলে token-ও দ্বিগুণ: compute-সেরা ভাগ (Chinchilla)। ১B-তে প্রায় ২০.২B token।",
+   "tradeoff": "paper নিজেই: মাত্র দুটো বড় তুলনা-run, ছোট ও মাঝারি scale-এ পরীক্ষা নেই; শুধু training-খরচ, serving-খরচ ধরে না।"
+  },
+  "opt-kd-text": {
+   "why": "শুধু text লাগে, তাই API-র teacher আর আলাদা tokenizer-এও চলে।",
+   "tradeoff": "প্রতি জায়গায় teacher-এর একটাই পথ student পায়, বিকল্পের সম্ভাবনা হারায়; কিছু teacher-এর output দিয়ে অন্য model train করা শর্তে নিষিদ্ধ থাকতে পারে, আগে শর্ত দেখো।"
+  },
+  "opt-kd-probs": {
+   "why": "প্রতি উদাহরণে বেশি তথ্য: বিকল্পগুলো কতটা কাছাকাছি, তাও student শেখে।",
+   "tradeoff": "প্রতিটা token-এর probability লাগে, তাই API-র teacher-এ সাধারণত চলে না; tokenizer আলাদা হলে জটিল।"
+  },
+  "opt-kd-hidden": {
+   "why": "শেষ উত্তরের পাশাপাশি ভেতরের উপস্থাপনাও student শেখে।",
+   "tradeoff": "মাপ আলাদা হলে শেখার যোগ্য projection লাগে, আর loss-এ λ-র মান বাছতে হয়; teacher-এর ভেতরে ঢোকার অধিকার লাগে।"
+  },
+  "opt-kd-same-arch": {
+   "why": "সরল: একই ধরনের গঠন, শুধু ছোট বা সমান আকারের।",
+   "tradeoff": "Student teacher-এর চেয়ে কম পারতে পারে, আর teacher-এর ভুলও আসে (distillation-এর মূল ঝুঁকি)।"
+  },
+  "opt-kd-diff-arch": {
+   "why": "আলাদা গঠনের সুবিধা পাওয়া যায়, যেমন স্থির state-এর ছোট cache।",
+   "tradeoff": "রূপান্তরের পদ্ধতিগুলোতে এখনো ফাঁক থাকে, বিশেষ করে ঠিক তথ্য ফেরত দেওয়ার কাজে (খোলা প্রশ্ন শাখা দেখো)।"
+  },
+  "opt-kd-offline": {
+   "why": "সরল ও সস্তা: উদাহরণ একবার বানিয়ে বারবার ব্যবহার।",
+   "tradeoff": "Student নিজের ভুলের পরের অবস্থা চেনে না, তাই ভুল জমতে পারে।"
+  },
+  "opt-kd-onpolicy": {
+   "why": "Student নিজের লেখার ওপর সংকেত পায়, তাই নিজের ভুলের পরের অবস্থাও শেখে।",
+   "tradeoff": "খরচ বেশি; teacher-এর token-স্তরের probability লাগে।"
+  },
+  "opt-kd-filter-answer": {
+   "why": "জানা উত্তরের সাথে মিলিয়ে ভুল উত্তরের উদাহরণ বাদ যায়।",
+   "tradeoff": "ঠিক শেষ উত্তরের পেছনেও ভুল ধাপ থাকতে পারে।"
+  },
+  "opt-kd-filter-steps": {
+   "why": "মাঝের ভুল ধাপও ধরা পড়ে।",
+   "tradeoff": "প্রতিটা ধাপ যাচাইয়ের একটা উপায় দরকার, আর তা শুধু শেষ উত্তর মেলানোর চেয়ে বেশি কাজ।"
+  },
+  "opt-kd-filter-agree": {
+   "why": "ঠিক উত্তর জানা না থাকলেও কয়েকবারের উত্তরের মিল দেখে সন্দেহজনকগুলো ধরা যায়।",
+   "tradeoff": "Agreement প্রমাণ নয়; বাছাইয়ে কত আর কী ধরনের data বাদ গেল, তা মাপতে হয়।"
+  },
+  "opt-kd-filter-human": {
+   "why": "ভুলের দাম বেশি হলে মানুষের যাচাই সবচেয়ে নির্ভরযোগ্য ধাপ।",
+   "tradeoff": "ধীর ও ব্যয়বহুল, তাই সাধারণত নমুনার ওপর।"
+  },
+  "opt-kd-one-teacher": {
+   "why": "সরল: একটা teacher, একটা tokenizer, একটা loss।",
+   "tradeoff": "Teacher-এর ভুল আর সীমা student-এ হুবহু যায় (distillation-এর মূল ঝুঁকি)।"
+  },
+  "opt-kd-teachers-split": {
+   "why": "প্রতিটা ভাষা বা কাজে সেরা teacher-এর জ্ঞান পায়, অথচ model একটাই: Tan et al.-এ ৪৪ ভাষা পর্যন্ত একটা student আলাদা model-গুলোর সমান বা ভালো।",
+   "tradeoff": "ভাষা-প্রতি data কতটা দেবে তা আলাদা সিদ্ধান্ত: Limisiewicz et al. balanced (sub-sample করা) data দিয়ে দুর্বল ভাষায় ভালো, সবল ভাষায় আগের ফল ধরে রেখেছে (abstract)। প্রতিটা ভাষার teacher জোগাড় ও আলাদা মাপ লাগে।"
+  },
+  "opt-kd-teachers-avg": {
+   "why": "ensemble-এর জ্ঞান একটা model-এ ঢোকে (Hinton et al.); কয়েকটা teacher এক student-এ, একই computational complexity-তে সাধারণ পদ্ধতির চেয়ে ভালো (Zuchniak)।",
+   "tradeoff": "সবাইকে সমান গুরুত্ব দেওয়া সবসময় ভালো নয়, এমন দাবি survey-সারাংশে (আমি সরাসরি যাচাই করিনি); আলাদা ভাষার teacher হলে এক ভাষার উদাহরণে অন্য ভাষার teacher-এর output গড়ে মিশে যাবে (আমার যুক্তি, সূত্রের দাবি নয়)।"
   }
  }
 }

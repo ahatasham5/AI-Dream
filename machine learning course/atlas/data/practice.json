@@ -955,7 +955,7 @@
   },
   {
    "names": [
-    "Training-এর ধাপ ও আগে শেখা model"
+    "৪. Training — Model কীভাবে শেখে?"
    ],
    "practice": {
     "scenario": "প্রথম সিদ্ধান্ত: শূন্য থেকে, না আগে-শেখা model থেকে? বেশির ভাগ বাস্তব কাজে দ্বিতীয়টাই ডিফল্ট।",
@@ -1828,6 +1828,16 @@
       "t": "Jamba: Transformer ও Mamba layer পাশাপাশি, কিছু layer-এ MoE; একটা ৮০ GB GPU-তে আঁটে, ২৫৬K token context পর্যন্ত শক্ত ফল (paper-এর দাবি)।",
       "s": "Jamba paper (Lieber et al.), ২০২৪",
       "u": "https://arxiv.org/abs/2403.19887"
+     },
+     {
+      "t": "Jamba paper-এর পরীক্ষা: খাঁটি Mamba few-shot কাজে output-এর ছাঁচ মানতে ব্যর্থ; hybrid মেনেছে, এমনকি ৮ layer-এর মাত্র ১টা attention হলেও।",
+      "s": "Jamba paper (AI21), ২০২৪",
+      "u": "https://arxiv.org/abs/2403.19887"
+     },
+     {
+      "t": "মোট ৫২B parameter, সক্রিয় ১২B; Apache 2.0 licence-এ ai21labs/Jamba-v0.1 হিসেবে প্রকাশিত।",
+      "s": "Jamba paper ও model card",
+      "u": "https://arxiv.org/abs/2403.19887"
      }
     ],
     "pitfalls": [
@@ -2122,6 +2132,860 @@
     "typical": [
      "দুই loss-এর ওজন (কোনটা কতটা) validation দিয়ে ঠিক করো।"
     ]
+   }
+  },
+  {
+   "names": [
+    "DeltaNet — delta rule"
+   ],
+   "practice": {
+    "scenario": "state-এ প্রতি key-র জন্য একটা value মনে রাখা, নতুন value এলে পুরোনোটা শুধরে নেওয়া; সাধারণ linear attention-এ ওই মুছতে-না-পারা সমস্যা থাকে।",
+    "facts": [
+     {
+      "t": "state update Sₜ = Sₜ₋₁(I − βₜ kₜ kₜᵀ) + βₜ vₜ kₜᵀ; এটা ½‖S·k − v‖²-এর ওপর এক ধাপ SGD-র সমান।",
+      "s": "DeltaNet paper (Yang et al.), ২০২৪",
+      "u": "https://arxiv.org/abs/2406.06484"
+     },
+     {
+      "t": "১.৩B parameter, ১০০B token-এ (conv-সহ) Wikitext perplexity ১৬.৮৭, LAMBADA ১২.২১; Mamba ১৭.০৬ ও ১৩.৮৯, GLA ১৭.২২ ও ১৪.৪৭, Transformer++ ১৬.৮৫ ও ১৩.৪৪।",
+      "s": "DeltaNet paper, Table 1",
+      "u": "https://arxiv.org/abs/2406.06484"
+     },
+     {
+      "t": "paper নিজে বলে: training GLA-র চেয়ে ধীর; ১.৩B-এ recall-ভারী কাজে GLA-র পিছনে; decay নেই বলে length generalization সীমিত।",
+      "s": "DeltaNet paper §5.3",
+      "u": "https://arxiv.org/abs/2406.06484"
+     }
+    ],
+    "typical": [
+     "library-তে ব্যবহার সাধারণত flash-linear-attention-এর kernel দিয়ে।"
+    ],
+    "pitfalls": [
+     "'delta rule এই paper-এর আবিষ্কার' ধরে নেওয়া: paper নিজে delta-rule model-কে আগের কাজ বলে উল্লেখ করেছে; এর অবদান সমান্তরাল training algorithm।"
+    ],
+    "outside": "ধারণার সরল রূপ কোর্সে আছে (স্থির state ও delta rule); বাস্তব model-এর সংখ্যা paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Gated DeltaNet"
+   ],
+   "practice": {
+    "scenario": "লম্বা context-এ পুরোনো অপ্রয়োজনীয় তথ্য দ্রুত মুছতে চাই (gate), আবার নির্দিষ্ট key-র value শুধরাতেও চাই (delta rule)।",
+    "facts": [
+     {
+      "t": "Sₜ = Sₜ₋₁ · αₜ(I − βₜ kₜ kₜᵀ) + βₜ vₜ kₜᵀ, αₜ ∈ (0,1) input-নির্ভর; Mamba2-র decay-র সাথে delta rule জোড়া।",
+      "s": "Gated Delta Networks paper (Yang, Kautz, Hatamizadeh), ICLR ২০২৫",
+      "u": "https://arxiv.org/abs/2412.06464"
+     },
+     {
+      "t": "Table 3 (paper-এর setup অনুযায়ী ১.৩B, ১০০B token): Wikitext perplexity ১৬.৪২, LAMBADA ১২.১৭, গড় common-sense ৫৫.৩২; Mamba2-র ১৬.৫৬, ১২.৫৬, ৫৪.৮৯; DeltaNet-এর ১৭.৭১, ১৬.৮৮, ৫২.১৪।",
+      "s": "Gated Delta Networks paper, Table 3",
+      "u": "https://arxiv.org/abs/2412.06464"
+     },
+     {
+      "t": "Qwen3-Next-80B-A3B ও Qwen3.5-397B-A17B-র model card: প্রতি ৪ layer-এর ৩টা Gated DeltaNet, ১টা Gated Attention।",
+      "s": "Qwen model card (Hugging Face)",
+      "u": "https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct"
+     }
+    ],
+    "pitfalls": [
+     "paper নিজেই বলে delta rule-এর তাত্ত্বিক সীমা আছে ও বাস্তব data-য় ফল মাঝারি; তাই sliding-window attention বা Mamba2-র সাথে hybrid-ও দেখিয়েছে।"
+    ],
+    "outside": "ধারণার সরল রূপ কোর্সে আছে (স্থির state ও delta rule); বাস্তব model-এর সংখ্যা paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Hybrid — একাধিক mixer একই model-এ"
+   ],
+   "practice": {
+    "scenario": "১ লাখ token-এর context-এ খাঁটি attention-এর KV cache বিশাল, আর খাঁটি SSM-এ 'আগের নির্দিষ্ট তথ্য ফেরত দাও' কাজ দুর্বল; hybrid মাঝামাঝি পথ।",
+    "facts": [
+     {
+      "t": "NVIDIA-র তুলনামূলক গবেষণা: ৮B Mamba-2-Hybrid (৪৩% Mamba-2, ৭% attention, ৫০% MLP) ৮B Transformer-কে সব ১২টা প্রচলিত কাজে (গড়ে +২.৬৫ পয়েন্ট) ছাড়ায়; token-জেনারেশন ৮ গুণ পর্যন্ত দ্রুত হওয়ার পূর্বাভাস।",
+      "s": "An Empirical Study of Mamba-based Language Models, ২০২৪",
+      "u": "https://arxiv.org/abs/2406.07887"
+     },
+     {
+      "t": "একই গবেষণায় খাঁটি Mamba/Mamba-2 ১.১T token-এ MMLU-তে Transformer-এর প্রায় ১৫ পয়েন্ট নিচে; ৩.৫T-তে ফাঁক কমে, মেটে না।",
+      "s": "An Empirical Study of Mamba-based Language Models, ২০২৪",
+      "u": "https://arxiv.org/abs/2406.07887"
+     },
+     {
+      "t": "দুই-layer Transformer স্থির-state SSM-এর চেয়ে ঘাতগুণ দীর্ঘ string copy করতে পারে; pretrained model-এ context থেকে তথ্য আনায়ও Transformer এগিয়ে।",
+      "s": "Repeat After Me paper (Jelassi et al.), ২০২৪ (abstract)",
+      "u": "https://arxiv.org/abs/2402.01032"
+     }
+    ],
+    "typical": [
+     "নতুন বড় model-এ attention : সস্তা layer-এর অনুপাত ১:২ থেকে ১:৭-এর মধ্যে দেখা যায় (Griffin, Qwen3-Next, Kimi Linear, Jamba, MiniMax-01)।"
+    ],
+    "pitfalls": [
+     "'hybrid মানে দুটো আলাদা model জুড়ে দেওয়া' ধরে নেওয়া: আসলে একই network-এর layer-এ layer-এ ভিন্ন mixer, কাঠামো (block-stack) এক।"
+    ],
+    "outside": "ধারণার সরল রূপ কোর্সে আছে (স্থির state ও delta rule); বাস্তব model-এর সংখ্যা paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Hybrid-এর ছক — অনুপাত ও সাজানো"
+   ],
+   "practice": {
+    "scenario": "একটা নতুন hybrid বানাতে গিয়ে প্রথম প্রশ্ন: কয়টা layer attention হবে আর কোনগুলো।",
+    "facts": [
+     {
+      "t": "Jamba: ৮ layer-এর block-এ attention : Mamba = ১:৭ (মোট ৪টা attention, ২৮টা Mamba); প্রতি ২ layer-এ MoE (১৬ expert, top-২); ১.৩B model, ২৫০B token-এ ১:৩ ও ১:৭ প্রায় সমান ভালো, ১:৭ বেশি compute-কার্যকর বলে বাছা।",
+      "s": "Jamba paper (AI21), ২০২৪",
+      "u": "https://arxiv.org/abs/2403.19887"
+     },
+     {
+      "t": "Qwen3-Next: ১২ × (৩ × (Gated DeltaNet → MoE) → ১ × (Gated Attention → MoE)) = ৪৮ layer।",
+      "s": "Qwen3-Next model card",
+      "u": "https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct"
+     },
+     {
+      "t": "Surya OCR 2: text অংশে ২৪ layer, তার ১৮টা linear_attention ও ৬টা full_attention, ক্রম [linear, linear, linear, full] × ৬।",
+      "s": "datalab-to/surya-ocr-2 config.json",
+      "u": "https://huggingface.co/datalab-to/surya-ocr-2"
+     },
+     {
+      "t": "NVIDIA-র ablation (১৩০M ও ৮৪০M parameter): প্রায় ৮% layer self-attention হলে validation loss সবচেয়ে কম।",
+      "s": "An Empirical Study of Mamba-based Language Models, ২০২৪",
+      "u": "https://arxiv.org/abs/2406.07887"
+     }
+    ],
+    "pitfalls": [
+     "একটা অনুপাতকে 'সঠিক' ধরে নেওয়া: Jamba ১:৩ ও ১:৭-কে সমান পেয়েছে, NVIDIA ~৮% পেয়েছে, Qwen3-Next ২৫%; scale, কাজ আর kernel-ভেদে উত্তর বদলায়।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Qwen3-Next ও Qwen3.5 — Gated DeltaNet + Gated Attention"
+   ],
+   "practice": {
+    "scenario": "লম্বা context (native ২,৬২,১৪৪ token) সস্তায় চালানো: ৭৫% layer স্থির state, বাকি ২৫% পুরো attention।",
+    "facts": [
+     {
+      "t": "Qwen3-Next-80B-A3B: ৪৮ layer = ৩৬ Gated DeltaNet + ১২ Gated Attention, প্রতিটার পরে MoE (৫১২ expert, ১০ routed + ১ shared); মোট ৮০B, সক্রিয় ৩B।",
+      "s": "Qwen3-Next model card",
+      "u": "https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct"
+     },
+     {
+      "t": "Qwen3.5-397B-A17B: ৬০ layer = ৪৫ Gated DeltaNet + ১৫ Gated Attention, একই ৩:১ ছক; মোট ৩৯৭B, সক্রিয় ১৭B; early-fusion multimodal।",
+      "s": "Qwen3.5 model card",
+      "u": "https://huggingface.co/Qwen/Qwen3.5-397B-A17B"
+     },
+     {
+      "t": "Surya OCR 2-এর config-এ architecture Qwen3_5ForConditionalGeneration, ২৪ layer-এর ১৮টা linear_attention; README: layout, OCR ও table একই vision-language model (Qwen3.5-style, ~650M parameter)।",
+      "s": "datalab-to/surya-ocr-2 ও README",
+      "u": "https://github.com/datalab-to/surya"
+     }
+    ],
+    "pitfalls": [
+     "Surya-র ১৮টা linear layer-কে নির্দিষ্টভাবে 'Gated DeltaNet' বলা: config শুধু 'linear_attention' লেখে; নামটা Qwen3.5 পরিবারের card থেকে অনুমান।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "MiniMax-01 — lightning attention + softmax"
+   ],
+   "practice": {
+    "scenario": "খুব লম্বা context-এ বেশির ভাগ layer linear, মাঝে মাঝে একটা softmax layer retrieval ঠিক রাখে।",
+    "facts": [
+     {
+      "t": "paper: প্রতি ৭টা transnormer (linear attention) block-এর পরে ১টা softmax attention block, মোট ৮০ layer; softmax layer-এ grouped-query attention।",
+      "s": "MiniMax-01 paper, ২০২৫",
+      "u": "https://arxiv.org/abs/2501.08313"
+     },
+     {
+      "t": "model card: মোট ৪৫৬B, সক্রিয় ৪৫.৯B parameter, ৩২ expert, top-২ routing।",
+      "s": "MiniMax-Text-01 model card",
+      "u": "https://huggingface.co/MiniMaxAI/MiniMax-Text-01"
+     },
+     {
+      "t": "paper-এর 'Hybrid-lightning' ablation: hybrid খাঁটি lightning attention-কে ছাড়ায়, যেটা retrieval কাজে পিছিয়ে ছিল।",
+      "s": "MiniMax-01 paper, ২০২৫",
+      "u": "https://arxiv.org/abs/2501.08313"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Griffin ও RecurrentGemma — recurrence + local attention"
+   ],
+   "practice": {
+    "scenario": "স্থির cache আর ভালো মান দুটোই চাই: recurrence তথ্য বয়ে নেয়, ছোট local attention কাছের token ধরে।",
+    "facts": [
+     {
+      "t": "Griffin: দুটো residual recurrent block-এর পরে একটা local (MQA) attention block, পালা করে; recurrent অংশ RG-LRU, local window ১০২৪ token।",
+      "s": "Griffin paper (Google DeepMind), ২০২৪",
+      "u": "https://arxiv.org/abs/2402.19427"
+     },
+     {
+      "t": "abstract: ১৪B Griffin Llama-2-এর সমান মান পায় ৬ গুণের বেশি কম token-এ train করে; খাঁটি-recurrent রূপ Hawk।",
+      "s": "Griffin paper, ২০২৪",
+      "u": "https://arxiv.org/abs/2402.19427"
+     }
+    ],
+    "pitfalls": [
+     "RecurrentGemma-র layer-সংখ্যা ও ঠিক ছক এখানে যাচাই করা হয়নি; শুধু 'Griffin-ভিত্তিক' (model card) বলা যায়।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Hymba — একই layer-এ attention head ও SSM head"
+   ],
+   "practice": {
+    "scenario": "প্রতি layer-এই দুই ধরনের তথ্য-মেশানো চাই, পালা করার বদলে: attention head আর SSM head একই block-এ সমান্তরালে।",
+    "facts": [
+     {
+      "t": "paper: hybrid-head, প্রতি block-এ attention ও Mamba head সমান্তরালে; learnable meta token, layer-এর মধ্যে KV cache ভাগ, বেশির ভাগ layer-এ sliding-window attention।",
+      "s": "Hymba paper (NVIDIA), ২০২৪",
+      "u": "https://arxiv.org/abs/2411.13676"
+     },
+     {
+      "t": "Hymba-1.5B-Base-এর config: ৩২ layer, global attention শুধু layer ০, ১৫, ৩১-এ (বাকি ২৯টায় sliding window)।",
+      "s": "nvidia/Hymba-1.5B-Base config.json",
+      "u": "https://huggingface.co/nvidia/Hymba-1.5B-Base"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Kimi Linear — Kimi Delta Attention + MLA"
+   ],
+   "practice": {
+    "scenario": "১ মিলিয়ন token-এর context-এ KV cache আর decode-এর সময় কমানো।",
+    "facts": [
+     {
+      "t": "paper: Kimi Delta Attention (Gated DeltaNet-এর সূক্ষ্মতর gating-সহ রূপ) + Multi-Head Latent Attention; ৩:১ অনুপাত; ৪৮B মোট, ৩B সক্রিয়, ৫.৭T token-এ train।",
+      "s": "Kimi Linear paper, ২০২৫",
+      "u": "https://arxiv.org/abs/2510.26692"
+     },
+     {
+      "t": "config: ২৭ layer, ২০টা KDA আর ৭টা full MLA (layer ৪, ৮, ১২, ১৬, ২০, ২৪, ২৭); তাই ৩:১ আনুমানিক।",
+      "s": "moonshotai/Kimi-Linear-48B-A3B-Instruct config.json",
+      "u": "https://huggingface.co/moonshotai/Kimi-Linear-48B-A3B-Instruct"
+     },
+     {
+      "t": "abstract-এর দাবি: KV cache ৭৫% পর্যন্ত কম, ১M context-এ decode ৬ গুণ পর্যন্ত দ্রুত।",
+      "s": "Kimi Linear paper, ২০২৫",
+      "u": "https://arxiv.org/abs/2510.26692"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "এক architecture থেকে আরেকটায় রূপান্তর"
+   ],
+   "practice": {
+    "scenario": "একটা ভালো Llama-জাতীয় model আছে, কিন্তু inference-এ KV cache ভারী; গোড়া থেকে নতুন architecture train না করে ওটার জ্ঞান সরাতে চাই।",
+    "facts": [
+     {
+      "t": "সরানোর খরচ পদ্ধতিভেদে: LoLCATs Llama 3 8B-তে প্রায় ৬.৫ GPU-ঘণ্টা (এক A100); Distill-then-Replace Qwen2.5-1.5B-র জন্য ৫.০ GPU-ঘণ্টা (এক A800); Mamba in the Llama প্রতি hybrid ৮টা A100-এ পাঁচ দিনের কম।",
+      "s": "LoLCATs, Distill-then-Replace ও Mamba in the Llama paper",
+      "u": "https://arxiv.org/abs/2410.10254"
+     }
+    ],
+    "typical": [
+     "শুরুর মান teacher থেকে নেওয়া: embedding, MLP, Q/K/V weight কপি; শেখানো হয় নতুন layer।"
+    ],
+    "pitfalls": [
+     "'রূপান্তর মানে মান অক্ষত': সব পদ্ধতিতে কিছু ফাঁক থাকে, বিশেষ করে recall-ভারী কাজে (দেখো খোলা প্রশ্ন)।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Mamba in the Llama — Q, K, V থেকে C, B, X"
+   ],
+   "practice": {
+    "scenario": "Llama3-8B-Instruct-এর Q, K, V কপি করে Mamba hybrid বানানো, শুধু post-training data দিয়ে।",
+    "facts": [
+     {
+      "t": "Q, K, V projection কপি হয় Mamba-র C, B, X-এ; MLP রাখা; ৫০%, ২৫% বা ১২.৫% attention অক্ষত। শেখানো ~২০B token-এ, প্রতি hybrid ৮টা ৮০GB A100-এ পাঁচ দিনের কম।",
+      "s": "The Mamba in the Llama (Wang et al.), NeurIPS ২০২৪",
+      "u": "https://arxiv.org/abs/2408.15237"
+     },
+     {
+      "t": "Llama3-8B-Instruct থেকে distill-করা model AlpacaEval 2-তে GPT-4-এর বিপক্ষে ২৯.৬১ length-controlled win rate ও MT-Bench-এ ৭.৩৫ (abstract)।",
+      "s": "The Mamba in the Llama paper",
+      "u": "https://arxiv.org/abs/2408.15237"
+     },
+     {
+      "t": "perplexity বেড়ে যাওয়া: ৫০% attention-এ ১.০৩, ২৫%-এ ১.০৯, ৬.৩৫%-এ ১.২২, কোনো attention না রাখলে ৩.৩৬ গুণ।",
+      "s": "The Mamba in the Llama paper",
+      "u": "https://arxiv.org/abs/2408.15237"
+     }
+    ],
+    "pitfalls": [
+     "speculative decoding-এর সাদামাটা implementation H100-এ কোনো গতিই বাড়ায়নি; kernel fusion লেগেছে (paper নিজে বলেছে)।",
+     "খাঁটি (০% attention) distilled model-এর মান 'significantly' নেমেছে: paper-এর কথা।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "MOHAWK ও Phi-Mamba — তিন ধাপের alignment"
+   ],
+   "practice": {
+    "scenario": "ছোট teacher (Phi-1.5, ১.৩B) থেকে Mamba-2 student, তিন ধাপে মিলিয়ে।",
+    "facts": [
+     {
+      "t": "ধাপ ১ (matrix orientation): student-এর SSM matrix teacher-এর attention matrix-এর কাছে (Frobenius দূরত্ব); ধাপ ২: প্রতি block-এর output L2-এ মেলানো; ধাপ ৩: embedding, final norm, LM head, MLP কপি করে teacher-এর logit-এ cross-entropy-তে পুরো model।",
+      "s": "MOHAWK paper (Bick et al.), ২০২৪",
+      "u": "https://arxiv.org/abs/2408.10189"
+     },
+     {
+      "t": "মোট ৩B token (৮০M, ১৬০M, ২.৭৬B ধাপ ধরে), C4, দৈর্ঘ্য ২০৪৮; WinoGrande ৭১.৭% (pretrained Mamba-2 ৬০.৯%), ARC-C ৪৪.১% (৩৩.৩%)।",
+      "s": "MOHAWK paper, ২০২৪",
+      "u": "https://arxiv.org/abs/2408.10189"
+     },
+     {
+      "t": "২৪ layer-এর ৪টা attention রাখা hybrid Phi-Mamba ৫B token-এ; ৫টা কাজের গড় ৬৬.০, teacher-এর ৬৭.২ (Table 2)।",
+      "s": "MOHAWK paper, ২০২৪",
+      "u": "https://arxiv.org/abs/2408.10189"
+     }
+    ],
+    "pitfalls": [
+     "paper নিজে বলে: খাঁটি Phi-Mamba এখনো teacher Phi-1.5-এর পিছনে (গড় ৬২.৬ বনাম ৬৪.৯)।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "LoLCATs — attention transfer ও LoRA"
+   ],
+   "practice": {
+    "scenario": "একটা বড় model (৮B থেকে ৪০৫B) অল্প GPU-সময়ে linear attention-এ নেওয়া, parameter প্রায় না ছুঁয়ে।",
+    "facts": [
+     {
+      "t": "ধাপ ১: Q, K, V, O জমাট রেখে feature map শেখানো যাতে linear attention-এর output softmax-এর output-এর কাছে আসে (block ধরে MSE); ধাপ ২: LoRA (r=8)-এ next-token loss; sliding window সহ।",
+      "s": "LoLCATs paper (Zhang et al.), ICLR ২০২৫",
+      "u": "https://arxiv.org/abs/2410.10254"
+     },
+     {
+      "t": "~৪০M token (পরিষ্কার Alpaca), parameter-এর ০.২%-এরও কম; Llama 3 8B ≈ ৬.৫ GPU-ঘণ্টা (এক A100 40GB); ৭০B ১৮ ঘণ্টা (এক ৮×H100 node); ৪০৫B-র ধাপ ১ ১৪টা H100-এ ৫ ঘণ্টা ও ধাপ ২ তিনটা ৮×H100 node-এ ১৬ ঘণ্টা।",
+      "s": "LoLCATs paper, ২০২৫",
+      "u": "https://arxiv.org/abs/2410.10254"
+     },
+     {
+      "t": "আগের linearizing পদ্ধতির চেয়ে ৫-shot MMLU-তে ২০+ পয়েন্ট উন্নতি; ৭০B ও ৪০৫B-তে MMLU-র ফাঁকের ৭৭.৮% ও ৭৮.১% পূরণ।",
+      "s": "LoLCATs paper abstract",
+      "u": "https://arxiv.org/abs/2410.10254"
+     }
+    ],
+    "pitfalls": [
+     "paper নিজে: ৫-shot MMLU-তে মূল Transformer-এর চেয়ে ৪২.৪ পয়েন্ট পর্যন্ত পিছনে (কিছু কাজে); 'spikier' (কম-entropy) attention নকল কঠিন; শুধু Alpaca-য় শেখানো ৮K passkey-তে ০%, passkey data যোগ করলে ১০০%।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "KL-নির্দেশিত layer বাছাই — কোন attention layer রাখবে"
+   ],
+   "practice": {
+    "scenario": "কত attention layer রাখবে সেটা আন্দাজ না করে, কোন layer ফেরালে student teacher-এর সবচেয়ে কাছে আসে তা মেপে ঠিক করা।",
+    "facts": [
+     {
+      "t": "Gated DeltaNet student-এর প্যারামিটার teacher-এর W_Q, W_K, W_V, W_O থেকে শুরু (RADLADS recipe); ধাপ ১: L2-এ hidden state মেলানো (FFN জমাট), ধাপ ২: temperature-সহ KL-এ পুরো model; তারপর teacher-এর একটা একটা softmax layer ফিরিয়ে KL সবচেয়ে কমায় যেটা সেটা রাখা।",
+      "s": "Distilling to Hybrid Attention Models via KL-Guided Layer Selection (Li et al.), ২০২৫",
+      "u": "https://arxiv.org/abs/2512.20569"
+     },
+     {
+      "t": "Qwen2.5-3B-Instruct, ২৫% softmax: RULER ০.৮৬৩১ (সব linear ০.১২৩৬, teacher ০.৯১৭৪); Llama-3.2-3B: ০.৭৫৩৯ (০.০৪২৭, ০.৮৯৩৪)।",
+      "s": "KL-Guided Layer Selection paper, appendix",
+      "u": "https://arxiv.org/abs/2512.20569"
+     },
+     {
+      "t": "layer বাছাইয়ের pipeline প্রায় ৫–৬B token, বিপরীতে PostNAS baseline-এ ৫০B।",
+      "s": "KL-Guided Layer Selection paper",
+      "u": "https://arxiv.org/abs/2512.20569"
+     }
+    ],
+    "pitfalls": [
+     "বাছাই linear variant-এর ওপর নির্ভর করে: Gated DeltaNet আর GLA-র বাছা layer-এর মিল (Jaccard) মাত্র ০.৫৪–০.৬৫।",
+     "paper: hidden state bottleneck associative recall-এর জন্য 'মৌলিক সীমা'।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Distill-then-Replace — কাজ-নির্দিষ্ট hybrid"
+   ],
+   "practice": {
+    "scenario": "একটা নির্দিষ্ট কাজের (যেমন PubMedQA) জন্য ছোট, দ্রুত hybrid: যে কাজের জন্য validation set আছে।",
+    "facts": [
+     {
+      "t": "linear module (GDN, GLA বা JetBlock) একটা একটা করে MSE-তে full-attention block-এর output-এ শেখানো; embedding, MLP, LM head জমাট; তারপর task validation set দেখে greedy ভাবে full-attention layer বদলানো।",
+      "s": "Distill-then-Replace paper (Xia et al.), ২০২৬",
+      "u": "https://arxiv.org/abs/2601.11667"
+     },
+     {
+      "t": "৩টা model × ৩টা linear variant × ১৮টা কাজ = ১৬২ সেটিং-এর ১৩২টায় (৮১.৫%) full-attention-এর সমান বা ভালো; গড়ে ৪.৮% কমতি, ২০৪৮ context-এ ১.২৪–২.১৩ গুণ throughput।",
+      "s": "Distill-then-Replace paper, Table 2",
+      "u": "https://arxiv.org/abs/2601.11667"
+     },
+     {
+      "t": "~১০০M token, এক A800-এ: Qwen2.5-1.5B ৫.০, Llama3.2-3B-Instruct ৭.০, Llama3.1-8B-Instruct ১৫.০ GPU-ঘণ্টা।",
+      "s": "Distill-then-Replace paper",
+      "u": "https://arxiv.org/abs/2601.11667"
+     }
+    ],
+    "pitfalls": [
+     "ফলটা কাজ-নির্দিষ্ট: static impact-score দিয়ে ১০/২৮ layer বাছলে greedy search-এর চেয়ে ৩.৫–৩.৮ পয়েন্ট খারাপ; একটা layer বদলালে অন্যদের ভূমিকা বদলায় (paper)।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Taylor-Calibrate — teacher থেকে শুরুর মান"
+   ],
+   "practice": {
+    "scenario": "রূপান্তর আরও কম token-এ করতে চাই: student-এর শুরুটাই teacher-এর মতো করে ঠিক করা।",
+    "facts": [
+     {
+      "t": "teacher-এর attention-এর পরিসংখ্যান (গড় attention-দূরত্ব, entropy, value scale) দিয়ে Gated DeltaNet student-এর value projection, memory half-life, write gate ও output gate-এর শুরুর মান ঠিক; তারপর ছোট per-layer alignment ও সাধারণ global distillation।",
+      "s": "Taylor-Calibrate paper (Zhou et al.), ২০২৬",
+      "u": "https://arxiv.org/abs/2606.16429"
+     },
+     {
+      "t": "এক ablation-এ সবচেয়ে খারাপ শুরুর perplexity ৮৮ গুণ পর্যন্ত ভালো; সাধারণ রূপান্তরের চেয়ে ৪.৯–৯.২ গুণ কম token-এ একই মান।",
+      "s": "Taylor-Calibrate paper",
+      "u": "https://arxiv.org/abs/2606.16429"
+     }
+    ],
+    "pitfalls": [
+     "paper নিজে বলে: সূত্রগুলো heuristic, শুধু Gated DeltaNet-এ পরীক্ষিত ('architecture-independent নয়'), বড় teacher অপরীক্ষিত, আর global distillation তবুও লাগে।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "খোলা প্রশ্ন — যেখানে গবেষণার জায়গা আছে"
+   ],
+   "practice": {
+    "scenario": "গবেষণা বা product-এর নতুন idea খুঁজছি: কোথায় প্রমাণ কম, কোথায় paper নিজেই 'বাকি' বলেছে।",
+    "facts": [],
+    "typical": [
+     "প্রতিটা প্রশ্নের নিচে সূত্রসহ প্রমাণ আছে; কোনোটা সমর্থনহীন হলে এখানে রাখা হয়নি।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "স্থির state-এ মনে রাখার সীমা"
+   ],
+   "practice": {
+    "scenario": "লম্বা নথিতে একটা নির্দিষ্ট সংখ্যা বা নাম খুঁজে ফেরত দেওয়া (retrieval), যা খাঁটি linear বা SSM model-এ প্রায়ই ভাঙে।",
+    "facts": [
+     {
+      "t": "paper: hidden state bottleneck associative recall-এর জন্য 'মৌলিক সীমা'; Qwen2.5-3B-তে RULER সব-linear ০.১২৩৬, ২৫% softmax ০.৮৬৩১, teacher ০.৯১৭৪।",
+      "s": "KL-Guided Layer Selection paper (Li et al.), ২০২৫",
+      "u": "https://arxiv.org/abs/2512.20569"
+     },
+     {
+      "t": "৭০০M token-এর পরেও Llama-3.2-3B-র RULER ৬৩.৪ (teacher ৮৯.৬), Qwen3-8B বড়জোর ৭৬.৭ (৯৪.০)।",
+      "s": "Taylor-Calibrate paper, ২০২৬",
+      "u": "https://arxiv.org/abs/2606.16429"
+     },
+     {
+      "t": "NVIDIA: খাঁটি SSM ১.১T token-এ MMLU-তে Transformer-এর প্রায় ১৫ পয়েন্ট নিচে; Phonebook ও লম্বা-context কাজ 'যত token-ই দাও' কঠিন থেকে যায়।",
+      "s": "An Empirical Study of Mamba-based Language Models, ২০২৪",
+      "u": "https://arxiv.org/abs/2406.07887"
+     },
+     {
+      "t": "তাত্ত্বিক: দুই-layer Transformer স্থির-state SSM-এর চেয়ে ঘাতগুণ দীর্ঘ string copy করতে পারে।",
+      "s": "Repeat After Me paper, ২০২৪",
+      "u": "https://arxiv.org/abs/2402.01032"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "কয়টা ও কোন layer-এ attention রাখবে"
+   ],
+   "practice": {
+    "scenario": "২৮ layer-এর model-এ ঠিক কোন ১০টা layer attention থাকবে, যাতে মান আর গতি দুটোই থাকে।",
+    "facts": [
+     {
+      "t": "সমান ফাঁকে বসানো (uniform interleave) in-context recall-এর জন্য 'suboptimal'; সেরা layer-সেট linear variant-ভেদে আলাদা (GDN ও GLA-র বাছাইয়ের মিল Jaccard ০.৫৪–০.৬৫)।",
+      "s": "KL-Guided Layer Selection paper, ২০২৫",
+      "u": "https://arxiv.org/abs/2512.20569"
+     },
+     {
+      "t": "layer-গুলো পরস্পর নির্ভরশীল: static impact score দিয়ে ১০/২৮ layer বাছলে greedy search-এর চেয়ে ৩.৫–৩.৮ পয়েন্ট খারাপ।",
+      "s": "Distill-then-Replace paper, ২০২৬",
+      "u": "https://arxiv.org/abs/2601.11667"
+     },
+     {
+      "t": "hybrid distillation-এর উন্নতির জায়গা আছে বলে লেখকরা মনে করেন; পরীক্ষা-করা ছকের মধ্যে সমান ফাঁকে বসানো সবচেয়ে ভালো ছিল।",
+      "s": "MOHAWK paper, ২০২৪",
+      "u": "https://arxiv.org/abs/2408.10189"
+     },
+     {
+      "t": "layer না, head ধরে hybrid করা দুটো paper-ই ভবিষ্যৎ কাজ হিসেবে রেখেছে।",
+      "s": "KL-Guided Layer Selection ও Taylor-Calibrate paper",
+      "u": "https://arxiv.org/abs/2606.16429"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "softmax-কে সরল layer দিয়ে কতটা নকল করা যায়"
+   ],
+   "practice": {
+    "scenario": "রূপান্তরের পরেও MMLU বা recall-এ ফাঁক থেকে যায়: কেন, আর কীভাবে কমবে?",
+    "facts": [
+     {
+      "t": "৫-shot MMLU-তে মূল Transformer-এর চেয়ে ৪২.৪ পয়েন্ট পর্যন্ত পিছনে (কিছু সেটিং-এ); linear attention 'spikier' (কম-entropy) attention নকল করতে পারে না।",
+      "s": "LoLCATs paper, ICLR ২০২৫",
+      "u": "https://arxiv.org/abs/2410.10254"
+     },
+     {
+      "t": "সাদামাটা linearization-এ প্রতিনিধিত্ব নষ্ট হয়, কারণ softmax-এর nonlinearity জরুরি; perplexity বাড়ে ১.০৩ (৫০% attention) থেকে ৩.৩৬ (কোনো attention না)।",
+      "s": "The Mamba in the Llama paper",
+      "u": "https://arxiv.org/abs/2408.15237"
+     },
+     {
+      "t": "শুরুর মান ঠিক করার সূত্র heuristic ও শুধু Gated DeltaNet-এ পরীক্ষিত; লেখকরা বলেন 'architecture-independent ধরা উচিত নয়'।",
+      "s": "Taylor-Calibrate paper, ২০২৬",
+      "u": "https://arxiv.org/abs/2606.16429"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "লম্বা context-এ আচরণ ও রূপান্তরের data"
+   ],
+   "practice": {
+    "scenario": "২ হাজার token-এ distill করে ৮ হাজার বা তার বেশি দৈর্ঘ্যে ব্যবহার করতে চাই।",
+    "facts": [
+     {
+      "t": "শুধু Alpaca-য় linearize করা Llama 3 8B-র ৮K passkey retrieval ০%; passkey data দিয়ে শেখালে ১০০%।",
+      "s": "LoLCATs paper, ২০২৫",
+      "u": "https://arxiv.org/abs/2410.10254"
+     },
+     {
+      "t": "অন্য পরীক্ষায় ২K দৈর্ঘ্যে distill করা hybrid তার ২০ গুণ দৈর্ঘ্যে প্রায় নির্ভুল needle-in-a-haystack ফল দেখিয়েছে।",
+      "s": "The Mamba in the Llama paper",
+      "u": "https://arxiv.org/abs/2408.15237"
+     }
+    ],
+    "pitfalls": [
+     "দুটো ফল পরস্পর-বিরোধী নয়: কাঠামো (সব-linear বনাম hybrid) আর রূপান্তরের data আলাদা ছিল; কোন কারণে কী হয় তা এখনো পরিষ্কার নয়।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "বড় teacher ও MoE-তে প্রসার"
+   ],
+   "practice": {
+    "scenario": "৭০B বা ৪০৫B model, বা MoE teacher, রূপান্তর করা।",
+    "facts": [
+     {
+      "t": "LoLCATs ৭০B ও ৪০৫B পর্যন্ত গেছে: MMLU-র ফাঁকের ৭৭.৮% ও ৭৮.১% পূরণ, অর্থাৎ প্রায় ২২% ফাঁক বাকি।",
+      "s": "LoLCATs paper abstract",
+      "u": "https://arxiv.org/abs/2410.10254"
+     },
+     {
+      "t": "বড় বা MoE teacher-এ আলাদা system-সহায়তা লাগে বলে Taylor-Calibrate সেগুলো পরীক্ষা করেনি।",
+      "s": "Taylor-Calibrate paper, ২০২৬",
+      "u": "https://arxiv.org/abs/2606.16429"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও model card থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Batch size ও learning rate"
+   ],
+   "practice": {
+    "scenario": "GPU-র সংখ্যা বাড়িয়ে batch ২৫৬ থেকে ৮১৯২ করলে learning rate-ও ৩২ গুণ (০.১ থেকে ৩.২) করা, শুরুর কিছু epoch warmup দিয়ে।",
+    "facts": [
+     {
+      "t": "Rule: batch k গুণ হলে learning rate k গুণ, weight decay সহ বাকি সব অপরিবর্তিত। ResNet-50, ImageNet: ৮১৯২ পর্যন্ত মান নষ্ট হয়নি (top-1 error ২৩.৭৪% ±০.০৯, baseline ২৩.৬০% ±০.১২)।",
+      "s": "Goyal et al., ২০১৭",
+      "u": "https://arxiv.org/abs/1706.02677"
+     },
+     {
+      "t": "paper নিজে: ধারণাটা শক্ত অনুমানের ওপর; শুরুতে আর খুব বড় batch-এ ভাঙে ('batch অনির্দিষ্ট বাড়ানো যায় না', ImageNet-এ ~৮k); প্রমাণ শুধু ImageNet/ResNet-50, momentum SGD-তে।",
+      "s": "Goyal et al., ২০১৭",
+      "u": "https://arxiv.org/abs/1706.02677"
+     },
+     {
+      "t": "Gradient noise scale B_noise সবচেয়ে কাজের batch-এর আন্দাজ দেয়। B ≪ B_noise-তে batch বাড়ালে প্রায় সমান অনুপাতে দ্রুত; B ≫ B_noise-তে প্রায় লাভ নেই। Adam/RMSProp-এ সেরা learning rate ∝ B^α, α ০.৫ থেকে ১।",
+      "s": "McCandlish et al., ২০১৮",
+      "u": "https://arxiv.org/abs/1812.06162"
+     },
+     {
+      "t": "Llama 2: batch ৪M token সব আকারে; শীর্ষ learning rate ৩.০e-৪ (৭B, ১৩B) আর ১.৫e-৪ (৩৪B, ৭০B)।",
+      "s": "Llama 2 paper, Table 1",
+      "u": "https://arxiv.org/abs/2307.09288"
+     }
+    ],
+    "typical": [
+     "একই GPU-তে আঁটে না এমন batch চাইলে gradient accumulation।"
+    ],
+    "pitfalls": [
+     "Adam-এ SGD-র linear rule অন্ধভাবে বসানো: McCandlish-এর মতে Adam-এ সম্পর্ক power law।"
+    ],
+    "outside": "Batch size আর epoch কোর্সে আছে; learning rate-এর সাথে সম্পর্ক ও বড় batch-এর সীমা কোর্সে নেই।"
+   }
+  },
+  {
+   "names": [
+    "Weight Decay"
+   ],
+   "practice": {
+    "scenario": "AdamW দিয়ে বড় language model train করা, weight decay ০.১।",
+    "facts": [
+     {
+      "t": "L2 regularization আর weight decay SGD-তে সমান, Adam-এ নয়। AdamW decay-কে gradient-এর adaptive scaling-এর বাইরে রাখে, তাই সব weight সমান হারে ছোট হয়। CIFAR-10 ও ImageNet32x32-এ Adam+L2-এর চেয়ে প্রায় ১৫% কম test error।",
+      "s": "AdamW paper (Loshchilov, Hutter), ICLR ২০১৯",
+      "u": "https://arxiv.org/abs/1711.05101"
+     },
+     {
+      "t": "paper নিজে: সেরা decay training-এর মোট update-সংখ্যার ওপর নির্ভর করে; ফল ছবির কাজে, আরও কাজে যাচাই বাকি।",
+      "s": "AdamW paper",
+      "u": "https://arxiv.org/abs/1711.05101"
+     },
+     {
+      "t": "GPT-3: সব model-এ weight decay ০.১। Llama 2: AdamW, β১ ০.৯, β২ ০.৯৫, weight decay ০.১।",
+      "s": "GPT-3 paper Appendix B; Llama 2 paper",
+      "u": "https://arxiv.org/abs/2307.09288"
+     }
+    ],
+    "pitfalls": [
+     "Adam-এ L2 loss যোগ করে 'weight decay' ধরে নেওয়া: দুটো এক নয়।"
+    ],
+    "outside": "সূত্র paper ও docs থেকে; কোর্সে এর কতটা আছে আলাদা করে যাচাই হয়নি।"
+   }
+  },
+  {
+   "names": [
+    "Gradient Clipping"
+   ],
+   "practice": {
+    "scenario": "Loss হঠাৎ লাফিয়ে ওঠে কারণ একটা batch-এর gradient অস্বাভাবিক বড়; clipping সেই step-কে ছোট করে।",
+    "facts": [
+     {
+      "t": "নিয়ম: ‖g‖ ≥ সীমা হলে g ← (সীমা ÷ ‖g‖) · g; পুরো gradient একই অনুপাতে ছোট হয়, দিক একই। কারণ: error-তলে খাড়া 'দেয়াল' আছে, বড় gradient সেখানে weight ছুড়ে দেয়।",
+      "s": "Pascanu et al., ২০১২",
+      "u": "https://arxiv.org/abs/1211.5063"
+     },
+     {
+      "t": "সীমা ঠিক করার উপায়: অনেক update জুড়ে গড় gradient-দৈর্ঘ্য দেখা; training এই মানের প্রতি খুব সংবেদনশীল নয়। paper-এর উদাহরণে ৬, ৮ ও ৪৫।",
+      "s": "Pascanu et al., ২০১২",
+      "u": "https://arxiv.org/abs/1211.5063"
+     },
+     {
+      "t": "GPT-3: global norm ১.০-তে clip। Llama 2: gradient clipping ১.০।",
+      "s": "GPT-3 paper Appendix B; Llama 2 paper",
+      "u": "https://arxiv.org/abs/2307.09288"
+     }
+    ],
+    "pitfalls": [
+     "Clipping vanishing gradient ঠিক করে না: paper-এ ওটার জন্য আলাদা regularization।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও docs থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Cosine Decay"
+   ],
+   "practice": {
+    "scenario": "Warmup-এর পর cosine ধরে learning rate নামিয়ে শেষে সর্বোচ্চের ১০%-এ আনা।",
+    "facts": [
+     {
+      "t": "Llama 2: cosine schedule, warmup ২০০০ step, শেষ learning rate শীর্ষের ১০%।",
+      "s": "Llama 2 paper",
+      "u": "https://arxiv.org/abs/2307.09288"
+     },
+     {
+      "t": "GPT-3: প্রথম ৩৭৫M token linear warmup, তারপর ২৬০B token ধরে cosine শীর্ষের ১০%-এ, এরপর ১০%-এই।",
+      "s": "GPT-3 paper Appendix B",
+      "u": "https://arxiv.org/abs/2005.14165"
+     },
+     {
+      "t": "Chinchilla: cosine, ১০ গুণ drop; চক্র training step-কে ২৫%-এর বেশি ছাড়ালে মান লক্ষণীয়ভাবে নামে, step-সংখ্যার কাছাকাছি রাখা সেরা।",
+      "s": "Chinchilla paper, Appendix D",
+      "u": "https://arxiv.org/abs/2203.15556"
+     },
+     {
+      "t": "সূত্র η_t = η_min + ½(η_max − η_min)(1 + cos(T_cur/T_i · π)) মূল SGDR paper-এর; সেখানে restart আছে, বড় language model-এর recipe-এ restart ছাড়া এক চক্র।",
+      "s": "SGDR paper (Loshchilov, Hutter), ২০১৬",
+      "u": "https://arxiv.org/abs/1608.03983"
+     }
+    ],
+    "pitfalls": [
+     "SGDR-এর 'warm restarts'-কে learning-rate warmup ভাবা: দুটো আলাদা জিনিস।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও docs থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Warmup–Stable–Decay (WSD)"
+   ],
+   "practice": {
+    "scenario": "মোট training-দৈর্ঘ্য আগে ঠিক নেই; ধ্রুবক learning rate-এ চলতে থাকো, শেষ হবে মনে হলে ছোট decay।",
+    "facts": [
+     {
+      "t": "তিন ভাগ: warmup (linear), ধ্রুবক, তারপর decay। Decay ভাগে loss তীব্রভাবে নামে, cosine-এর সমান বা কম স্তরে। ~১০% token-এর decay যথেষ্ট, ২.৫% নয়।",
+      "s": "MiniCPM paper (Hu et al.), ২০২৪",
+      "u": "https://arxiv.org/abs/2404.06395"
+     },
+     {
+      "t": "paper নিজে (§6.3): পরীক্ষা ছোট model-এ; বড় LLM-এ WSD পুরো পরীক্ষিত নয়।",
+      "s": "MiniCPM paper",
+      "u": "https://arxiv.org/abs/2404.06395"
+     }
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper ও docs থেকে।"
+   }
+  },
+  {
+   "names": [
+    "Early Stopping"
+   ],
+   "practice": {
+    "scenario": "প্রতি epoch-এ validation loss মেপে, পরপর কয়েকবার উন্নতি না হলে থেমে সেরা epoch-এর weight ফেরত নেওয়া।",
+    "facts": [
+     {
+      "t": "Training error কমতে থাকে, validation error শেষে আবার বাড়ে (U-আকার)। সেরা validation-এর parameter রেখে, patience পেরোলে থামা। সবচেয়ে প্রচলিত regularization-এর একটা; training-ধাপ সংখ্যাই hyperparameter।",
+      "s": "Deep Learning (Goodfellow et al.), §7.8",
+      "u": "https://www.deeplearningbook.org/contents/regularization.html"
+     },
+     {
+      "t": "খরচ: নিয়মিত validation মাপা, validation set আলাদা রাখা (data কমে); আবার-train করার সময় একই update না একই pass, তা জানার ভালো উপায় নেই।",
+      "s": "Deep Learning (Goodfellow et al.), §7.8",
+      "u": "https://www.deeplearningbook.org/contents/regularization.html"
+     },
+     {
+      "t": "১২টা কাজে ১৪টা থামার নিয়ম: ধীর নিয়ম প্রায় ৪% ভালো generalization, প্রায় ৪ গুণ লম্বা training। বাস্তব validation curve-এ বহু local minimum, তাই সাময়িক বাড়া মানেই শেষ নয়।",
+      "s": "Prechelt, ১৯৯৭ technical report",
+      "u": "https://publikationen.bibliothek.kit.edu/7398/1205"
+     }
+    ],
+    "pitfalls": [
+     "Prechelt-এর পরীক্ষা পুরোনো ধরনের network ও optimizer-এ; অন্য training-এ প্রযোজ্য কি না লেখক নিজেই 'খোলা প্রশ্ন' বলেছেন।"
+    ],
+    "outside": "Early stopping কোর্সে আছে; patience, খরচ আর Prechelt-এর তুলনা কোর্সে নেই।"
+   }
+  },
+  {
+   "names": [
+    "Hyperparameter খোঁজা — grid বনাম random"
+   ],
+   "practice": {
+    "scenario": "৩টা hyperparameter খুঁজছ, ৯টা run-এর সামর্থ্য: grid প্রতিটাকে ৩ মানে ছোঁয়, random ৯ মানে।",
+    "facts": [
+     {
+      "t": "Random trial grid trial-এর চেয়ে বেশি কার্যকর: neural network-এ grid-এর সমান বা ভালো মডেল ছোট ভগ্নাংশ খরচে পায়।",
+      "s": "Bergstra, Bengio, JMLR ২০১২",
+      "u": "https://www.jmlr.org/papers/volume13/bergstra12a/bergstra12a.pdf"
+     },
+     {
+      "t": "কারণ: hyperparameter থেকে validation score-এর ফাংশনের কার্যকর মাত্রা কম। বেশির ভাগ কাজে মাত্র কয়েকটা জরুরি, কিন্তু কোনগুলো তা কাজ-ভেদে আলাদা।",
+      "s": "Bergstra, Bengio, JMLR ২০১২",
+      "u": "https://www.jmlr.org/papers/volume13/bergstra12a/bergstra12a.pdf"
+     },
+     {
+      "t": "paper নিজে: random কম মাত্রায় সামান্য কম দক্ষ, বেশি মাত্রায় অনেক বেশি; DBN-এর বড় space-এ ৭টার ৪টা dataset-এ সমান, ১টায় ভালো।",
+      "s": "Bergstra, Bengio, JMLR ২০১২",
+      "u": "https://www.jmlr.org/papers/volume13/bergstra12a/bergstra12a.pdf"
+     }
+    ],
+    "outside": "Hyperparameter বাছাই ও grid কোর্সে আছে; random বনাম grid-এর যুক্তি কোর্সে নেই।"
+   }
+  },
+  {
+   "names": [
+    "Fine-tuning বনাম Distillation: একই লুপ, শুধু লক্ষ্য আলাদা"
+   ],
+   "practice": {
+    "scenario": "একই প্রশ্ন-তালিকা দুই উপায়ে: মানুষের লেখা উত্তর দিয়ে fine-tune, বা বড় teacher-কে প্রশ্ন করে তার উত্তর (আর চাইলে probability) দিয়ে distill।",
+    "facts": [],
+    "typical": [
+     "Teacher-কে দেখানোর উদাহরণ (প্রশ্ন বা লেখা) আগে জোগাড় করতে হয়; শুধু ঠিক উত্তরের জায়গায় teacher-এর output।"
+    ],
+    "pitfalls": [
+     "'Distillation-এ data লাগে না' ধরে নেওয়া: input লাগেই, না লাগে শুধু মানুষের label।"
+    ],
+    "outside": "এই ধারণা কোর্সে (Module 18-এর প্রথম ও চতুর্থ পাঠ) আছে; পাশাপাশি তুলনার ছকটা এখানে।"
+   }
+  },
+  {
+   "names": [
+    "একাধিক teacher থেকে শেখা"
+   ],
+   "practice": {
+    "scenario": "বাংলা, আরবি আর ইংরেজির আলাদা তিনটা teacher আছে; একটাই ছোট student চাই যে তিন ভাষাই চালায়: প্রতিটা উদাহরণ তার ভাষার teacher থেকে।",
+    "facts": [
+     {
+      "t": "আলাদা ভাষা-জোড়ার model আগে teacher হিসেবে train হয়, তারপর একটা বহুভাষী model data আর ওই teacher-দের output একসঙ্গে মেলাতে শেখে; ৪৪ ভাষা পর্যন্ত একটা model আলাদা model-গুলোর 'comparable or even better' accuracy পেয়েছে।",
+      "s": "Tan et al., ২০১৯ (abstract)",
+      "u": "https://arxiv.org/abs/1902.10461"
+     },
+     {
+      "t": "ভাষা-ভিত্তিক teacher আর balanced (sub-sample করা) data দিয়ে একটা বহুভাষী student: দুর্বল (low-resource) ভাষায় সাধারণ training-কে ছাড়ায়, সবল ভাষায় আগের ফল ধরে রাখে, একই পরিমাণ data-তে।",
+      "s": "Limisiewicz et al., ২০২২ (abstract)",
+      "u": "https://arxiv.org/abs/2210.07135"
+     },
+     {
+      "t": "Wav2Vec2.0-ভিত্তিক একভাষী teacher থেকে একটা বহুভাষী student (speech emotion recognition): ইংরেজিতে weighted recall ৭২.৯, ফিনিশে unweighted recall ৬৩.৪, fine-tuning ও সাধারণ distillation baseline ছাড়িয়ে; abstract-এ বলা নেই কোন teacher কীভাবে বরাদ্দ হয়।",
+      "s": "Bijoy et al., ২০২৫ (abstract)",
+      "u": "https://arxiv.org/abs/2506.08717"
+     },
+     {
+      "t": "ensemble-এর জ্ঞান একটা model-এ সংকুচিত করা সম্ভব (গড়-করার পথ)।",
+      "s": "Hinton et al., ২০১৫ (abstract)",
+      "u": "https://arxiv.org/abs/1503.02531"
+     },
+     {
+      "t": "কয়েকটা teacher-এর জ্ঞান একটা student-এ, একই computational complexity-তে সাধারণ পদ্ধতির চেয়ে ভালো model।",
+      "s": "Zuchniak, ২০২৩ (abstract)",
+      "u": "https://arxiv.org/abs/2302.07215"
+     }
+    ],
+    "pitfalls": [
+     "Teacher-দের tokenizer আলাদা হলে token ধরে probability মেলানো জটিল (কোর্সের Response distillation পাঠ); ভাগ করে শেখাতে teacher-এর লেখা উত্তর (text) দিয়ে শেখানো সহজ।",
+     "ভাষা-প্রতি data সমান না হলে কী হয় তার সরাসরি প্রমাণ এখানে নেই; Limisiewicz et al. শুধু balanced data নিয়েছে, তাই একটা সিদ্ধান্ত হিসেবে রাখা।",
+     "'সব teacher-কে সমান গুরুত্ব দেওয়া সবসময় ভালো নয়' দাবিটা survey-সারাংশ থেকে, সরাসরি যাচাই হয়নি।"
+    ],
+    "outside": "এই বিষয় কোর্সে নেই; সূত্র paper-এর abstract থেকে।"
    }
   }
  ]

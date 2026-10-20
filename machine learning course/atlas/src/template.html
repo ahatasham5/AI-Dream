@@ -19,23 +19,31 @@ __CSS__
 <a class="skip" href="#tree">মানচিত্রে যাও</a>
 <header>
   <div class="title">
-    <span class="eyebrow">LEARNING ATLAS / 01</span>
+    <span class="eyebrow">LEARNING ATLAS</span>
     <h1>ML · শেখার মানচিত্র</h1>
-    <p>শাখা বেছে নাও → নামে ক্লিক করলে সংজ্ঞা, হিসাব আর কোর্সের পাঠ</p>
-  </div>
-  <div class="controls">
-    <input id="search" type="search" placeholder="Term খুঁজো…  ( / চাপলে এখানে আসবে )" aria-label="Term খুঁজো">
-    <button class="control" id="expand">সব খোলো</button>
-    <button class="control" id="collapse">গুটিয়ে নাও</button>
-    <button class="control" id="theme" aria-label="theme বদলাও">☾ dark</button>
-    <button class="control strong" id="plan-toggle" aria-controls="plan" aria-expanded="false">আমার পথ <span id="plan-count">০</span></button>
+    <p>শাখা বেছে নাও, নামে ক্লিক করলে সংজ্ঞা, হিসাব আর কোর্সের পাঠ</p>
   </div>
 </header>
-<div id="views" role="tablist" aria-label="দেখার ধরন">
-  <button type="button" role="tab" id="view-tree" aria-selected="true">গাছ</button>
-  <button type="button" role="tab" id="view-path" aria-selected="false">গল্পের পথ <span id="path-count"></span></button>
+<div class="topbar" id="topbar">
+  <div class="topbar-in">
+  <div id="views" class="seg" role="tablist" aria-label="দেখার ধরন">
+    <button type="button" role="tab" id="view-tree" aria-selected="true">গাছ</button>
+    <button type="button" role="tab" id="view-path" aria-selected="false">গল্পের পথ <span id="path-count"></span></button>
+  </div>
+  <div class="controls">
+    <input id="search" type="search" placeholder="Term খুঁজো…  ( / )" aria-label="Term খুঁজো">
+    <div class="btn-group" role="group" aria-label="গাছের নিয়ন্ত্রণ">
+      <button class="btn icon" id="expand" type="button" aria-label="সব শাখা খোলো" title="সব খোলো"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/><path d="M4 2.5l4 4 4-4" opacity=".45"/></svg></button>
+      <button class="btn icon" id="collapse" type="button" aria-label="সব শাখা গুটিয়ে নাও" title="গুটিয়ে নাও"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/><path d="M4 13.5l4-4 4 4" opacity=".45"/></svg></button>
+      <button class="btn icon" id="accordion" type="button" aria-pressed="true" aria-label="একটা-একটা খোলা" title="একটা-একটা খোলা"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3.5l4 3 4-3"/><path d="M4 12.5l4-3 4 3"/></svg></button>
+      <button class="btn icon" id="theme" type="button" aria-label="theme বদলাও" title="theme">☾</button>
+    </div>
+    <span id="guide-pill"></span>
+    <button class="btn primary" id="plan-toggle" type="button" aria-controls="plan" aria-expanded="false">আমার পথ <span class="badge" id="plan-count">০</span></button>
+  </div>
+  </div>
+  <div class="fcrumb" id="focus-crumb" aria-label="এখন কোথায় আছো" hidden></div>
 </div>
-<nav id="jump" aria-label="শাখায় যাও"></nav>
 <main>
   <div class="layout">
     <div class="content">
@@ -63,18 +71,50 @@ __CSS__
     </div>
     <button class="close" id="close" aria-label="সংজ্ঞা বন্ধ করো">✕</button>
   </div>
+  <div id="jumpback"></div>
+  <div id="tour"></div>
+  <div id="reader"></div>
   <nav id="crumb" aria-label="পথ"></nav>
   <h2 id="def-title"></h2>
   <p id="def-text"></p>
+  <div id="cmp-entry"></div>
   <div id="pick"></div>
   <div id="pathbar"></div>
   <div id="story"></div>
   <div id="choose"></div>
   <div id="practice"></div>
   <div id="core"></div>
+  <div id="rel"></div>
   <div id="lessons"></div>
   <div id="related"></div>
   <div id="more"></div>
+</dialog>
+
+<dialog id="coursebox" aria-labelledby="course-title"></dialog>
+
+<dialog id="compare" aria-labelledby="cmp-title">
+  <div class="cmp-top">
+    <div>
+      <span class="eyebrow">তুলনা</span>
+      <h2 id="cmp-title"></h2>
+      <p id="cmp-sub"></p>
+    </div>
+    <div class="cmp-actions">
+      <button type="button" class="btn sm" id="cmp-link">link কপি</button>
+      <button type="button" class="btn ghost icon" id="cmp-close" aria-label="তুলনা বন্ধ করো">✕</button>
+    </div>
+  </div>
+  <div id="cmp-pick" class="cmp-pick" role="group" aria-label="কোনগুলো তুলনা করবে"></div>
+  <div class="cmp-tools">
+    <label><input type="checkbox" id="cmp-diff"> শুধু যেখানে ফারাক আছে</label>
+    <span class="cmp-max" role="group" aria-label="একসাথে সর্বোচ্চ কতটা">একসাথে সর্বোচ্চ
+      <button type="button" class="btn sm icon" id="cmp-max-dec" aria-label="সংখ্যা কমাও">−</button>
+      <output id="cmp-max-val" aria-live="polite">৪</output>
+      <button type="button" class="btn sm icon" id="cmp-max-inc" aria-label="সংখ্যা বাড়াও">＋</button>
+    </span>
+    <span id="cmp-count" aria-live="polite"></span>
+  </div>
+  <div id="cmp-body" class="cmp-scroll"></div>
 </dialog>
 
 <script id="map-config" type="application/json">__CONFIG__</script>

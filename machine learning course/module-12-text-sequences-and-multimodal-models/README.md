@@ -2,7 +2,7 @@
 
 [কেন্দ্রীয় Model ও Math Map](../01-learning-map.md) · [Course Outline](../00-course-outline.md) · [লেখার নিয়ম](../00-writing-style-guide.md)
 
-## Status: Bridge ও ৮টি lecture লেখা হয়েছে; পড়া ও অনুশীলন সম্পন্ন ধরা হয়নি
+## Status: Bridge ও ৯টি lecture লেখা হয়েছে; পড়া ও অনুশীলন সম্পন্ন ধরা হয়নি
 
 প্রতিটা lecture ছোট, এক ধারণার, সংখ্যার হাতে-হিসাবসহ এবং Python-এ যাচাই করা। লেখা আছে মানেই শেখা হয়ে গেছে, এমন নয়।
 
@@ -15,7 +15,7 @@
 
 ## কোন ক্রমে পড়বে
 
-প্রথমে Bridge, তারপর 01 থেকে 08 সংখ্যার ক্রমে। প্রতিটা lecture আগেরটার উদাহরণ (পাঁচ token, d = 2) আবার ব্যবহার করে, তাই ক্রম বদলালে হিসাব মিলবে না।
+প্রথমে Bridge, তারপর 01 থেকে 09 সংখ্যার ক্রমে। প্রতিটা lecture আগেরটার উদাহরণ (পাঁচ token, d = 2) আবার ব্যবহার করে, তাই ক্রম বদলালে হিসাব মিলবে না।
 
 | ক্রম | Lecture | এক লাইনে কী শেখায় |
 |---|---|---|
@@ -28,6 +28,7 @@
 | 06 | [Transformer Block](lecture-06-transformer-block.md) | Attention, feed-forward, residual, normalization |
 | 07 | [Autoregressive Decoder ও Stopping](lecture-07-autoregressive-decoder-and-stopping.md) | একটা একটা token বানানো, stop token, greedy বনাম sampling |
 | 08 | [Image ও Text একসঙ্গে](lecture-08-image-and-text-together.md) | Image token বানিয়ে text decoder-এ দেওয়া |
+| 09 | [স্থির state ও hybrid model](lecture-09-fixed-state-and-hybrid-models.md) | KV cache বনাম স্থির state, delta rule, hybrid-এ কতটা cache বাঁচে |
 
 ```mermaid
 flowchart LR

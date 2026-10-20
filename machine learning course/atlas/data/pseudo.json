@@ -1,0 +1,667 @@
+{
+ "_নিয়ম": "pseudo-code ছাঁচ। slots: সিদ্ধান্ত-id → slot; options: বিকল্প-id → লেখা (string/list) বা {slot: লেখা}; templates: mode-id → লাইন ('?slot ' দিয়ে শুরু হলে লাইনটা ঐচ্ছিক (slot ফাঁকা থাকলে বাদ), '!slot ' দিয়ে শুরু হলে শুধু slot ফাঁকা থাকলে)। id-র শেষে -sc থাকলে (শূন্য-থেকে-train-এর নকল) আসল id-র তথ্য নেয়। loss এখানে বিকল্প-ভেদে বসে (ft-learn-from)।",
+ "noMode": [
+  "# এখনও পথের ধরন বাছোনি।",
+  "# ওপরে বা ডান পাশের বোতামে বাছো: Fine-tune করব, নাকি শূন্য থেকে Train করব।",
+  "# তারপর প্রতিটা সিদ্ধান্ত বাছলে এখানে pseudo-code তৈরি হবে।"
+ ],
+ "slots": {
+  "goal-metric": {
+   "slot": "metrics"
+  },
+  "goal-baseline": {
+   "slot": "baseline"
+  },
+  "base-kind": {
+   "slot": "base_kind"
+  },
+  "base-text-ckpt": {
+   "slot": "checkpoint"
+  },
+  "base-vlm-ckpt": {
+   "slot": "checkpoint"
+  },
+  "base-ocr-ckpt": {
+   "slot": "checkpoint"
+  },
+  "base-vision-ckpt": {
+   "slot": "checkpoint"
+  },
+  "base-speech-ckpt": {
+   "slot": "checkpoint"
+  },
+  "base-source": {
+   "slot": "source"
+  },
+  "data-format": {
+   "slot": "data_format"
+  },
+  "data-tool": {
+   "slot": "data_tool"
+  },
+  "data-label": {
+   "slot": "labeling"
+  },
+  "data-extend": {
+   "slot": "data_extra"
+  },
+  "data-split": {
+   "slot": "split"
+  },
+  "ft-learn-from": {
+   "slot": "signal"
+  },
+  "sft-loss-where": {
+   "slot": "mask_note"
+  },
+  "ft-which-params": {
+   "slot": "method"
+  },
+  "peft-which": {
+   "slot": "peft"
+  },
+  "lora-config": {
+   "slot": "lora_cfg"
+  },
+  "qlora-quant": {
+   "slot": "qlora_quant"
+  },
+  "hp-optimizer": {
+   "slot": "optimizer"
+  },
+  "hp-schedule": {
+   "slot": "schedule"
+  },
+  "hp-lr-value": {
+   "slot": "lr"
+  },
+  "sc-lr": {
+   "slot": "lr"
+  },
+  "hp-stop": {
+   "slot": "stop"
+  },
+  "memory-tricks": {
+   "slot": "memory"
+  },
+  "flash-impl": {
+   "slot": "flash_impl"
+  },
+  "multi-gpu": {
+   "slot": "parallel"
+  },
+  "launch-tool": {
+   "slot": "launcher"
+  },
+  "run-highlevel": {
+   "slot": "framework"
+  },
+  "run-compose": {
+   "slot": "framework"
+  },
+  "sc-trainer": {
+   "slot": "framework"
+  },
+  "run-track": {
+   "slot": "tracking"
+  },
+  "run-ckpt": {
+   "slot": "ckpt"
+  },
+  "eval-tools": {
+   "slot": "eval_tools"
+  },
+  "eval-open": {
+   "slot": "eval_open"
+  },
+  "eval-regress": {
+   "slot": "regress"
+  },
+  "deploy-form": {
+   "slot": "deploy_form"
+  },
+  "deploy-engine": {
+   "slot": "engine"
+  },
+  "deploy-quant": {
+   "slot": "quant"
+  },
+  "iter-data": {
+   "slot": "iterate"
+  },
+  "sc-need": {
+   "slot": "need"
+  },
+  "sc-family": {
+   "slot": "family"
+  },
+  "sc-transformer-impl": {
+   "slot": "arch_impl"
+  },
+  "sc-ssm-impl": {
+   "slot": "arch_impl"
+  },
+  "sc-norm": {
+   "slot": "norm"
+  },
+  "sc-position": {
+   "slot": "position"
+  },
+  "sc-attn-eff": {
+   "slot": "attn"
+  },
+  "sc-tokenizer": {
+   "slot": "tokenizer"
+  },
+  "sc-tok-lib": {
+   "slot": "tok_lib"
+  },
+  "sc-corpus": {
+   "slot": "corpus"
+  },
+  "sc-init": {
+   "slot": "init"
+  },
+  "sc-large": {
+   "slot": "large"
+  },
+  "sc-eval-basic": {
+   "slot": "eval_basic"
+  },
+  "sc-mixer": {
+   "slot": "mixer"
+  },
+  "sc-linear-kind": {
+   "slot": "linear_kind"
+  },
+  "sc-ssm-kind": {
+   "slot": "ssm_kind"
+  },
+  "sc-layout": {
+   "slot": "layout"
+  },
+  "sc-ffn": {
+   "slot": "ffn"
+  },
+  "sc-linear-impl": {
+   "slot": "arch_impl"
+  },
+  "hp-batch": {
+   "slot": "batch"
+  },
+  "hp-wd": {
+   "slot": "wd"
+  },
+  "hp-clip": {
+   "slot": "clip"
+  },
+  "hp-search": {
+   "slot": "hp_search"
+  },
+  "hp-search-impl": {
+   "slot": "hp_search_tool"
+  },
+  "sc-stop": {
+   "slot": "stop"
+  },
+  "sc-shape": {
+   "slot": "shape"
+  },
+  "kd-access": {
+   "slot": "kd_access"
+  },
+  "kd-arch": {
+   "slot": "kd_arch"
+  },
+  "kd-data": {
+   "slot": "kd_data"
+  },
+  "kd-filter": {
+   "slot": "kd_filter"
+  },
+  "kd-teachers": {
+   "slot": "kd_teachers"
+  }
+ },
+ "labels": {
+  "metrics": "মাপকাঠি (metric)",
+  "baseline": "baseline",
+  "base_kind": "model-এর ধরন",
+  "checkpoint": "checkpoint",
+  "source": "weight-এর উৎস",
+  "data_format": "data-র format",
+  "data_tool": "data-র tool",
+  "labeling": "লেবেল দেওয়া",
+  "data_extra": "বাড়তি data",
+  "split": "split-এর ধরন",
+  "signal": "শেখার সংকেত",
+  "loss": "loss",
+  "mask_note": "loss-এর mask",
+  "method": "কোন parameter বদলাবে",
+  "peft": "কোন PEFT",
+  "lora_cfg": "LoRA সেটিং",
+  "qlora_quant": "4-bit quantization",
+  "optimizer": "optimizer",
+  "schedule": "learning-rate schedule",
+  "lr": "learning rate",
+  "stop": "থামার নিয়ম",
+  "memory": "memory কৌশল",
+  "flash_impl": "FlashAttention-এর implementation",
+  "parallel": "একাধিক GPU",
+  "launcher": "launch tool",
+  "framework": "training tool",
+  "tracking": "tracking",
+  "ckpt": "checkpoint নীতি",
+  "eval_tools": "মাপার tool",
+  "eval_open": "খোলা-উত্তর মাপা",
+  "regress": "পুরোনো ক্ষমতা",
+  "deploy_form": "deploy-এর রূপ",
+  "engine": "serving engine",
+  "quant": "serving-quantization",
+  "iterate": "ভুল থেকে নতুন data",
+  "need": "শূন্য থেকে লাগবে কি",
+  "family": "কাঠামো",
+  "arch_impl": "implementation",
+  "norm": "normalization",
+  "position": "অবস্থান-তথ্য",
+  "attn": "attention-এর দক্ষতা",
+  "tokenizer": "tokenizer",
+  "tok_lib": "tokenizer library",
+  "corpus": "data পরিষ্কার",
+  "init": "initialization",
+  "large": "বড় স্কেলের framework",
+  "eval_basic": "মৌলিক মাপ",
+  "fwd_ctx": "precision-ক্ষেত্র",
+  "accum_step": "accumulation",
+  "accum": "accumulation",
+  "mixer": "token mixer",
+  "linear_kind": "linear attention-এর রূপ",
+  "ssm_kind": "SSM-এর রূপ",
+  "layout": "layer সাজানোর ছক",
+  "ffn": "channel mixer",
+  "batch": "batch size",
+  "wd": "weight decay",
+  "clip": "gradient clipping",
+  "hp_search": "hyperparameter খোঁজা",
+  "hp_search_tool": "খোঁজার tool",
+  "shape": "model-আকার",
+  "kd_access": "teacher-এর কতটুকু দেখা",
+  "kd_arch": "student-এর গঠন",
+  "kd_data": "সংকেত কোন text-এ",
+  "kd_filter": "teacher-এর উত্তর বাছাই",
+  "kd_teachers": "teacher-দের ভাগ"
+ },
+ "join": {
+  "schedule": " + ",
+  "metrics": ", ",
+  "framework": " + ",
+  "tracking": ", ",
+  "eval_tools": ", ",
+  "eval_open": ", ",
+  "corpus": ", ",
+  "attn": ", ",
+  "ckpt": ", ",
+  "mixer": " + ",
+  "batch": " + ",
+  "shape": " + ",
+  "kd_access": " + ",
+  "kd_filter": " + "
+ },
+ "options": {
+  "opt-accuracy": "accuracy",
+  "opt-precision": "precision",
+  "opt-recall": "recall",
+  "opt-f1": "F1",
+  "opt-cer-wer": "CER/WER (edit distance ÷ reference length)",
+  "opt-mse-mae": "MSE / RMSE / MAE (numeric error)",
+  "opt-perplexity": "perplexity = exp(mean token cross-entropy)",
+  "opt-bleu-rouge": "BLEU / ROUGE (n-gram overlap with references)",
+  "opt-baseline-prompt": "base model + a good prompt, no training",
+  "opt-baseline-fewshot": "base model + few examples in the prompt",
+  "opt-baseline-prev": "previous tuned version",
+  "opt-base-text": "text-only LLM",
+  "opt-base-vlm": "vision-language model (image + text → text)",
+  "opt-base-ocr": "OCR-specific encoder-decoder (image → text)",
+  "opt-base-vision": "image-classification backbone",
+  "opt-base-speech": "speech-recognition model (audio → text)",
+  "tool-hf-hub": "a model hub (Hugging Face Hub)",
+  "opt-src-local": "a local checkpoint file",
+  "tool-modelscope": "a model hub (ModelScope)",
+  "opt-fmt-qa": "rows of (instruction, answer)",
+  "opt-fmt-chat": "conversations of (system, user, assistant) turns, in the model's chat template",
+  "opt-fmt-image-text": "rows of (image crop, correct text)",
+  "opt-fmt-text": "raw documents (no labels)",
+  "opt-fmt-pref": "rows of (prompt, chosen, rejected)",
+  "opt-fmt-image-label": "rows of (image, class label)",
+  "opt-fmt-audio-text": "rows of (audio, transcript)",
+  "opt-fmt-tabular": "rows of (features…, target)",
+  "synthetic-data": "synthetic rows generated by a stronger model, then filtered for invalid/near-duplicate items",
+  "opt-human-sample": "a human checks a sample of the data",
+  "opt-split-random": "random",
+  "opt-split-group": "group/time (rows from one source stay in one split)",
+  "supervised-fine-tuning-sft": {
+   "signal": "input→target pairs (supervised)",
+   "loss": "cross_entropy(next_token_prediction, target tokens)"
+  },
+  "continued-pretraining": {
+   "signal": "raw text; labels come from the text itself (next token)",
+   "loss": "cross_entropy(next_token_prediction, all tokens)"
+  },
+  "preference-optimization": {
+   "signal": "preference pairs (chosen preferred over rejected)",
+   "loss": "preference_loss(policy, frozen reference, chosen, rejected)   # e.g. DPO: a simple classification-style loss"
+  },
+  "rl-based-tuning": {
+   "signal": "reward from an environment or a reward model",
+   "loss": "−expected_reward + KL(policy ‖ reference)   # KL keeps the policy near the SFT model"
+  },
+  "knowledge-distillation": {
+   "signal": "outputs of a larger teacher model",
+   "loss": "KL(student ‖ teacher)  (+ optional hard-label loss)"
+  },
+  "opt-loss-answer": "only answer tokens (and <end>) count; question tokens have mask 0 (no loss/gradient, still context)",
+  "opt-loss-all": "no mask: every token counts",
+  "full-fine-tuning": "trainable = ALL parameters of base",
+  "selective-fine-tuning": "trainable = chosen layers/parameters; freeze the rest",
+  "head-only-fine-tuning": "freeze(base.body); trainable = task_head only",
+  "bias-only-bitfit": "freeze everything except bias terms; trainable = biases",
+  "parameter-efficient-fine-tuning-peft": "PEFT: freeze base; train only a small added/selected part",
+  "lora-low-rank-update": [
+   "for each target weight W: W_eff = W + (alpha/r) · B · A      # A: r×in, B: out×r, B starts at 0",
+   "trainable = {A, B}; freeze(W)"
+  ],
+  "qlora": [
+   "store frozen W in 4-bit (NF4), compute in higher precision",
+   "for each target weight W: add LoRA update (alpha/r) · B · A; trainable = {A, B}"
+  ],
+  "rslora": "LoRA, but scale = alpha / sqrt(r)  # stable when r grows",
+  "adalora": "LoRA with the rank budget allocated per module by importance",
+  "dora": "split W into magnitude and direction; LoRA updates the direction, magnitude is learned",
+  "pissa": "init A,B from the principal singular components of W; freeze the residual",
+  "loftq": "quantize W, then init A,B to compensate the quantization error",
+  "adapter-layer": "insert a small bottleneck block after sublayers; trainable = adapters (not mergeable)",
+  "soft-prompt-prefix": "prepend learned vectors to the input/attention; trainable = those vectors (not mergeable)",
+  "ia3": "learn per-channel scaling vectors on activations; trainable = vectors",
+  "opt-lora-qv": "targets = {Wq, Wv} of attention (original LoRA)",
+  "opt-lora-all-linear": "targets = ALL linear layers; r = 64; alpha = 16   # QLoRA paper setup",
+  "opt-lora-small": "r = 8..16; alpha = r or 2r; targets = chosen first",
+  "tool-bnb": "bitsandbytes (4-bit NF4)",
+  "opt-adamw": "AdamW(decoupled weight decay)",
+  "opt-adam": "Adam",
+  "opt-sgd": "SGD",
+  "opt-paged": "paged / 8-bit optimizer state (saves memory)",
+  "opt-warmup": "warmup (lr rises from small at the start)",
+  "opt-lr-decay": "decay (lr falls over training)",
+  "opt-lr-const": "constant",
+  "opt-lr-lora": "≈ 2e-4   # LoRA/QLoRA, QLoRA paper for 7B/13B",
+  "opt-lr-full": "small; search inside 1e-6 .. 5e-5   # full fine-tuning",
+  "opt-lr-search": "search on validation with small runs",
+  "opt-sc-lr-small-first": "search with small runs first, then scale up",
+  "opt-stop-val": "stop when validation loss rises; keep the best checkpoint",
+  "opt-stop-epoch": "fixed number of epochs (≈ 1–3)",
+  "opt-amp": {
+   "memory": "precision = mixed (bf16/fp16 compute, fp32 master weights; fp16 needs loss scaling)",
+   "fwd_ctx": "mixed_precision_context()"
+  },
+  "opt-grad-ckpt": {
+   "memory": "activation_checkpointing = ON   # activations recomputed in backward: less memory, slower"
+  },
+  "opt-grad-accum": {
+   "memory": "accumulation_steps = N   # effective_batch = per_device_batch × devices × N",
+   "accum_step": "N"
+  },
+  "opt-flash": {
+   "memory": "attention = exact IO-aware tiled attention (FlashAttention)"
+  },
+  "tool-flash-attn": "flash-attn library",
+  "opt-sdpa": "PyTorch scaled_dot_product_attention",
+  "opt-single-gpu": "single device",
+  "opt-ddp": "data parallel: full model copy per GPU, gradients synchronised",
+  "opt-fsdp": "sharded: parameters, gradients and optimizer state split across GPUs",
+  "opt-zero": "ZeRO-style sharding (DeepSpeed)",
+  "opt-plain-pytorch": "a hand-written loop",
+  "opt-ckpt-best": "keep the checkpoint with the best validation score",
+  "opt-ckpt-resume": "save regularly so a stopped run can resume",
+  "opt-eval-jiwer": "jiwer (WER/CER)",
+  "llm-as-judge": "LLM-as-judge, checked against a human sample",
+  "opt-human-read": "a human reads ~50 answers side by side",
+  "opt-regress-set": "a small old-abilities test set, run before and after",
+  "opt-deploy-merge": "merge: W_final = W + (alpha/r)·B·A → one standalone model",
+  "opt-deploy-adapter": "keep base + adapter separate; load the adapter at serve time (record the base name/version)",
+  "opt-gguf": "GGUF (llama.cpp format)",
+  "correction-dataset": "collect model errors; verify the correct answer from a reliable source; add to train; keep test unchanged",
+  "opt-weekly-review": "review a sample of errors weekly to spot patterns",
+  "opt-sc-pretrained-exists": "a suitable pretrained model exists → use the Fine-tune path",
+  "opt-sc-no-pretrained": "no suitable checkpoint, data is sufficient → train from scratch",
+  "opt-sc-learning": "a small model, for learning only",
+  "opt-sc-mlp": "MLP",
+  "opt-sc-cnn": "CNN",
+  "opt-sc-rnn": "RNN",
+  "opt-sc-layernorm": "LayerNorm",
+  "opt-sc-rmsnorm": "RMSNorm",
+  "opt-sc-batchnorm": "BatchNorm",
+  "opt-sc-rope": "RoPE (rotary position)",
+  "opt-sc-alibi": "ALiBi (linear distance bias)",
+  "opt-sc-flash": {
+   "attn": "FlashAttention (exact, IO-aware)"
+  },
+  "opt-sc-gqa": {
+   "attn": "multi/grouped-query attention (smaller KV cache)"
+  },
+  "opt-sc-window": {
+   "attn": "sliding-window attention (linear cost)"
+  },
+  "opt-sc-bpe": "subword (BPE-style)",
+  "opt-sc-byte": "byte-level (no separate tokenizer)",
+  "opt-sc-dedup": "drop duplicates",
+  "opt-sc-filter": "filter by language/quality",
+  "opt-sc-init-random": "small random values (never all zero)",
+  "opt-sc-val-loss": "validation loss",
+  "opt-sc-heldout": "a held-out test set, used once at the end",
+  "opt-sc-plain": "a hand-written loop",
+  "opt-sc-blockstack": "a stack of identical blocks (token mixer + channel mixer + norm + residual)",
+  "opt-sc-mix-attn": "full softmax attention",
+  "opt-sc-mix-linear": "linear attention",
+  "opt-sc-mix-ssm": "state space model",
+  "opt-sc-lin-linattn": "Linear Attention (kernel feature map)",
+  "opt-sc-lin-rwkv": "RWKV",
+  "opt-sc-lin-retnet": "RetNet (retention)",
+  "opt-sc-lin-deltanet": "DeltaNet (delta rule)",
+  "opt-sc-lin-gdn": "Gated DeltaNet",
+  "opt-sc-ssm-s4": "S4",
+  "opt-sc-ssm-mamba": "Mamba (selective SSM)",
+  "opt-sc-ssm-mamba2": "Mamba-2 (SSD)",
+  "opt-sc-layout-uniform": "all layers use the same mixer",
+  "opt-sc-layout-interleave": "interleave the mixers layer by layer at a fixed ratio",
+  "opt-sc-layout-parallel": "attention heads and SSM heads in parallel inside each layer",
+  "opt-sc-ffn-dense": "dense FFN",
+  "opt-sc-ffn-moe": "mixture-of-experts FFN",
+  "opt-bs-linear": "batch × k → learning rate × k (linear scaling), with warmup",
+  "opt-bs-noise": "pick the batch near the gradient noise scale (critical batch size)",
+  "opt-bs-accum": "gradient accumulation: several small batches per update",
+  "opt-wd-01": "weight decay 0.1 (common LLM recipe)",
+  "opt-wd-search": "search weight decay on validation with small runs",
+  "opt-clip-1": "clip the global gradient norm at 1.0",
+  "opt-clip-avg": "clip at a threshold set from the average gradient norm",
+  "opt-search-random": "random search over the hyperparameters",
+  "opt-search-grid": "grid search over a few hyperparameters",
+  "opt-cosine": "cosine decay to 10% of the peak",
+  "opt-wsd": "warmup-stable-decay (WSD)",
+  "opt-sc-stop-val": "stop when validation loss stops improving (patience); keep the best weights",
+  "opt-sc-stop-budget": "fixed step or token budget matching the schedule length",
+  "opt-sc-lr-recipe": "start from a published recipe, then check with small runs",
+  "opt-sc-shape-depth-width": "layers and hidden size chosen for the parameter budget",
+  "opt-sc-shape-kv": "fewer KV heads than query heads (GQA)",
+  "opt-sc-shape-cache": "compute the KV cache first: 2 * kv_heads * head_dim * attention_layers per token",
+  "opt-sc-shape-tokens": "scale training tokens with parameters (about 20 per parameter)",
+  "opt-kd-text": "the teacher's written answers become the student's SFT data",
+  "opt-kd-probs": "match the teacher's token probabilities (soft targets, KL)",
+  "opt-kd-hidden": "also match the teacher's hidden vectors (projection if sizes differ)",
+  "opt-kd-same-arch": "student has the teacher's architecture, smaller or equal",
+  "opt-kd-diff-arch": "student has a different architecture (see the conversion methods)",
+  "opt-kd-offline": "fixed examples written once by the teacher (offline)",
+  "opt-kd-onpolicy": "the student writes, the teacher gives signal on that text (on-policy)",
+  "opt-kd-filter-answer": "keep only answers that match the known correct answer",
+  "opt-kd-filter-steps": "also check each reasoning step",
+  "opt-kd-filter-agree": "keep answers the teacher repeats consistently",
+  "opt-kd-filter-human": "have people check risky cases",
+  "opt-kd-one-teacher": "one teacher for every example",
+  "opt-kd-teachers-split": "one teacher per language or task; each example learns from its own teacher",
+  "opt-kd-teachers-avg": "all teachers on every example; average their probabilities"
+ },
+ "templates": {
+  "mode-finetune": [
+   "# ===== আমার পথ: Fine-tune (আগে-শেখা model থেকে) — pseudo-code =====",
+   "# ‹? …› মানে এই সিদ্ধান্ত এখনও বাছোনি; বাছলে লেখাটা নিজে বদলে যাবে।",
+   "# ‹সাধারণ মান› মানে বাছোনি বলে প্রচলিত ডিফল্ট ধরা হয়েছে; নিজে বাছলে বদলে যাবে।",
+   "",
+   "# ধাপ ১ — লক্ষ্য ও মাপকাঠি",
+   "metrics  = {{metrics}}",
+   "baseline = {{baseline}}            # tuning-এর আগে এটা মেপে রাখো",
+   "",
+   "# ধাপ ২ — Input (আগের model, নতুন data, সেটিং)",
+   "# ২ক. আগের model",
+   "base = load_checkpoint({{checkpoint}})      # ধরন: {{base_kind}}; উৎস: {{source}}",
+   "use base.tokenizer and base.config           # একই checkpoint-এর, মেলাতে হয়",
+   "",
+   "# ২খ. নতুন data ও শেখার সংকেত",
+   "data = {{data_format}}",
+   "?data_extra data = data + {{data_extra}}",
+   "?labeling labeling = {{labeling}}",
+   "train, val, test = split(data, by = {{split}})   # test তুলে রাখো, শেষে একবারই দেখো",
+   "signal = {{signal}}",
+   "?kd_teachers teachers = {{kd_teachers}}",
+   "?kd_access teacher_access = {{kd_access}}",
+   "?kd_arch student_architecture = {{kd_arch}}",
+   "?kd_data distill_on = {{kd_data}}",
+   "?kd_filter filter_teacher_answers = {{kd_filter}}",
+   "?mask_note loss_mask: {{mask_note}}",
+   "",
+   "",
+   "# ২গ. সেটিং: কোন parameter বদলাবে, কত জোরে",
+   "{{method}}",
+   "?peft {{peft}}",
+   "?lora_cfg {{lora_cfg}}",
+   "?qlora_quant quantize_base_with {{qlora_quant}}",
+   "optimizer = {{optimizer}}",
+   "lr        = {{lr}}",
+   "schedule  = {{schedule}}",
+   "stop_rule = {{stop}}",
+   "?batch batch_size = {{batch}}",
+   "?wd weight_decay = {{wd}}",
+   "?clip gradient_clip = {{clip}}",
+   "?hp_search hyperparameter_search = {{hp_search}}",
+   "?hp_search_tool search_with {{hp_search_tool}}",
+   "",
+   "# ধাপ ৩ — Model শেখা (training loop)",
+   "?memory {{memory}}",
+   "?flash_impl attention_impl = {{flash_impl}}",
+   "parallel = {{parallel}}",
+   "?launcher launch_with {{launcher}}",
+   "run_with {{framework}}",
+   "?tracking log_to {{tracking}}",
+   "for epoch in 1, 2, ...:",
+   "    for micro_batch in train:",
+   "        ?fwd_ctx # forward চলে এই ক্ষেত্রে: {{fwd_ctx}}",
+   "        pred = model(micro_batch.input)            # শুরুতে হুবহু checkpoint-এর মতো",
+   "        loss = {{loss}}",
+   "        backward(loss)                              # gradient আসে শুধু trainable-এ",
+   "        ?accum_step if micro_step % {{accum_step}} == 0:      # gradient accumulation",
+   "        ?accum_step     optimizer.step(trainable only); schedule.step(); zero_grad()",
+   "        !accum_step optimizer.step(trainable only); schedule.step(); zero_grad()",
+   "    val_score = evaluate(val, metrics)",
+   "    ?ckpt save_checkpoint(policy = {{ckpt}})",
+   "    if should_stop(val_score, stop_rule): break",
+   "",
+   "# ধাপ ৪ — Output: মাপা ও deploy",
+   "report = compare(baseline, tuned_model, on = test, metrics = metrics)",
+   "?eval_tools measure_with {{eval_tools}}",
+   "?eval_open open_ended_check = {{eval_open}}",
+   "?regress old_abilities_check = {{regress}}",
+   "package = {{deploy_form}}",
+   "?engine serve_with {{engine}}",
+   "?quant quantize_for_serving = {{quant}}",
+   "",
+   "# ধাপ ৫ — ভুল থেকে আবার",
+   "?iterate {{iterate}}"
+  ],
+  "mode-scratch": [
+   "# ===== আমার পথ: শূন্য থেকে Train — pseudo-code =====",
+   "# ‹? …› মানে এই সিদ্ধান্ত এখনও বাছোনি; বাছলে লেখাটা নিজে বদলে যাবে।",
+   "# ‹সাধারণ মান› মানে বাছোনি বলে প্রচলিত ডিফল্ট ধরা হয়েছে; নিজে বাছলে বদলে যাবে।",
+   "",
+   "# ধাপ ১ — দরকার যাচাই ও লক্ষ্য",
+   "justify = {{need}}",
+   "metrics = {{metrics}}",
+   "",
+   "# ধাপ ২ — Architecture",
+   "model = {{family}}",
+   "?mixer token_mixer = {{mixer}}",
+   "?linear_kind linear_attention = {{linear_kind}}",
+   "?ssm_kind ssm = {{ssm_kind}}",
+   "?layout layer_layout = {{layout}}",
+   "?ffn channel_mixer = {{ffn}}",
+   "?shape model_size = {{shape}}",
+   "?arch_impl implementation = {{arch_impl}}",
+   "?norm normalization = {{norm}}",
+   "?position position_info = {{position}}",
+   "?attn attention_efficiency = {{attn}}",
+   "",
+   "# ধাপ ৩ — Tokenizer ও data",
+   "?tokenizer tokenizer = {{tokenizer}}",
+   "?tok_lib tokenizer_library = {{tok_lib}}",
+   "?corpus clean(data, steps = {{corpus}})",
+   "?data_tool data = load({{data_tool}})",
+   "!data_tool data = load(your_dataset)",
+   "?signal learning_signal = {{signal}}",
+   "?kd_teachers teachers = {{kd_teachers}}",
+   "?kd_access teacher_access = {{kd_access}}",
+   "?kd_arch student_architecture = {{kd_arch}}",
+   "?kd_data distill_on = {{kd_data}}",
+   "?kd_filter filter_teacher_answers = {{kd_filter}}",
+   "?loss training_loss = {{loss}}",
+   "train, val, test = split(data, by = {{split}})   # test তুলে রাখো",
+   "",
+   "# ধাপ ৪ — Initialization ও hyperparameter",
+   "init(model, {{init}})",
+   "optimizer = {{optimizer}}",
+   "lr        = {{lr}}",
+   "schedule  = {{schedule}}",
+   "?batch batch_size = {{batch}}",
+   "?wd weight_decay = {{wd}}",
+   "?clip gradient_clip = {{clip}}",
+   "?stop stop_rule = {{stop}}",
+   "?hp_search hyperparameter_search = {{hp_search}}",
+   "?hp_search_tool search_with {{hp_search_tool}}",
+   "",
+   "# ধাপ ৫ — স্কেল ও memory",
+   "?memory {{memory}}",
+   "?flash_impl attention_impl = {{flash_impl}}",
+   "parallel = {{parallel}}",
+   "?launcher launch_with {{launcher}}",
+   "?large large_scale_framework = {{large}}",
+   "",
+   "# ধাপ ৬ — Training চালানো",
+   "run_with {{framework}}",
+   "?tracking log_to {{tracking}}",
+   "for step in 1, 2, ...:",
+   "    batch = next(train)",
+   "    ?fwd_ctx # forward চলে এই ক্ষেত্রে: {{fwd_ctx}}",
+   "    loss = task_loss(model(batch.input), batch.target)   # যেমন next-token cross-entropy",
+   "    backward(loss)",
+   "    ?accum_step if step % {{accum_step}} == 0:",
+   "    ?accum_step     optimizer.step(); schedule.step(); zero_grad()",
+   "    !accum_step optimizer.step(); schedule.step(); zero_grad()",
+   "    if step % eval_every == 0: evaluate(val)",
+   "    ?ckpt save_checkpoint(policy = {{ckpt}})",
+   "",
+   "# ধাপ ৭ — মাপা",
+   "measure = {{eval_basic}}",
+   "?eval_tools measure_with {{eval_tools}}",
+   "",
+   "# ধাপ ৮ — Deploy",
+   "?engine serve_with {{engine}}",
+   "?quant quantize_for_serving = {{quant}}"
+  ]
+ }
+}

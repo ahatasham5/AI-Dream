@@ -18,6 +18,9 @@
   "opt-synthetic": "synthetic-data",
   "opt-llm-judge": "llm-as-judge",
   "opt-correction": "correction-dataset",
-  "scratch-workflow": "from-scratch-training"
+  "scratch-workflow": "from-scratch-training",
+  "training-model": "training",
+  "opt-sc-transformer": "opt-sc-mix-attn",
+  "opt-sc-ssm": "opt-sc-mix-ssm"
  }
 }

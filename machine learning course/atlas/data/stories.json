@@ -163,11 +163,19 @@
    ],
    "story": {
     "problem": "model-এর weight শুরুতে এলোমেলো, তাই উত্তরও ভুল। কীভাবে ধীরে ধীরে ঠিক হবে?",
-    "idea": "একটা চক্র বারবার: অনুমান করো, ভুল মাপো (loss), কোন weight কোন দিকে সরলে ভুল কমে তা বের করো (gradient), ছোট ধাপে সরাও (update), আবার অনুমান করো।",
+    "idea": "একটা চক্র বারবার: অনুমান করো, ভুল মাপো (loss), কোন weight কোন দিকে সরলে ভুল কমে তা বের করো (gradient), ছোট ধাপে সরাও (update), আবার অনুমান করো। শুরুর জায়গাও ঠিক করতে হয়: নতুন model শূন্য থেকে শেখাতে অনেক data ও খরচ, আগে শেখা model থেকে শুরু করলে কম data-য় কাজ হয়।",
     "next": [
      {
       "to": "Loss",
       "why": "প্রথমে ভুল মাপতে হবে"
+     },
+     {
+      "to": "Pretraining",
+      "why": "বড় ভিত্তি তৈরি"
+     },
+     {
+      "to": "Fine-tuning",
+      "why": "ভিত্তি থেকে নিজের কাজে"
      }
     ]
    }
@@ -814,6 +822,10 @@
      {
       "to": "Pretraining",
       "why": "এত বড় model শূন্য থেকে শেখানো ব্যয়বহুল, তাই আগে-শেখা model থেকে শুরু"
+     },
+     {
+      "to": "Transformer-এর বিকল্প — রৈখিক হিসাবের পরিবার",
+      "why": "attention-এর খরচ কমানোর পথ"
      }
     ]
    },
@@ -3969,25 +3981,6 @@
   },
   {
    "names": [
-    "Training-এর ধাপ ও আগে শেখা model"
-   ],
-   "story": {
-    "problem": "কোথা থেকে শুরু করব: শূন্য থেকে, নাকি আগে শেখা কোনো model থেকে?",
-    "idea": "নতুন model শূন্য থেকে শেখাতে অনেক data ও খরচ। আগে শেখা model থেকে শুরু করলে কম data-য় কাজ হয়।",
-    "next": [
-     {
-      "to": "Pretraining",
-      "why": "বড় ভিত্তি তৈরি"
-     },
-     {
-      "to": "Fine-tuning",
-      "why": "ভিত্তি থেকে নিজের কাজে"
-     }
-    ]
-   }
-  },
-  {
-   "names": [
     "From-scratch Training"
    ],
    "story": {
@@ -4693,7 +4686,17 @@
    ],
    "story": {
     "problem": "বড় model ভালো, কিন্তু ভারী।",
-    "idea": "বড় model-এর (teacher) output থেকে ছোট model-কে শেখানো। বিস্তারিত Module 18-এ।"
+    "idea": "বড় model-এর (teacher) output থেকে ছোট model-কে শেখানো। বিস্তারিত Module 18-এ।",
+    "next": [
+     {
+      "to": "Teacher ও Student",
+      "why": "পাঠক্রম শুরু করো"
+     },
+     {
+      "to": "এক architecture থেকে আরেকটায় রূপান্তর",
+      "why": "student-এর কাঠামো আলাদা হলে"
+     }
+    ]
    }
   },
   {
@@ -5456,6 +5459,10 @@
      {
       "to": "Hybrid — Transformer + Mamba (Jamba)",
       "why": "দুই পরিবার মেশানো"
+     },
+     {
+      "to": "Gated DeltaNet",
+      "why": "Mamba-2-এর decay-র সাথে delta rule"
      }
     ]
    }
@@ -5486,6 +5493,14 @@
      {
       "to": "Mixture of Experts (MoE)",
       "why": "যে কৌশল মেশানো হয়েছে"
+     },
+     {
+      "to": "Hybrid — একাধিক mixer একই model-এ",
+      "why": "একই ধারার আরও model"
+     },
+     {
+      "to": "Hybrid-এর ছক — অনুপাত ও সাজানো",
+      "why": "অনুপাতের হিসাব"
      }
     ]
    }
@@ -5505,6 +5520,14 @@
      {
       "to": "State Space Model (SSM) পরিবার",
       "why": "আরেক পরিবার"
+     },
+     {
+      "to": "DeltaNet — delta rule",
+      "why": "যোগ-শুধু state-এর সমস্যার সমাধান"
+     },
+     {
+      "to": "Hybrid — একাধিক mixer একই model-এ",
+      "why": "attention-এর সাথে মেশালে"
      }
     ]
    }
@@ -5520,6 +5543,10 @@
      {
       "to": "RWKV",
       "why": "এই পথের আধুনিক রূপ"
+     },
+     {
+      "to": "DeltaNet — delta rule",
+      "why": "যোগ-শুধু state পুরোনো তথ্য মোছে না, সেই সমস্যার সমাধান"
      }
     ]
    }
@@ -5530,7 +5557,17 @@
    ],
    "story": {
     "problem": "RNN সস্তা কিন্তু শেখানো কঠিন; Transformer শেখানো সহজ কিন্তু দামি।",
-    "idea": "একই model-কে Transformer (training-এ সমান্তরাল) বা RNN (inference-এ constant memory) হিসেবে চালানো। paper-এ ১৪B parameter পর্যন্ত বড় করা হয়েছে।"
+    "idea": "একই model-কে Transformer (training-এ সমান্তরাল) বা RNN (inference-এ constant memory) হিসেবে চালানো। paper-এ ১৪B parameter পর্যন্ত বড় করা হয়েছে।",
+    "next": [
+     {
+      "to": "RetNet — Retention",
+      "why": "একই উদ্দেশ্য, অন্য decay"
+     },
+     {
+      "to": "DeltaNet — delta rule",
+      "why": "পুরোনো তথ্য শুধরানোর পথ"
+     }
+    ]
    }
   },
   {
@@ -5539,7 +5576,13 @@
    ],
    "story": {
     "problem": "training-এ সমান্তরাল, inference-এ সস্তা, মানও ভালো: তিনটা একসঙ্গে কি পাওয়া যায়?",
-    "idea": "'retention' ব্যবস্থার তিন রূপ: parallel (training), recurrent (O(1) inference), chunkwise (লম্বা ক্রম)।"
+    "idea": "'retention' ব্যবস্থার তিন রূপ: parallel (training), recurrent (O(1) inference), chunkwise (লম্বা ক্রম)।",
+    "next": [
+     {
+      "to": "DeltaNet — delta rule",
+      "why": "স্থির decay-র বদলে সংশোধন"
+     }
+    ]
    }
   },
   {
@@ -5731,6 +5774,840 @@
      {
       "to": "Combined Objective",
       "why": "দুই loss মেলানোর রূপ"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "DeltaNet — delta rule"
+   ],
+   "story": {
+    "problem": "Linear attention-এর state শুধু যোগ হয়, তাই নতুন তথ্য এলে পুরোনোটা মোছা যায় না, state ক্রমে ভরে ঘোলা হয়ে যায়।",
+    "idea": "যোগ করার আগে দেখো এই key-র জন্য এখন কী মনে আছে, আর সেটা নতুন value-র দিকে খানিক সরাও। এটা প্রতি ধাপে ছোট একটা gradient নামা। paper-এর কাজ ছিল এটাকে লম্বা ক্রমে সমান্তরালে train করা।",
+    "next": [
+     {
+      "to": "Gated DeltaNet",
+      "why": "decay gate যোগ করলে কী হয়"
+     },
+     {
+      "to": "Linear Attention — Transformers are RNNs",
+      "why": "যে সাধারণ রূপ থেকে এটা এসেছে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Gated DeltaNet"
+   ],
+   "story": {
+    "problem": "DeltaNet নির্দিষ্ট জায়গা শুধরাতে পারে, কিন্তু পুরো পুরোনো প্রসঙ্গ একবারে ঝেড়ে ফেলতে পারে না। Mamba-2-এর decay সেটা পারে, কিন্তু নির্দিষ্ট জায়গা শুধরাতে পারে না।",
+    "idea": "দুটো একসাথে: gate দিয়ে এক ঝটকায় অনেকটা মোছো, delta rule দিয়ে নির্দিষ্ট জায়গা শুধরাও। এই কারণে এটাই এখন hybrid model-গুলোর সস্তা অংশ (Qwen3-Next, Qwen3.5, Surya OCR 2)।",
+    "next": [
+     {
+      "to": "Qwen3-Next ও Qwen3.5 — Gated DeltaNet + Gated Attention",
+      "why": "বাস্তবে কোথায় ব্যবহার হয়"
+     },
+     {
+      "to": "Hybrid — একাধিক mixer একই model-এ",
+      "why": "attention-এর সাথে মেশালে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Hybrid — একাধিক mixer একই model-এ"
+   ],
+   "story": {
+    "problem": "খাঁটি attention লম্বা context-এ ভারী (cache বাড়ে), খাঁটি SSM বা linear layer হালকা কিন্তু 'আগের নির্দিষ্ট তথ্য ফেরত দাও' কাজে দুর্বল। একটা বেছে নিলে একটা সুবিধা ছাড়তে হয়।",
+    "idea": "দুটোই রাখো: অল্প কয়েকটা layer-এ পুরো attention (যে কাজে সত্যিই লাগে), বাকিতে সস্তা layer। কত layer-এ attention, আর কোনগুলোতে, সেটাই নকশার আসল প্রশ্ন।",
+    "next": [
+     {
+      "to": "Hybrid-এর ছক — অনুপাত ও সাজানো",
+      "why": "অনুপাত ও সাজানোর ছক"
+     },
+     {
+      "to": "এক architecture থেকে আরেকটায় রূপান্তর",
+      "why": "পুরোনো Transformer থেকে hybrid বানানো"
+     },
+     {
+      "to": "খোলা প্রশ্ন — যেখানে গবেষণার জায়গা আছে",
+      "why": "যেখানে প্রশ্ন এখনো খোলা"
+     }
+    ]
+   },
+   "choose": [
+    {
+     "when": "লম্বা context, recall-ও দরকার",
+     "pick": "Hybrid — Transformer + Mamba (Jamba)",
+     "why": "১:৭ অনুপাত, MoE সহ"
+    },
+    {
+     "when": "সবচেয়ে প্রচলিত আধুনিক ছক",
+     "pick": "Qwen3-Next ও Qwen3.5 — Gated DeltaNet + Gated Attention",
+     "why": "৩:১, Gated DeltaNet-সহ"
+    },
+    {
+     "when": "প্রতি layer-এ দুই ধরনের head",
+     "pick": "Hymba — একই layer-এ attention head ও SSM head",
+     "why": "parallel ছক"
+    }
+   ]
+  },
+  {
+   "names": [
+    "এক architecture থেকে আরেকটায় রূপান্তর"
+   ],
+   "story": {
+    "problem": "একটা ভালো Transformer আছে, কিন্তু inference-এ KV cache ভারী। নতুন architecture গোড়া থেকে train করা অনেক খরচের।",
+    "idea": "teacher-এর অংশ কপি করো, attention-এর জায়গায় নতুন layer বসাও, আর teacher-কে নকল করতে শেখাও। এটা knowledge distillation-এরই একটা রূপ, তবে student-এর কাঠামো আলাদা।",
+    "next": [
+     {
+      "to": "Knowledge Distillation",
+      "why": "যে সাধারণ ধারণার ওপর এটা দাঁড়ানো"
+     },
+     {
+      "to": "খোলা প্রশ্ন — যেখানে গবেষণার জায়গা আছে",
+      "why": "এই পদ্ধতিগুলোর সীমা কোথায়"
+     },
+     {
+      "to": "Mamba in the Llama — Q, K, V থেকে C, B, X",
+      "why": "সবচেয়ে সরাসরি weight-কপির পথ থেকে শুরু"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "খোলা প্রশ্ন — যেখানে গবেষণার জায়গা আছে"
+   ],
+   "story": {
+    "problem": "কোন প্রশ্নের উত্তর এখনো অজানা, তা না জানলে নতুন কিছু বানানো বা গবেষণা করার জায়গা চেনা যায় না।",
+    "idea": "এখানে প্রতিটা প্রশ্নের পাশে সূত্র-যাচাই-করা প্রমাণ আছে: কে কী মেপেছে, কে নিজেই বলেছে 'এটা বাকি'। এখান থেকে একটা প্রশ্ন বেছে নিলে সেটা সরাসরি একটা গবেষণার বা product-এর শুরু।",
+    "next": [
+     {
+      "to": "Hybrid — একাধিক mixer একই model-এ",
+      "why": "যে নকশার প্রশ্ন এগুলো"
+     },
+     {
+      "to": "এক architecture থেকে আরেকটায় রূপান্তর",
+      "why": "যে পদ্ধতির সীমা এগুলো"
+     },
+     {
+      "to": "স্থির state-এ মনে রাখার সীমা",
+      "why": "মনে রাখার সীমা"
+     },
+     {
+      "to": "softmax-কে সরল layer দিয়ে কতটা নকল করা যায়",
+      "why": "নকলের ফাঁক"
+     },
+     {
+      "to": "লম্বা context-এ আচরণ ও রূপান্তরের data",
+      "why": "লম্বা context"
+     },
+     {
+      "to": "বড় teacher ও MoE-তে প্রসার",
+      "why": "বড় teacher"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Hybrid-এর ছক — অনুপাত ও সাজানো"
+   ],
+   "story": {
+    "problem": "Hybrid বানাতে গেলে প্রথম প্রশ্ন: কয়টা layer-এ attention, আর কোনগুলোয়? ভুল হলে হয় cache ফুলে ওঠে, নয় ঠিক তথ্য ফেরত দেওয়ার ক্ষমতা নষ্ট হয়।",
+    "idea": "তিনটা আলাদা সিদ্ধান্ত: অনুপাত, সাজানো (layer ধরে পালা করে নাকি একই layer-এ সমান্তরালে), আর attention পুরো না সীমিত জানালার। বাস্তবে attention : সস্তা layer ১:২ থেকে ১:৭ পর্যন্ত দেখা গেছে, আর গবেষণাতেও কোনো একটা সংখ্যা সবার জন্য সেরা আসেনি।",
+    "next": [
+     {
+      "to": "Hybrid — Transformer + Mamba (Jamba)",
+      "why": "১:৭ অনুপাত, MoE-সহ"
+     },
+     {
+      "to": "Qwen3-Next ও Qwen3.5 — Gated DeltaNet + Gated Attention",
+      "why": "১:৩ অনুপাত"
+     },
+     {
+      "to": "Hymba — একই layer-এ attention head ও SSM head",
+      "why": "পালা না করে সমান্তরালে"
+     },
+     {
+      "to": "কয়টা ও কোন layer-এ attention রাখবে",
+      "why": "এই প্রশ্ন কতটা খোলা"
+     },
+     {
+      "to": "MiniMax-01 — lightning attention + softmax",
+      "why": "১:৭, লম্বা context"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Qwen3-Next ও Qwen3.5 — Gated DeltaNet + Gated Attention"
+   ],
+   "story": {
+    "problem": "লম্বা context-এ KV cache-এর খরচ কমাতে চাই, কিন্তু সব layer সস্তা করলে ঠিক তথ্য ফেরত দেওয়া নষ্ট হয়।",
+    "idea": "৩টা Gated DeltaNet layer-এর পরে ১টা Gated Attention, এই ছক ১২ বার (Qwen3-Next) বা ১৫ বার (Qwen3.5) পুনরাবৃত্ত; প্রতিটার পরে MoE। তাই মোট ৮০B parameter হলেও সক্রিয় মাত্র ৩B।",
+    "next": [
+     {
+      "to": "Gated DeltaNet",
+      "why": "সস্তা অংশটা কীভাবে কাজ করে"
+     },
+     {
+      "to": "Kimi Linear — Kimi Delta Attention + MLA",
+      "why": "একই ৩:১, আরও সূক্ষ্ম gate"
+     },
+     {
+      "to": "Hybrid-এর ছক — অনুপাত ও সাজানো",
+      "why": "অনুপাতের হিসাব"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "MiniMax-01 — lightning attention + softmax"
+   ],
+   "story": {
+    "problem": "খুব লম্বা context-এ বেশির ভাগ layer linear করলে খরচ কমে, কিন্তু ঠিক তথ্য খুঁজে আনার কাজে model পিছিয়ে পড়ে।",
+    "idea": "প্রতি ৭টা linear (lightning) layer-এর পরে ১টা softmax layer। Paper-এর ablation-এ এই hybrid খাঁটি lightning attention-কে retrieval কাজে ছাড়িয়ে গেছে।",
+    "next": [
+     {
+      "to": "Hybrid — Transformer + Mamba (Jamba)",
+      "why": "একই ১:৭ অনুপাত"
+     },
+     {
+      "to": "Qwen3-Next ও Qwen3.5 — Gated DeltaNet + Gated Attention",
+      "why": "১:৩-এ গেলে"
+     },
+     {
+      "to": "স্থির state-এ মনে রাখার সীমা",
+      "why": "retrieval কেন কঠিন"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Griffin ও RecurrentGemma — recurrence + local attention"
+   ],
+   "story": {
+    "problem": "খাঁটি recurrent model (Hawk)-এ cache স্থির থাকে, কিন্তু attention-এর সুবিধা থাকে না।",
+    "idea": "দুটো recurrent block-এর পরে একটা local attention block, যে শুধু আগের ১০২৪ token দেখে। তাই cache জানালার মাপেই স্থির থাকে।",
+    "next": [
+     {
+      "to": "Hymba — একই layer-এ attention head ও SSM head",
+      "why": "এটাও সীমিত জানালার attention ব্যবহার করে"
+     },
+     {
+      "to": "Hybrid — Transformer + Mamba (Jamba)",
+      "why": "পূর্ণ attention রেখে অন্য পথ"
+     },
+     {
+      "to": "Hybrid-এর ছক — অনুপাত ও সাজানো",
+      "why": "অনুপাতের হিসাব"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Hymba — একই layer-এ attention head ও SSM head"
+   ],
+   "story": {
+    "problem": "Layer পালা করলে এক layer-এ একটাই ধরনের তথ্য-মেশানো হয়। একই layer-এ দুটো পাওয়া যায় কি?",
+    "idea": "প্রতি block-এ attention head আর Mamba head সমান্তরালে চলে। ৩২ layer-এর মাত্র ৩টায় পুরো global attention, বাকিতে সীমিত জানালা; সাথে meta token আর layer-এর মধ্যে KV cache ভাগ।",
+    "next": [
+     {
+      "to": "Hybrid-এর ছক — অনুপাত ও সাজানো",
+      "why": "পালা করার ছকের সাথে তুলনা"
+     },
+     {
+      "to": "Griffin ও RecurrentGemma — recurrence + local attention",
+      "why": "সীমিত জানালার attention-এর আরেক উদাহরণ"
+     },
+     {
+      "to": "কয়টা ও কোন layer-এ attention রাখবে",
+      "why": "কোন layer-এ attention যাবে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Kimi Linear — Kimi Delta Attention + MLA"
+   ],
+   "story": {
+    "problem": "Gated DeltaNet-এ gate একটা সংখ্যা। আরও সূক্ষ্ম gate দিলে কি স্থির state ভালো মনে রাখে?",
+    "idea": "Kimi Delta Attention সূক্ষ্মতর gate-সহ Gated DeltaNet-এর রূপ, আর বাকি layer Multi-Head Latent Attention। ২৭ layer-এ ২০টা KDA আর ৭টা MLA; paper-এর দাবি KV cache ৭৫% পর্যন্ত কম।",
+    "next": [
+     {
+      "to": "Gated DeltaNet",
+      "why": "যে layer-এর ওপর এটা দাঁড়ানো"
+     },
+     {
+      "to": "Qwen3-Next ও Qwen3.5 — Gated DeltaNet + Gated Attention",
+      "why": "একই ৩:১ ছক"
+     },
+     {
+      "to": "Hybrid-এর ছক — অনুপাত ও সাজানো",
+      "why": "অনুপাতের হিসাব"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Mamba in the Llama — Q, K, V থেকে C, B, X"
+   ],
+   "story": {
+    "problem": "ভালো একটা Llama আছে, কিন্তু Mamba hybrid গোড়া থেকে train করা ব্যয়বহুল।",
+    "idea": "Teacher-এর attention-এর Q, K, V কপি হয় Mamba-র C, B, X-এ; MLP থাকে; কিছু attention layer অক্ষত থাকে। প্রায় ২০B token, ৮টা A100-এ প্রতি hybrid পাঁচ দিনের কম।",
+    "next": [
+     {
+      "to": "MOHAWK ও Phi-Mamba — তিন ধাপের alignment",
+      "why": "ভেতরের ধাপ ধরে মেলানোর পথ"
+     },
+     {
+      "to": "KL-নির্দেশিত layer বাছাই — কোন attention layer রাখবে",
+      "why": "কোন layer রাখব তা ডেটা দিয়ে ঠিক করা"
+     },
+     {
+      "to": "softmax-কে সরল layer দিয়ে কতটা নকল করা যায়",
+      "why": "রূপান্তরের পরেও ফাঁক কেন"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "MOHAWK ও Phi-Mamba — তিন ধাপের alignment"
+   ],
+   "story": {
+    "problem": "শুধু শেষ উত্তর নকল না করে ভেতরের ধাপগুলোও মেলানো যায় কি?",
+    "idea": "তিন ধাপে: attention matrix, প্রতি block-এর output, তারপর পুরো model। Phi-1.5 থেকে Phi-Mamba মোট ৩B token-এ, WinoGrande-য় ৭১.৭% (pretrained Mamba-2-এর ৬০.৯%)।",
+    "next": [
+     {
+      "to": "LoLCATs — attention transfer ও LoRA",
+      "why": "আরও কম খরচের পথ"
+     },
+     {
+      "to": "Mamba in the Llama — Q, K, V থেকে C, B, X",
+      "why": "সরাসরি weight কপির পথ"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "LoLCATs — attention transfer ও LoRA"
+   ],
+   "story": {
+    "problem": "বড় model-কে অল্প GPU-সময়ে linear attention-এ আনা যায় কি, parameter প্রায় না ছুঁয়ে?",
+    "idea": "Q, K, V, O জমাট; শুধু নতুন feature map শেখানো যাতে linear layer softmax layer-এর output-এর কাছে আসে; তারপর LoRA। ৮B-এ প্রায় ৬.৫ GPU-ঘণ্টা (এক A100), ৪০৫B পর্যন্ত গেছে।",
+    "next": [
+     {
+      "to": "বড় teacher ও MoE-তে প্রসার",
+      "why": "৪০৫B-তে কী বাকি"
+     },
+     {
+      "to": "softmax-কে সরল layer দিয়ে কতটা নকল করা যায়",
+      "why": "ফাঁকের কারণ"
+     },
+     {
+      "to": "Distill-then-Replace — কাজ-নির্দিষ্ট hybrid",
+      "why": "কাজ-নির্দিষ্ট পথ"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "KL-নির্দেশিত layer বাছাই — কোন attention layer রাখবে"
+   ],
+   "story": {
+    "problem": "কোন layer-এ attention রাখব? সমান ফাঁকে বসানো সেরা নাও হতে পারে।",
+    "idea": "সব layer linear করে distill করো, তারপর একটা একটা করে teacher-এর softmax layer ফেরাও; যেটা ফেরালে teacher-student KL সবচেয়ে কমে সেটা রাখো। Qwen2.5-3B-Instruct-এ ২৫% softmax-এ RULER ০.৮৬৩১ (সব linear-এ ০.১২৩৬)।",
+    "next": [
+     {
+      "to": "Distill-then-Replace — কাজ-নির্দিষ্ট hybrid",
+      "why": "কাজ-নির্দিষ্টভাবে বাছার পথ"
+     },
+     {
+      "to": "কয়টা ও কোন layer-এ attention রাখবে",
+      "why": "খোলা প্রশ্ন হিসেবে"
+     },
+     {
+      "to": "Hybrid-এর ছক — অনুপাত ও সাজানো",
+      "why": "বাস্তব model-এর অনুপাত"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Distill-then-Replace — কাজ-নির্দিষ্ট hybrid"
+   ],
+   "story": {
+    "problem": "সব কাজের জন্য নয়, একটা নির্দিষ্ট কাজের জন্য ছোট, দ্রুত hybrid দরকার হলে?",
+    "idea": "Linear block একটা একটা করে শিখিয়ে কাজের validation set দেখে greedy ভাবে full-attention layer বদলাও। ১৬২টা সেটিং-এর ১৩২টায় full-attention-এর সমান বা ভালো; ৫ থেকে ১৫ GPU-ঘণ্টা।",
+    "next": [
+     {
+      "to": "KL-নির্দেশিত layer বাছাই — কোন attention layer রাখবে",
+      "why": "সাধারণ কাজের জন্য layer বাছাই"
+     },
+     {
+      "to": "কয়টা ও কোন layer-এ attention রাখবে",
+      "why": "layer-গুলো পরস্পর নির্ভর"
+     },
+     {
+      "to": "Taylor-Calibrate — teacher থেকে শুরুর মান",
+      "why": "শুরুর মান ঠিক করার পথ"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Taylor-Calibrate — teacher থেকে শুরুর মান"
+   ],
+   "story": {
+    "problem": "রূপান্তরের শুরুর এলোমেলো মান অনেক বেশি token খায়।",
+    "idea": "Teacher-এর attention-এর পরিসংখ্যান (গড় দূরত্ব, entropy, value-র মাপ) দেখে Gated DeltaNet-এর শুরুর মান ঠিক করো। সাধারণ রূপান্তরের চেয়ে ৪.৯–৯.২ গুণ কম token-এ একই মান।",
+    "next": [
+     {
+      "to": "Gated DeltaNet",
+      "why": "যে layer-এর শুরুর মান ঠিক হচ্ছে"
+     },
+     {
+      "to": "softmax-কে সরল layer দিয়ে কতটা নকল করা যায়",
+      "why": "এর সূত্র কেন heuristic"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "স্থির state-এ মনে রাখার সীমা"
+   ],
+   "story": {
+    "problem": "লম্বা নথিতে ঠিক একটা তথ্য খুঁজে ফেরত দেওয়ার কাজ খাঁটি linear বা SSM model-এ কেন ভাঙে?",
+    "idea": "State-এর আকার স্থির, তাই সব তথ্য আলাদা করে রাখা যায় না। কয়েকটা attention layer ফেরালে ফল নাটকীয়ভাবে বাড়ে: Qwen2.5-3B-তে RULER ০.১২৩৬ থেকে ০.৮৬৩১ (২৫% softmax)। কিন্তু ৭০০M token-এর পরেও কিছু model teacher-এর অনেক পিছনে।",
+    "next": [
+     {
+      "to": "Hybrid — একাধিক mixer একই model-এ",
+      "why": "attention ফেরানোর নকশা"
+     },
+     {
+      "to": "কয়টা ও কোন layer-এ attention রাখবে",
+      "why": "কয়টা, কোনগুলো"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "কয়টা ও কোন layer-এ attention রাখবে"
+   ],
+   "story": {
+    "problem": "Hybrid-এ কয়টা layer attention হবে, আর কোনগুলো?",
+    "idea": "সমান ফাঁকে বসানো প্রমাণে সেরা নয়; layer-গুলো পরস্পর নির্ভর, তাই একটার গুরুত্ব আলাদা করে মাপা যায় না। attention-এর ভাগ প্রায় ৮% (NVIDIA-র গবেষণা) থেকে ৩৩% (Griffin) পর্যন্ত দেখা গেছে। Layer নয়, head ধরে বাছার পথ কেউ পরীক্ষা করেনি।",
+    "next": [
+     {
+      "to": "KL-নির্দেশিত layer বাছাই — কোন attention layer রাখবে",
+      "why": "ডেটা দিয়ে বাছার একটা পথ"
+     },
+     {
+      "to": "Distill-then-Replace — কাজ-নির্দিষ্ট hybrid",
+      "why": "কাজ-নির্দিষ্ট পথ"
+     },
+     {
+      "to": "Hybrid-এর ছক — অনুপাত ও সাজানো",
+      "why": "বাস্তব অনুপাত"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "softmax-কে সরল layer দিয়ে কতটা নকল করা যায়"
+   ],
+   "story": {
+    "problem": "রূপান্তরের পরেও মানের ফাঁক থাকে কেন?",
+    "idea": "Softmax attention 'ধারালো' হতে পারে, linear layer তা নকল করতে পারে না। শুরুর মান ঠিক করার সূত্রগুলোও heuristic, আর শুধু একটা layer-এ পরীক্ষিত।",
+    "next": [
+     {
+      "to": "LoLCATs — attention transfer ও LoRA",
+      "why": "ফাঁক মাপা হয়েছে যেখানে"
+     },
+     {
+      "to": "Taylor-Calibrate — teacher থেকে শুরুর মান",
+      "why": "শুরুর মান ঠিক করার চেষ্টা"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "লম্বা context-এ আচরণ ও রূপান্তরের data"
+   ],
+   "story": {
+    "problem": "২ হাজার token-এ distill করা model লম্বা দৈর্ঘ্যে কেমন চলবে?",
+    "idea": "দুটো পরীক্ষা উল্টো ফল দিয়েছে: একটায় ৮ হাজারের passkey-তে ০% (শুধু সাধারণ data), অন্যটায় অনেক লম্বা দৈর্ঘ্যে প্রায় নির্ভুল। কাঠামো আর data দুটোই আলাদা ছিল, তাই কারণ এখনো পরিষ্কার নয়।",
+    "next": [
+     {
+      "to": "LoLCATs — attention transfer ও LoRA",
+      "why": "প্রথম পরীক্ষা"
+     },
+     {
+      "to": "Mamba in the Llama — Q, K, V থেকে C, B, X",
+      "why": "দ্বিতীয় পরীক্ষা"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "বড় teacher ও MoE-তে প্রসার"
+   ],
+   "story": {
+    "problem": "রূপান্তরের পদ্ধতিগুলো বড় teacher আর MoE-তে চলবে কি?",
+    "idea": "৪০৫B পর্যন্ত একটা পদ্ধতি গেছে, তবু প্রায় ২২% ফাঁক বাকি। অন্য পদ্ধতিগুলো বড় বা MoE teacher-এ পরীক্ষাই হয়নি, কারণ আলাদা system-সহায়তা লাগে।",
+    "next": [
+     {
+      "to": "LoLCATs — attention transfer ও LoRA",
+      "why": "৪০৫B-র পরীক্ষা"
+     },
+     {
+      "to": "Taylor-Calibrate — teacher থেকে শুরুর মান",
+      "why": "যে paper বড় teacher পরীক্ষা করেনি"
+     },
+     {
+      "to": "Qwen3-Next ও Qwen3.5 — Gated DeltaNet + Gated Attention",
+      "why": "MoE hybrid-এর বাস্তব উদাহরণ"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Batch size ও learning rate"
+   ],
+   "story": {
+    "problem": "Batch বড় করলে training দ্রুত হয়, কিন্তু একই learning rate রাখলে প্রায়ই ফল খারাপ। কেন?",
+    "idea": "বড় batch-এর gradient কম এলোমেলো, তাই বেশি learning rate সহ্য করে। Goyal-এর নিয়ম: batch k গুণ হলে learning rate-ও k গুণ, শুরুতে warmup। কিন্তু একটা সীমার পরে batch বাড়িয়ে লাভ নেই (McCandlish-এর critical batch size)।",
+    "next": [
+     {
+      "to": "Batch → Step → Epoch",
+      "why": "step আর epoch-এর হিসাব"
+     },
+     {
+      "to": "Gradient Accumulation",
+      "why": "memory কম হলে বড় batch পাওয়ার উপায়"
+     },
+     {
+      "to": "Warmup",
+      "why": "বড় batch-এ শুরুতে কেন দরকার"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Weight Decay"
+   ],
+   "story": {
+    "problem": "Model বড় হলে training data মুখস্থ করে ফেলে। weight-কে ছোট রাখলে কি এটা কমে?",
+    "idea": "প্রতি update-এ সব weight-কে একটু শূন্যের দিকে টানো। Adam-এ এটা L2 regularization-এর সমান নয়, তাই AdamW decay-কে gradient থেকে আলাদা করে সরাসরি weight-এ বসায়। বড় model-এ প্রচলিত মান ০.১।",
+    "next": [
+     {
+      "to": "AdamW — decoupled weight decay",
+      "why": "decoupling ঠিক কী বদলায়"
+     },
+     {
+      "to": "Regularized Objective",
+      "why": "একই ধারণা loss-এর দিক থেকে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Gradient Clipping"
+   ],
+   "story": {
+    "problem": "হঠাৎ একটা বড় gradient এক step-এ weight-কে এত দূরে ছুড়ে ফেলতে পারে যে training ভেঙে যায়।",
+    "idea": "Gradient-এর দৈর্ঘ্য একটা সীমার বেশি হলে পুরোটাকে ছোট করে সীমায় আনো; দিক একই থাকে। প্রচলিত সীমা global norm ১.০।",
+    "next": [
+     {
+      "to": "Vanishing / Exploding Gradient",
+      "why": "যে সমস্যা এটা ঠেকায়"
+     },
+     {
+      "to": "Weight Decay",
+      "why": "আরেকটা স্থিতিশীলতার উপাদান"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Cosine Decay"
+   ],
+   "story": {
+    "problem": "Learning rate শেষ পর্যন্ত একই রাখলে model সেরা মানে স্থির হতে পারে না; হঠাৎ কমালে আবার ধাক্কা লাগে।",
+    "idea": "Cosine বক্ররেখায় সর্বোচ্চ থেকে সর্বোচ্চের ১০%-এ নামো: শুরু আর শেষ ধীরে, মাঝে দ্রুত। চক্রের দৈর্ঘ্য মোট step-সংখ্যার কাছাকাছি রাখতে হয়।",
+    "next": [
+     {
+      "to": "Warmup",
+      "why": "শুরুর দিকটা"
+     },
+     {
+      "to": "Warmup–Stable–Decay (WSD)",
+      "why": "মোট step আগে না জানলে বিকল্প"
+     },
+     {
+      "to": "Learning-rate Decay",
+      "why": "সাধারণ ধারণা"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Warmup–Stable–Decay (WSD)"
+   ],
+   "story": {
+    "problem": "Cosine-এ মোট step আগে জানতে হয়। training চলতে চলতে আরও চালাতে চাইলে?",
+    "idea": "লম্বা ধ্রুবক ভাগের পরে ছোট একটা decay। যেকোনো সময় ধ্রুবক ভাগের checkpoint থেকে আবার চালানো যায়। ছোট model-এ পরীক্ষিত।",
+    "next": [
+     {
+      "to": "Cosine Decay",
+      "why": "প্রচলিত schedule"
+     },
+     {
+      "to": "Warmup",
+      "why": "শুরুর অংশ"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Early Stopping"
+   ],
+   "story": {
+    "problem": "Training loss কমছে বলে model ভালো হচ্ছে, তা নয়: validation loss এক সময় ফিরে বাড়ে।",
+    "idea": "Validation loss নজরে রাখো; patience দিয়ে সামান্য ওঠানামা সহ্য করো; উন্নতি না হলে থামো আর সেরা checkpoint ফেরত নাও।",
+    "next": [
+     {
+      "to": "Hyperparameter খোঁজা — grid বনাম random",
+      "why": "validation দিয়ে আরও মান বাছা"
+     },
+     {
+      "to": "Catastrophic Forgetting",
+      "why": "ভুল থামায় যা হারাতে পারে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Hyperparameter খোঁজা — grid বনাম random"
+   ],
+   "story": {
+    "problem": "Learning rate, batch size, weight decay কত হবে, তা model নিজে শেখে না। কীভাবে খুঁজব?",
+    "idea": "Grid সব মিল পরীক্ষা করে; random প্রতিবার সব মান এলোমেলো বদলায়। যেহেতু বেশির ভাগ মানের মধ্যে দু-একটাই জরুরি, random একই খরচে সেগুলোর বেশি আলাদা মান ছোঁয়।",
+    "next": [
+     {
+      "to": "Early Stopping",
+      "why": "প্রতিটা trial কখন থামাবে"
+     },
+     {
+      "to": "Parameter বনাম Hyperparameter",
+      "why": "ধারণাটা কোথা থেকে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Teacher ও Student"
+   ],
+   "story": {
+    "problem": "বড় model ভালো, কিন্তু ৭ বিলিয়ন parameter-এর model ১৬-bit-এ শুধু weight-এই ১৪ GB: ছোট server বা ফোনে চলে না।",
+    "idea": "বড় model-কে teacher ধরে তার output থেকে ছোট student-কে শেখাও। Update শুধু student-এ, teacher স্থির। Teacher-এর output-এ বিকল্পগুলোর কাছাকাছি-ভাবও থাকে, তাই শুধু ঠিক উত্তরের চেয়ে বেশি শেখা যায়।",
+    "next": [
+     {
+      "to": "Response ও Sequence Distillation",
+      "why": "teacher শুধু text দিলে"
+     },
+     {
+      "to": "Soft target ও temperature",
+      "why": "teacher probability-ও দিলে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Response ও Sequence Distillation"
+   ],
+   "story": {
+    "problem": "অনেক বড় model শুধু API-তে মেলে: prompt দিলে text আসে, ভেতরের probability আসে না। তখন কীভাবে শেখাব?",
+    "idea": "Teacher-এর লেখা উত্তরকে student-এর SFT data বানাও, loss সাধারণ next-token cross-entropy। শুধু text লাগে, তাই API-তে আর আলাদা tokenizer-এও চলে। দাম: প্রতি জায়গায় teacher-এর একটাই পথ student পায়।",
+    "next": [
+     {
+      "to": "On-policy বনাম offline distillation",
+      "why": "কে উদাহরণ লেখে, তাতে কী ফারাক"
+     },
+     {
+      "to": "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই",
+      "why": "teacher-এর ভুল ঠেকানো"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Soft target ও temperature"
+   ],
+   "story": {
+    "problem": "Teacher খুব নিশ্চিত হলে তার probability প্রায় hard label, ছোট probability-গুলো এত ছোট যে loss-এ প্রায় ধরা পড়ে না।",
+    "idea": "Logits-কে temperature T দিয়ে ভাগ করে softmax করো: probability ছড়ায়, ছোটগুলোর অনুপাত দেখা যায়। T শুধু training-এ; inference-এ T = ১।",
+    "next": [
+     {
+      "to": "Distillation loss — KL divergence",
+      "why": "এই নরম probability-র সাথে student-এর দূরত্ব কীভাবে মাপব"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Distillation loss — KL divergence"
+   ],
+   "story": {
+    "problem": "Student-এর সামনে দুটো তথ্য: মানুষের ঠিক label আর teacher-এর probability। দুটোর কাছে যেতে একটা সংখ্যা চাই।",
+    "idea": "KL divergence student-এর probability আর teacher-এর probability-র দূরত্ব মাপে; মোট loss = hard-label cross-entropy + T² × KL। Gradient সরল: q − p।",
+    "next": [
+     {
+      "to": "Feature ও intermediate distillation",
+      "why": "ভেতরের vector-ও মেলাতে চাইলে (ঐচ্ছিক)"
+     },
+     {
+      "to": "On-policy বনাম offline distillation",
+      "why": "কে উদাহরণ লিখবে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Feature ও intermediate distillation"
+   ],
+   "story": {
+    "problem": "শেষ output দেখে student শুধু 'উত্তর কী' শেখে, 'ভেতরে কীভাবে ভাবছে' শেখে না।",
+    "idea": "মাঝের layer-এর vector মেলাও; মাপ আলাদা হলে শেখার যোগ্য projection দিয়ে teacher-এর মাপে আনো। মোট loss = output-loss + λ × feature-loss।",
+    "next": [
+     {
+      "to": "Distillation, quantization ও LoRA — কখন কোনটা",
+      "why": "পদ্ধতিগুলো মিলিয়ে সিদ্ধান্ত"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "On-policy বনাম offline distillation"
+   ],
+   "story": {
+    "problem": "Student teacher-এর লেখা উত্তরে শিখলেও ব্যবহারের সময় সে নিজে লেখে, আর একবার পথ থেকে সরলে এমন অবস্থায় পড়ে যা সে কখনো দেখেনি।",
+    "idea": "Offline: স্থির উদাহরণ, সস্তা কিন্তু ভুল জমতে পারে। On-policy: student নিজে লেখে, teacher সেই লেখায় সংকেত দেয়, খরচ বেশি আর teacher-এর token-স্তরের probability লাগে।",
+    "next": [
+     {
+      "to": "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই",
+      "why": "teacher-এর ভুল ঠেকানো"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই"
+   ],
+   "story": {
+    "problem": "Teacher বড় হলেও ভুল করে, আর সেই ভুল উত্তর student-এর data-য় ঢুকলে সে সেটাকে ঠিক ধরে শেখে।",
+    "idea": "Training-এর আগে বাছাই: ঠিক উত্তর মেলানো, ধাপ যাচাই, জানা উত্তর না থাকলে agreement, ঝুঁকিপূর্ণ ক্ষেত্রে মানুষ। Agreement প্রমাণ নয়, তাই কত data বাদ গেল তা মাপো।",
+    "next": [
+     {
+      "to": "Distillation, quantization ও LoRA — কখন কোনটা",
+      "why": "সব পদ্ধতি জানার পর তুলনা"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Distillation, quantization ও LoRA — কখন কোনটা"
+   ],
+   "story": {
+    "problem": "'Model ছোট ও দ্রুত করো' বললে তিনটা নাম আসে: distillation, quantization, LoRA। ভুলটা বাছলে সময় যায়, সমস্যা মেটে না।",
+    "idea": "তিনটা আলাদা জিনিস বদলায়: signal, precision, কোন parameter শেখা হবে। Memory না কমলে LoRA সমাধান নয়। যেকোনোটার পরে একই held-out data-য় মান, latency আর memory মাপো।",
+    "next": [
+     {
+      "to": "এক architecture থেকে আরেকটায় রূপান্তর",
+      "why": "student-এর গঠন আলাদা হলে"
+     },
+     {
+      "to": "Quantization",
+      "why": "precision কমানোর পথ"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "Fine-tuning বনাম Distillation: একই লুপ, শুধু লক্ষ্য আলাদা"
+   ],
+   "story": {
+    "problem": "Fine-tuning-এ data দেখে ঠিক উত্তরের সাথে মেলাই। Distillation-এ তাহলে কী বদলায়? Data কি লাগে না?",
+    "idea": "Data লাগে, একই লুপও: উদাহরণ, output, loss, update। বদলায় শুধু লক্ষ্য: মানুষের label-এর জায়গায় (বা সাথে) teacher-এর output। Teacher স্থির, শেখে শুধু student।",
+    "next": [
+     {
+      "to": "Teacher ও Student",
+      "why": "কে কার থেকে শেখে"
+     },
+     {
+      "to": "Response ও Sequence Distillation",
+      "why": "teacher শুধু text দিলে"
+     },
+     {
+      "to": "Distillation loss — KL divergence",
+      "why": "teacher-এর probability পেলে"
+     }
+    ]
+   }
+  },
+  {
+   "names": [
+    "একাধিক teacher থেকে শেখা"
+   ],
+   "story": {
+    "problem": "একটা teacher সব ভাষায় সমান ভালো নয়: বাংলায় এক model সেরা, আরবিতে আরেকটা, ইংরেজিতে আরেকটা। একটা student কি সবার সেরাটা শিখতে পারে?",
+    "idea": "হ্যাঁ, দুই পথে। ভাগ করে: প্রতিটা উদাহরণ তার ভাষার teacher থেকে শেখো, student একটাই (Tan: ৪৪ ভাষা পর্যন্ত)। অথবা সবার probability গড় করো (Hinton)। দাম: প্রতিটা teacher-এর output, ভাষা-প্রতি data-র ভারসাম্য, আর আলাদা tokenizer-এর জটিলতা।",
+    "next": [
+     {
+      "to": "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই",
+      "why": "একাধিক teacher-এ ভুল কীভাবে ধরবে"
+     },
+     {
+      "to": "Distillation loss — KL divergence",
+      "why": "গড়-করা লক্ষ্যে loss কীভাবে"
      }
     ]
    }

@@ -1,0 +1,646 @@
+{
+ "_নিয়ম": "এখানকার উপাদান একবারই লেখা। map.json-এর include-নোড এগুলোকে build-এর সময় প্রতিটা ধরনের (from-scratch, pretraining, fine-tuning) ভেতরে কপি করে বসায়। বদলাতে হলে শুধু এখানে বদলাও; কপি আলাদা করে ঠিক করার দরকার নেই।",
+ "training-components": [
+  {
+   "id": "target",
+   "name": "Target",
+   "definition": "Training-এর প্রতিটা উদাহরণের জন্য 'সঠিক উত্তর কী' তার ঘোষণা, যা model-এর অনুমানের পাশে রেখে মিলিয়ে দেখা হয়। বাড়ির দামের model-এর target একটা সংখ্যা, spam filter-এর target 'spam' বা 'ভালো', ভাষা-model-এর target লেখার পরের token।",
+   "insight": {
+    "fact": "Target-এ ভুল থাকলে model সেটিও শেখার চেষ্টা করতে পারে। তাই label-এর মান model-এর আকারের মতোই গুরুত্বপূর্ণ।"
+   },
+   "seq": "১",
+   "children": [
+    {
+     "id": "numerical-target",
+     "name": "Numerical Target",
+     "definition": "সঠিক উত্তরটাই যখন একটা সংখ্যা (বা কয়েকটা সংখ্যার তালিকা), তখন সেটাই target। যেমন বাড়ির আসল দাম ৫০ হলে target ৫০, আর model-এর অনুমান সেই একই এককে হতে হয়, নইলে তুলনাই চলে না। দাম, তাপমাত্রা বা বয়স অনুমানের কাজে এটা লাগে।",
+     "insight": {
+      "fact": "বাড়ির দাম y=50 হলে model-এর prediction সেই একই unit-এ তুলনা করতে হবে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "class-label-one-hot-target",
+     "name": "Class Label ও One-hot Target",
+     "definition": "দল বা শ্রেণিকে (class) target হিসেবে দেওয়ার দুটো রূপ: দলের নম্বর (label), অথবা one-hot, যেখানে প্রতি দলের একটা ঘর থাকে আর সঠিক দলের ঘরে ১, বাকিতে ০। তিন দলের দ্বিতীয়টা সঠিক হলে one-hot হয় [০, ১, ০]। নম্বরটা শুধু নাম, বড় নম্বর মানে বেশি পরিমাণ নয়।",
+     "insight": {
+      "fact": "তিন class-এ দ্বিতীয়টি সঠিক হলে t=[0,1,0]। Label-এর index বড় মানেই বেশি পরিমাণ নয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "soft-target",
+     "name": "Soft Target",
+     "definition": "সঠিক দলে পুরো ১ না দিয়ে কয়েকটা দলের মধ্যে সম্ভাবনা ভাগ করে দেওয়া target। যেমন [০.১, ০.৮, ০.১] মানে 'দ্বিতীয়টা সম্ভবত সঠিক, তবে বাকিগুলো একেবারে বাদ নয়'। এটা আসতে পারে বড় teacher model-এর উত্তর থেকে, বা label smoothing দিয়ে কঠিন ১/০-কে একটু নরম করে।",
+     "insight": {
+      "fact": "t=[0.1,0.8,0.1] একটি soft target। Teacher model বা label smoothing থেকে আসতে পারে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "sequence-target-loss-mask",
+     "name": "Sequence Target ও Loss Mask",
+     "definition": "উত্তরটা যখন token-এর ক্রম (যেমন বাক্য), তখন ক্রমের প্রতিটা জায়গার নিজের target থাকে। Loss mask হলো ১/০-র একটা তালিকা, যা বলে কোন জায়গার ভুল loss-এ গোনা হবে। প্রশ্নের অংশ আর padding (দৈর্ঘ্য সমান করতে বসানো ফাঁকা token) বাদ দিলে model শুধু উত্তরের অংশ থেকে শেখে।",
+     "insight": {
+      "fact": "Padding বা prompt-এর অংশ বাদ দেওয়া যেতে পারে; attention mask আর loss mask-এর কাজ আলাদা।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "feedback",
+   "name": "Feedback",
+   "definition": "Model-কে শেখানোর জন্য তাকে যে সংকেত দেওয়া হয়, তার সাধারণ নাম। সবসময় সঠিক উত্তর থাকে না; সংকেত হতে পারে সঠিক উত্তর বা সংশোধন, দুটো উত্তরের মধ্যে কোনটা ভালো তার তুলনা, বা ভালো-খারাপের একটা স্কোর (reward)। কোন ধরনের feedback আছে, তার ওপর নির্ভর করে শেখার objective কেমন হবে।",
+   "insight": {
+    "fact": "সঠিক উত্তর, কোন উত্তর ভালো তার preference এবং reward—সব feedback, কিন্তু একই training objective তৈরি করে না।"
+   },
+   "seq": "২",
+   "children": [
+    {
+     "id": "output-correction",
+     "name": "সঠিক Output / Correction",
+     "definition": "Model ভুল করলে মানুষ বা অন্য উৎস যে সঠিক উত্তরটা লিখে দেয়, সেটাই feedback, আর সেটা সরাসরি target হিসেবে কাজ করে। যেমন OCR model ছবি থেকে ভুল লেখা পড়লে কেউ শুদ্ধ লেখাটা টাইপ করে দিল; সেই শুদ্ধ লেখা দিয়ে model-কে আবার শেখানো যায়। এতে সাধারণ supervised শেখাই চলে, RL লাগে না।",
+     "insight": {
+      "fact": "ভুল OCR text-এর সংশোধন দেওয়া নিজে RL নয়; corrected text দিয়ে SFT-ও করা যায়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "preference-pair",
+     "name": "Preference Pair",
+     "definition": "একই প্রশ্নের দুটো উত্তর পাশাপাশি রেখে মানুষ বলে দেয় কোনটা ভালো: একটা chosen, অন্যটা rejected। নিখুঁত উত্তর লেখা কঠিন, কিন্তু দুটোর মধ্যে বাছা সহজ। এখানে ভালো উত্তরের কোনো সংখ্যা বা সঠিক text দেওয়া হয় না, শুধু তুলনাটুকু থাকে, আর সেই তুলনা থেকেই objective বানানো হয়।",
+     "insight": {
+      "fact": "ভালো output-এর exact probability দেওয়া হয় না; chosen/rejected তুলনা থেকে objective তৈরি হয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "reward-signal",
+     "name": "Reward Signal",
+     "definition": "কোনো উত্তর বা কাজ কতটা ভালো তা জানানো একটা সংখ্যা: ভালো হলে বেশি, খারাপ হলে কম (বা ঋণাত্মক)। যেমন দাবায় প্রতিটা চালের জন্য 'সঠিক চাল' বলে দেওয়া থাকে না, শেষে জিতলে +১ আর হারলে −১। Model এই সংখ্যা বাড়ানোর চেষ্টা করে শেখে। Reinforcement learning-এর প্রধান সংকেত এটাই।",
+     "insight": {
+      "fact": "Immediate reward ও বহু ধাপের মোট return আলাদা; reward পেয়ে শেখার algorithm-ও নির্দিষ্ট করতে হয়।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "objective",
+   "name": "Objective",
+   "definition": "Training-এ আসলে কোন সংখ্যাটা কমাতে (বা বাড়াতে) চাই, তার সংজ্ঞা। 'ভালো শেখা' কথাটা কম্পিউটার বোঝে না, তাই মাপা যায় এমন একটা সংখ্যা ঠিক করে দিতে হয়। সাধারণত এটা loss, তবে loss-এর সাথে অন্য শর্ত (যেমন model যেন বেশি জটিল না হয়) যোগ হতে পারে, আবার RL-এ বাড়ানোর লক্ষ্য হয় মোট reward।",
+   "insight": {
+    "fact": "Objective সবসময় শুধু prediction error নয়। জটিলতা কমানোর penalty-ও থাকতে পারে; তাই loss কমানোর লক্ষ্য কী, তা আগে দেখা দরকার।"
+   },
+   "seq": "৩",
+   "children": [
+    {
+     "id": "data-fit-objective",
+     "name": "Data-fit Objective",
+     "definition": "Objective-এর সেই অংশ যা training data-র সাথে model-এর মিল মাপে: model যত বেশি data-র মতো উত্তর দেয়, তত ভালো। সংখ্যা অনুমানে এটা হতে পারে ভুলের বর্গ কমানো; সম্ভাবনা-ভিত্তিক model-এ হতে পারে data-টা model-এর কাছে কতটা সম্ভাব্য (likelihood) তা বাড়ানো। শুধু এটুকু নিলে model data মুখস্থ করে ফেলতে পারে।",
+     "insight": {
+      "fact": "Regression-এ squared error কমানো; probabilistic model-এ likelihood বাড়ানো হতে পারে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "regularized-objective",
+     "name": "Regularized Objective",
+     "definition": "Data-র সাথে মেলার ভুলের ওপর আরেকটা শাস্তি যোগ করা, যাতে model শুধু data মুখস্থ না করে। সাধারণ শাস্তিটা বড় weight-এর বিরুদ্ধে: weight যত বড়, objective তত বেশি, তাই model সরল সমাধান বাছতে ঝোঁকে। এতে নতুন data-তেও ভালো চলার সম্ভাবনা বাড়ে (overfitting কমে)।",
+     "mathDetail": {
+      "formula": "J(θ)=L_data(θ)+λR(θ)",
+      "meaning": "R: penalty; λ: penalty-এর গুরুত্ব; θ: model parameters।",
+      "example": "L_data=0.4,R=2,λ=0.1 হলে J=0.6। λ learning rate নয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "minimize-loss-maximize-return",
+     "name": "Minimize Loss / Maximize Return",
+     "definition": "সব শেখার লক্ষ্য 'কমানো' নয়: supervised শেখায় ভুল (loss) কমাই, কিন্তু reinforcement learning-এ মোট reward (return) বাড়াতে চাই। দুটো আসলে একই ছাঁচের: কোনো সংখ্যা বাড়ানো মানে তার উল্টো চিহ্নের রূপ কমানো। তাই reward বাড়ানোকেও কমানোর সমস্যা বানিয়ে একই পদ্ধতিতে সমাধান করা যায়।",
+     "insight": {
+      "fact": "RL-এ expected return বাড়াতে চাই। Minimizing −J এবং maximizing J গাণিতিকভাবে একই লক্ষ্য প্রকাশ করতে পারে।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "loss",
+   "name": "Loss",
+   "definition": "একটা সংখ্যা যা বলে model-এর উত্তর target থেকে কতটা দূরে: যত বড়, তত খারাপ। বাড়ির দাম ৫০ হলে model ৪০ বললে loss-এ ভুলটা ধরা পড়ে, ঠিক ৫০ বললে ভুল শূন্য। Training-এর কাজ এই সংখ্যাটা কমানো। Loss এমনভাবে বানানো হয় যাতে gradient বের করা যায়, তাই accuracy-র মতো মাপ সরাসরি loss হিসেবে নেওয়া কঠিন।",
+   "insight": {
+    "fact": "একটি ভুলের সংখ্যা জানানোর পাশাপাশি differentiable loss gradient বের করতে সাহায্য করে। মানুষের পছন্দের evaluation metric সবসময় সরাসরি train করা সহজ নয়।"
+   },
+   "seq": "৪",
+   "children": [
+    {
+     "id": "mse-squared-error",
+     "name": "MSE — squared error",
+     "definition": "সংখ্যা অনুমানের ভুলের মাপ: প্রতিটা অনুমান সঠিক মান থেকে কতটা দূরে, সেই দূরত্বকে আগে বর্গ করে সবগুলোর গড়। বর্গ করার ফলে বড় ভুল অনেক বেশি শাস্তি পায়। যেমন ভুল ১ আর ৩ হলে বর্গ ১ আর ৯, গড় ৫। মাপটা সবখানে মসৃণ, তাই gradient বের করা সহজ।",
+     "mathDetail": {
+      "formula": "MSE=(1/N)Σᵢ(ŷᵢ−yᵢ)²",
+      "meaning": "N: উদাহরণ সংখ্যা; y: target; ŷ: prediction।",
+      "example": "Errors=[1,−3] → MSE=(1+9)/2=5। Half-MSE নিলে gradient-এর factor বদলায়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "mae-absolute-error",
+     "name": "MAE — absolute error",
+     "definition": "সংখ্যা অনুমানের ভুলের মাপ: প্রতিটা অনুমান সঠিক মান থেকে কতটা দূরে (ঋণাত্মক চিহ্ন ফেলে), তার সোজা গড়। ভুল ১ আর ৩ হলে MAE = ২। বড় ভুল শুধু নিজের মাপ অনুযায়ীই বাড়ে, বর্গের মতো ফুলে ওঠে না, তাই দু-একটা অস্বাভাবিক (outlier) data মোট loss-এ কম প্রভাব ফেলে।",
+     "mathDetail": {
+      "formula": "MAE=(1/N)Σᵢ|ŷᵢ−yᵢ|",
+      "meaning": "| | হলো absolute value।",
+      "example": "Errors=[1,−3] → MAE=(1+3)/2=2। MSE-এর তুলনায় বড় error-এর প্রভাব কম; zero-তে derivative-এর বিশেষ নিয়ম লাগে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "loss--binary-cross-entropy",
+     "name": "Binary Cross-entropy",
+     "definition": "দুই দলের কাজে (spam কি না, রোগ আছে কি নেই) model যে সম্ভাবনা দেয়, তা মাপার loss। Model সঠিক দলকে যত কম সম্ভাবনা দেয়, শাস্তি তত বেশি, আর আত্মবিশ্বাসী ভুল সবচেয়ে বেশি শাস্তি পায়। যেমন mail আসলে spam হলে model spam-এর সম্ভাবনা ০.৯ দিলে শাস্তি ছোট, ০.১ দিলে অনেক বড়।",
+     "mathDetail": {
+      "formula": "L=−[y ln(p)+(1−y)ln(1−p)]",
+      "meaning": "y: 0 বা 1; p: class 1-এর probability estimate।",
+      "example": "y=1,p=0.8 → L≈0.2231। এটি threshold দিয়ে পাওয়া class label-এর ওপর হিসাব নয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "multiclass-cross-entropy",
+     "name": "Multiclass Cross-entropy",
+     "definition": "অনেক দলের মধ্যে একটা বাছার কাজে (যেমন হাতের লেখা অঙ্ক ০–৯, বা পরের token) loss: model প্রতি দলের জন্য একটা সম্ভাবনা দেয় (সব মিলিয়ে ১), আর loss দেখে সঠিক দলে সে কতটা সম্ভাবনা দিয়েছে। সেটা কম হলে loss বড়। মোট ১-ই থাকে বলে সঠিক দলের সম্ভাবনা বাড়লে বাকিগুলো নিজে থেকে কমে।",
+     "mathDetail": {
+      "formula": "L=−Σₖ tₖ ln(pₖ)",
+      "meaning": "t: target distribution; p: predicted distribution।",
+      "example": "t=[0,1,0],p=[0.1,0.7,0.2] → L=−ln(0.7)≈0.3567।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "reduction-sum-mean",
+     "name": "Reduction — sum না mean?",
+     "definition": "একটা batch-এ অনেক উদাহরণ বা token থাকে, প্রতিটার আলাদা loss। সেগুলো এক সংখ্যায় আনার দুই উপায়: যোগ (sum) বা গড় (mean)। যেমন চারটার loss ২, ৪, ০, ২ হলে sum = ৮, mean = ২। Mean নিলে batch ছোট-বড় হলেও loss-এর মাপ প্রায় একই থাকে; sum নিলে batch বাড়লে loss আর gradient দুটোই বাড়ে।",
+     "insight": {
+      "fact": "Sum ও mean-এর gradient scale আলাদা। Padding বাদ দিলে mean-এর denominator-এ বৈধ token সংখ্যা ব্যবহার হতে পারে।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "training--parameters",
+   "name": "Parameters",
+   "definition": "Model-এর ভেতরের সেই সংখ্যাগুলো যা training-এ শেখা হয়; neural network-এ এগুলো weight (কোন input কতটা গুরুত্ব পাবে) আর bias (একটা স্থির সমন্বয়)। Model যা শিখেছে তা এগুলোতেই জমা থাকে। Training-এ এগুলো বদলায়; পরে নতুন input দিলে model এই শেখা মান ব্যবহার করে উত্তর দেয়, মান বদলায় না।",
+   "insight": {
+    "fact": "Inference-এ input বদলালে output বদলায়, অথচ শেখা parameters সাধারণত অপরিবর্তিত থাকে। নতুন উত্তর মানেই model আবার training করল—এমন নয়।"
+   },
+   "seq": "৫",
+   "children": [
+    {
+     "id": "training--parameters--trainable-parameters",
+     "name": "Trainable Parameters",
+     "definition": "Parameters-এর যে অংশ এই training-এ সত্যিই বদলানো হবে। Full fine-tuning-এ প্রায় সবই trainable; আবার কখনো শুধু শেষ layer (head) বা LoRA-র মতো ছোট যোগ করা অংশই trainable রাখা হয়, বাকি model যেমন আছে তেমন। Gradient যেগুলোয় পৌঁছায় আর optimizer যেগুলো বদলায়, সেগুলোই এই দলে পড়ে।",
+     "insight": {
+      "fact": "Full fine-tuning-এ অনেক parameter; head-only বা LoRA-তে নির্বাচিত অংশ শেখে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "training--parameters--frozen-parameters",
+     "name": "Frozen Parameters",
+     "definition": "যে parameters-এর মান training-এ আটকে রাখা হয়, বদলানো হয় না। তবু model চললে (forward computation) এগুলো ব্যবহৃত হয়; freeze মানে হিসাব থেকে বাদ দেওয়া নয়। যেমন আগে শেখা বড় model-এর বেশিরভাগ অংশ freeze করে শুধু ছোট একটা অংশ শেখানো হয়, যাতে পুরোনো জ্ঞান অক্ষত থাকে।",
+     "insight": {
+      "fact": "Frozen layer দিয়ে gradient আগের trainable অংশে পৌঁছানোর প্রয়োজন থাকতে পারে; freeze মানে computation বাতিল নয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "training--parameters--initialization",
+     "name": "Initialization",
+     "definition": "Training শুরুর আগে parameters-কে কী মান দিয়ে শুরু করা হবে, সেই বাছাই। সাধারণত ছোট এলোমেলো মান দেওয়া হয়। Neural network-এর একটা layer-এর সব weight একই (যেমন ০) হলে সেই layer-এর সব unit (neuron) একই কাজ করে ও একই gradient পায়, তাই কখনো আলাদা হয় না; এলোমেলো মান তাদের আলাদা পথে শেখায়। ছড়ানো খুব বেশি বা খুব কম হলে signal ফুলে ওঠে বা মিলিয়ে যায়।",
+     "insight": {
+      "fact": "সমান মানে সব hidden unit শুরু করলে symmetry সমস্যা হতে পারে; random initialization unit-গুলোকে আলাদা শেখার সুযোগ দেয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "training--parameters--parameter-hyperparameter",
+     "name": "Parameter বনাম Hyperparameter",
+     "definition": "দুই ধরনের সংখ্যার পার্থক্য: parameter (weight, bias) data থেকে training নিজে শেখে; hyperparameter (learning rate, layer-সংখ্যা, batch size) training-এর আগে আমরা নিজে ঠিক করে দিই। কয়েকটা মান চেষ্টা করে validation data-য় কোনটা ভালো চলে দেখে বাছা হয়। সাধারণ gradient update hyperparameter বদলায় না।",
+     "insight": {
+      "fact": "Hyperparameter validation দিয়ে বাছা যায়; সাধারণ gradient update-এ সব hyperparameter নিজে শেখে না।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "hyperparameter-search",
+     "name": "Hyperparameter খোঁজা — grid বনাম random",
+     "kind": "info",
+     "definition": "Learning rate, batch size, weight decay-এর মতো মান model নিজে শেখে না; try করে দেখতে হয়। Grid প্রতিটা মানের সব মিল পরীক্ষা করে, random প্রতিবার সব মান এলোমেলো বদলায়। যেমন ৯টা trial-এ ২টা hyperparameter: grid প্রতিটাকে মাত্র ৩টা আলাদা মানে ছোঁয়, random ৯টা আলাদা মানে।",
+     "insight": {
+      "fact": "Bergstra ও Bengio: বেশির ভাগ কাজে hyperparameter-এর মধ্যে মাত্র দু-একটা সত্যিই জরুরি, আর কোনটা জরুরি তা কাজ-ভেদে বদলায়। তাই random search কম খরচে জরুরি মানগুলো বেশি আলাদা করে ছোঁয়।",
+      "sources": [
+       {
+        "title": "Bergstra, Bengio, JMLR ২০১২",
+        "url": "https://www.jmlr.org/papers/volume13/bergstra12a/bergstra12a.pdf"
+       }
+      ]
+     }
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "parameter-update",
+   "name": "Parameter Update",
+   "definition": "Training-এর সময় parameters-এর মান বদলানোর কাজ। Gradient বলে কোন দিকে গেলে loss বাড়ে; update তার উল্টো দিকে প্রতিটা parameter-কে একটু সরায়, যাতে loss কমে। কতটুকু সরবে তা optimizer ঠিক করে। প্রতি উদাহরণের পরেই এটা করতে হয় না; অনেক উদাহরণের gradient জমিয়ে একবারে update-ও করা যায়।",
+   "insight": {
+    "fact": "একটি example-এর forward pass হলেই সঙ্গে সঙ্গে weights বদলাতে হবে না। অনেক example-এর gradient জমিয়েও update করা যায়।"
+   },
+   "seq": "৬",
+   "children": [
+    {
+     "id": "gradient-step",
+     "name": "একটি Gradient Step",
+     "definition": "Training-এর একটা ছোট ধাপ: model একটা batch দেখে উত্তর দেয়, loss মাপা হয়, loss থেকে শুরু করে output থেকে input-এর দিকে উল্টো ক্রমে হিসাব করে প্রতিটা parameter-এর gradient বের হয়, আর parameters একবার বদলায়। Training মানে এমন বহু ধাপ। এক ধাপে model সামান্যই বদলায়, কিন্তু হাজার-লক্ষ ধাপ জুড়ে loss ধীরে ধীরে কমে।",
+     "mathDetail": {
+      "formula": "θ_new=θ_old−ηg",
+      "meaning": "g: পুরোনো θ-তে gradient; η: learning rate।",
+      "example": "θ=2,g=3,η=0.1 → θ_new=1.7। Loss কমবে কি না তা step size ও objective-এর ওপর নির্ভর করে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "batch-step-epoch",
+     "name": "Batch → Step → Epoch",
+     "definition": "Training data বড় বলে সবটা একবারে না নিয়ে ছোট ভাগে (batch) নেওয়া হয়। প্রতি batch-এ একটা step (সাধারণত একবার parameter update), আর সব batch একবার ঘুরে এলে এক epoch। যেমন ১০০ উদাহরণ আর batch ২০ হলে ৫টা batch, তাই gradient না জমালে এক epoch-এ ৫ update।",
+     "insight": {
+      "fact": "100 উদাহরণ, batch 20, accumulation নেই → এক epoch-এ 5 update।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "gradient-accumulation",
+     "name": "Gradient Accumulation",
+     "definition": "Memory-তে বড় batch ধরে না, অথচ বড় batch-এর মতো ফল চাই, তখন এই কৌশল। ছোট ছোট টুকরোয় (micro-batch) gradient বের করে জমানো হয়, parameter বদলায় না; সব টুকরো শেষে একবার update। যেমন ৪টা micro-batch জমালে ফল প্রায় একটা ৪ গুণ বড় batch-এর সমান; গড় চাইলে জমা gradient-কে ৪ দিয়ে ভাগ করতে হয়।",
+     "insight": {
+      "fact": "সমান মাপের 4 micro-batch-এর গড় gradient চাইলে সঠিক scaling দরকার। সব operation-এ এটি বড় batch-এর হুবহু সমতুল্য নয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "zero-grad-backward-step",
+     "name": "Zero Grad → Backward → Step",
+     "definition": "Training loop-এর code-এ প্রতি ধাপের তিন কাজের ক্রম: (১) আগের gradient মুছে ফেলা (zero grad), (২) loss থেকে শুরু করে layer-গুলো উল্টো ক্রমে পেরিয়ে প্রতিটা parameter-এর নতুন gradient বের করা (backward), (৩) optimizer দিয়ে parameters বদলানো (step)। না মুছলে gradient আগেরটার ওপর জমতে থাকে; ইচ্ছে করে জমাতে চাইলে (accumulation) প্রতিবার মোছা হয় না।",
+     "insight": {
+      "fact": "Backward gradient বের করে; optimizer step মান বদলায়। Accumulation করলে প্রতি micro-batch-এ zero করা হয় না।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "batch-size-and-learning-rate",
+     "name": "Batch size ও learning rate",
+     "kind": "info",
+     "definition": "Batch size মানে এক step-এ কয়টা উদাহরণ দেখে gradient বের করা হয়। বড় batch-এর gradient কম এলোমেলো, তাই বেশি learning rate সহ্য করে; ছোট batch-এ gradient বেশি ওঠানামা করে। দুটো একসঙ্গে ঠিক করতে হয়, কারণ batch বদলালে learning rate-ও বদলাতে হয়।",
+     "mathDetail": {
+      "formula": "batch × k  ⇒  learning rate × k   (linear scaling rule)",
+      "meaning": "k গুণ বড় batch নিলে learning rate-ও k গুণ। শর্ত: weight decay সহ বাকি সব অপরিবর্তিত, আর শুরুতে warmup।",
+      "example": "ভিত্তি: batch 256, learning rate 0.1। batch 8192 হলে k = 8192 ÷ 256 = 32, তাই learning rate = 0.1 × 32 = 3.2 (Goyal et al., ResNet-50)।"
+     },
+     "insight": {
+      "fact": "Batch অনির্দিষ্টকাল বাড়িয়ে লাভ হয় না: ImageNet ResNet-50-এ প্রায় ৮ হাজারের পর মান দ্রুত নামে। McCandlish: critical batch size-এর অনেক নিচে batch বাড়ালে step প্রায় সেই অনুপাতে কমে, অনেক ওপরে প্রায় লাভ নেই।",
+      "sources": [
+       {
+        "title": "Goyal et al., ২০১৭",
+        "url": "https://arxiv.org/abs/1706.02677"
+       },
+       {
+        "title": "McCandlish et al., ২০১৮",
+        "url": "https://arxiv.org/abs/1812.06162"
+       }
+      ]
+     }
+    },
+    {
+     "id": "early-stopping",
+     "name": "Early Stopping",
+     "kind": "info",
+     "definition": "Training loss কমতেই থাকে, কিন্তু validation loss এক সময় আবার বাড়তে শুরু করে, তখন model মুখস্থ করছে। Early stopping validation loss নজরে রাখে, আর কিছুদিন (patience) উন্নতি না হলে থামিয়ে সবচেয়ে ভালো validation-এর weight ফেরত দেয়। যেমন validation loss ০.৯, ০.৭, ০.৬, ০.৬২, ০.৬৫, patience ২ হলে পঞ্চম epoch-এ থেমে তৃতীয় epoch-এর weight রাখা।",
+     "insight": {
+      "fact": "Prechelt-এর পরীক্ষায় ধীর থামার নিয়ম সামান্য (প্রায় ৪%) ভালো generalization দেয়, কিন্তু প্রায় ৪ গুণ লম্বা training লাগে। Goodfellow et al.: validation set লাগে, তাই কিছু data training-এ যায় না।",
+      "sources": [
+       {
+        "title": "Deep Learning (Goodfellow et al.), §7.8",
+        "url": "https://www.deeplearningbook.org/contents/regularization.html"
+       },
+       {
+        "title": "Prechelt, ১৯৯৭ technical report",
+        "url": "https://publikationen.bibliothek.kit.edu/7398/1205"
+       }
+      ]
+     }
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "training--gradient",
+   "name": "Gradient",
+   "definition": "প্রতিটা parameter একটু বদলালে loss কোন দিকে আর কত দ্রুত বদলায়, তার তালিকা। কোনো weight-এর gradient ধনাত্মক ও বড় হলে ওটা বাড়ালে loss অনেক বাড়বে, তাই কমাতে হবে। কোটি weight-এর model-এ একটা একটা করে ঠেলে দেখা অসম্ভব; gradient একবারেই সবার উত্তর দেয়। এটা loss-এর মান নয়, loss কীভাবে বদলায় তার দিকনির্দেশ।",
+   "insight": {
+    "fact": "Gradient loss-এর মান নয়; parameters বদলালে loss স্থানীয়ভাবে কীভাবে বদলায় তার নির্দেশ। বড় loss থাকলেও কোনো parameter-এর gradient ছোট হতে পারে।",
+    "history": "Rumelhart, Hinton ও Williams-এর ১৯৮৬ paper multilayer network-এ error backpropagation দিয়ে representation শেখানোর গুরুত্বপূর্ণ milestone। Gradient ধারণা অবশ্য calculus থেকে অনেক পুরোনো।",
+    "sources": [
+     {
+      "title": "Backpropagation, 1986",
+      "url": "https://doi.org/10.1038/323533a0"
+     }
+    ]
+   },
+   "seq": "৭",
+   "children": [
+    {
+     "id": "derivative",
+     "name": "Derivative — এক মানের পরিবর্তন",
+     "definition": "একটা সংখ্যা সামান্য বদলালে ফলাফল কত দ্রুত বদলায়, তার হার। যেমন loss = w² হলে w = ৩-এ derivative ৬: w ০.০১ বাড়ালে loss প্রায় ০.০৬ বাড়ে (৯ থেকে ≈ ৯.০৬)। ঋণাত্মক হলে w বাড়ালে loss কমছে। এটাই gradient-এর ভিত্তি, কারণ model-এর প্রতিটা weight-এর জন্য এই একই প্রশ্ন করা হয়।",
+     "mathDetail": {
+      "formula": "L(w)=w² ⇒ dL/dw=2w",
+      "meaning": "Derivative হলো স্থানীয় পরিবর্তনের হার।",
+      "example": "w=3-এ derivative=6। এটি loss নয়; loss তখন 9।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "partial-derivative-gradient-vector",
+     "name": "Partial Derivative → Gradient Vector",
+     "definition": "Loss অনেক weight-এর ওপর নির্ভর করলে, একটা বাদে বাকিগুলো স্থির ধরে শুধু সেটা বদলালে loss-এর হার বের করাকে partial derivative বলে। সব weight-এর partial derivative সাজালে gradient vector। যেমন loss = w² + 3b², w = ২, b = ১ হলে হার ৪ আর ৬, vector [৪, ৬]; এটা বলে loss কোন দিকে সবচেয়ে দ্রুত বাড়ে, আর b-র বদল এখানে বেশি প্রভাব ফেলে।",
+     "mathDetail": {
+      "formula": "L(w,b)=w²+3b²; ∇L=[2w,6b]",
+      "meaning": "Partial derivative-এ অন্য variable স্থির; gradient সব partial-এর vector।",
+      "example": "w=2,b=1 → gradient=[4,6]।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "chain-rule-backpropagation",
+     "name": "Chain Rule → Backpropagation",
+     "definition": "একটা weight বদলালে তার প্রভাব মাঝের অনেক ধাপ পেরিয়ে শেষের loss-এ পৌঁছায়। Chain rule বলে প্রতি ধাপের হার গুণ করলে মোট হার মেলে। Backpropagation এই গুণ output-এর দিক থেকে input-এর দিকে উল্টো ক্রমে একবার চালায়, তাই সব layer-এর gradient এক পাসেই বের হয়। যেমন z = w·x, loss = z², x = ২, w = ১: z = ২, loss-এর হার z-তে ২z = ৪, z-এর হার w-তে x = ২, গুণ করে ৮।",
+     "mathDetail": {
+      "formula": "∂L/∂w=(∂L/∂z)(∂z/∂w)",
+      "meaning": "z একটি মধ্যবর্তী হিসাব; একাধিক path থাকলে তাদের contribution যোগ হয়।",
+      "example": "z=wx,L=z²,x=2,w=1 → z=2; gradient=(2z)x=8।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "vanishing-exploding-gradient",
+     "name": "Vanishing / Exploding Gradient",
+     "definition": "অনেক layer পেরোতে gradient-এ প্রতি ধাপের হার গুণ হতে থাকে। হারগুলো ১-এর চেয়ে ছোট হলে গুণফল প্রায় শূন্য হয়ে যায় (vanishing), বড় হলে বিশাল হয়ে ফেটে পড়ে (exploding)। যেমন ০.৫ গুণ করে ২০ layer পেরোলে প্রায় ১০ লাখ ভাগের ১ থাকে, ফলে শুরুর layer প্রায় শেখেই না।",
+     "insight": {
+      "fact": "ছোট gradient learning ধীর করে; বড় gradient অস্থির করে। Activation, initialization, residual path ও clipping বিভিন্নভাবে সাহায্য করতে পারে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "gradient-clipping",
+     "name": "Gradient Clipping",
+     "kind": "info",
+     "definition": "Gradient খুব বড় হয়ে গেলে (exploding gradient) এক step-এ weight অনেক দূরে ছিটকে যায়। Clipping gradient-এর দৈর্ঘ্যকে একটা সীমার বেশি হতে দেয় না: বড় হলে পুরোটাকে ছোট করে সীমায় আনে, দিক বদলায় না।",
+     "mathDetail": {
+      "formula": "যদি ‖g‖ ≥ সীমা:   g ← (সীমা ÷ ‖g‖) · g",
+      "meaning": "‖g‖ হলো gradient-এর দৈর্ঘ্য। সীমার ভেতরে থাকলে কিছু বদলায় না; বাইরে গেলে পুরো gradient একই অনুপাতে ছোট হয়, তাই দিক একই থাকে।",
+      "example": "g = (3, 4), ‖g‖ = 5, সীমা = 1 হলে g ← (1 ÷ 5) · (3, 4) = (0.6, 0.8); এর দৈর্ঘ্য এখন 1, দিক একই।"
+     },
+     "insight": {
+      "fact": "GPT-3 ও Llama 2 দুটোতেই global norm ১.০-তে clip। Pascanu et al.: সীমা গড় gradient-দৈর্ঘ্য দেখে ঠিক করা যায়, আর training এই মানের প্রতি খুব সংবেদনশীল নয়; এটা শুধু exploding gradient ঠেকায়।",
+      "sources": [
+       {
+        "title": "Pascanu et al., ২০১২",
+        "url": "https://arxiv.org/abs/1211.5063"
+       },
+       {
+        "title": "GPT-3 paper, Appendix B",
+        "url": "https://arxiv.org/abs/2005.14165"
+       },
+       {
+        "title": "Llama 2 paper",
+        "url": "https://arxiv.org/abs/2307.09288"
+       }
+      ]
+     }
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "gradient-descent",
+   "name": "Gradient Descent",
+   "definition": "Gradient দেখায় কোন দিকে গেলে loss সবচেয়ে দ্রুত বাড়ে; Gradient Descent তার উল্টো দিকে ছোট ছোট ধাপে বারবার নামার পদ্ধতি, যেন কুয়াশায় ঢাকা পাহাড়ে শুধু পায়ের নিচের ঢাল দেখে নামা। প্রতি ধাপে প্রতিটা weight gradient-এর উল্টো দিকে সামান্য সরে, আর বারবার করলে loss কমতে কমতে থিতু হয়।",
+   "insight": {
+    "fact": "এটি স্থানীয় ঢাল ব্যবহার করে; এক ধাপে পুরো landscape দেখে না। Step অতিরিক্ত বড় হলে loss কমার বদলে বেড়েও যেতে পারে।"
+   },
+   "seq": "৮",
+   "children": [
+    {
+     "id": "full-batch-gradient-descent",
+     "name": "Full-batch Gradient Descent",
+     "definition": "প্রতি update-এ পুরো training data-র gradient হিসাব করে একটা step নেওয়া। ফলে দিকটা সবচেয়ে নির্ভরযোগ্য ও স্থির, কিন্তু প্রতি step-এ সব data ঘুরতে হয়। যেমন ১০ লাখ উদাহরণ থাকলে একবার parameter বদলাতেই ১০ লাখটার হিসাব লাগে, তাই বড় data-তে এটা ধীর ও ভারী।",
+     "insight": {
+      "fact": "Gradient স্থিরতর হতে পারে, কিন্তু বড় dataset-এ প্রতিটি step ব্যয়বহুল।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "stochastic-gradient-descent",
+     "name": "Stochastic Gradient Descent",
+     "definition": "প্রতি update-এ মাত্র একটা এলোমেলো (random) উদাহরণ দেখে তার gradient দিয়ে step নেওয়া। একটা উদাহরণের হিসাব খুব সস্তা বলে step দ্রুত হয়, কিন্তু একটা উদাহরণ পুরো data-র প্রতিনিধি নয় বলে দিক এদিক-ওদিক দোলে। প্রচলিত কথায় mini-batch update-কেও অনেকে SGD বলেন; প্রসঙ্গ দেখে বুঝতে হয়।",
+     "insight": {
+      "fact": "প্রচলিত কথায় mini-batch update-কেও SGD বলা হয়; context দেখে বুঝতে হয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "mini-batch-gradient-descent",
+     "name": "Mini-batch Gradient Descent",
+     "definition": "প্রতি update-এ ছোট একদল উদাহরণ (যেমন ৩২টা) নিয়ে তাদের গড় gradient দিয়ে step নেওয়া। এক উদাহরণের চেয়ে দিকটা স্থির, আবার পুরো data-র চেয়ে হিসাব অনেক কম, আর GPU একসাথে অনেক উদাহরণ ভালো সামলায়। আজকের প্রায় সব training এভাবেই চলে।",
+     "insight": {
+      "fact": "Compute efficiency ও gradient noise-এর মধ্যে ভারসাম্য; batch size বদলালে training আচরণ বদলায়।"
+     },
+     "kind": "info"
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "optimizer",
+   "name": "Optimizer",
+   "definition": "Gradient হাতে পাওয়ার পর parameters ঠিক কীভাবে বদলাবে, সেই নিয়ম। Gradient ঢাল ও দিকের তথ্য দেয়; optimizer ঠিক করে সেই তথ্য দিয়ে কতটা ও কোন কৌশলে সরবে। সবচেয়ে সরল নিয়ম SGD; Adam-এর মতো optimizer আগের ধাপের তথ্য মনে রেখে প্রতিটা parameter-এর ধাপ আলাদা করে সাজায়।",
+   "insight": {
+    "fact": "Gradient বলে স্থানীয় পরিবর্তনের দিক; optimizer নির্ধারণ করে কীভাবে সেই তথ্য দিয়ে step নেওয়া হবে।"
+   },
+   "seq": "৯",
+   "children": [
+    {
+     "id": "sgd-plain-update",
+     "name": "SGD — plain update",
+     "definition": "সবচেয়ে সরল update নিয়ম: প্রতিটা weight থেকে learning rate গুণ gradient বাদ দেওয়া, আর কিছু নয়। যেমন weight ১, gradient ০.৫, learning rate ০.১ হলে নতুন weight = ১ − ০.১×০.৫ = ০.৯৫। আগের ধাপের কোনো তথ্য মনে থাকে না, শুধু এখনকার gradient দেখা হয়।",
+     "mathDetail": {
+      "formula": "θₜ₊₁=θₜ−ηgₜ",
+      "meaning": "gₜ: বর্তমান batch-এর gradient।",
+      "example": "θ=1,g=0.5,η=0.1 → θ_new=0.95।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "momentum-gradient",
+     "name": "Momentum — gradient-এর স্মৃতি",
+     "definition": "আগের ধাপগুলোর gradient জমিয়ে (পুরোনোর প্রভাব ক্রমে কমে) তার দিকটাও মনে রেখে চলা, যেন গড়িয়ে চলা বল যা একবার গতি পেলে সহজে থামে না। Gradient পরপর একই দিক বললে গতি বাড়ে; একবার এদিক একবার ওদিক বললে সেগুলো একে অপরকে কেটে দোল কমে। যেমন আগে জমা ১, নতুন gradient ২, β = ০.৯ হলে জমা = ০.৯×১ + ২ = ২.৯।",
+     "mathDetail": {
+      "formula": "vₜ=βvₜ₋₁+gₜ; θₜ₊₁=θₜ−ηvₜ",
+      "meaning": "v: জমা direction; β: আগের direction-এর গুরুত্ব। এটি momentum-এর একটি convention।",
+      "example": "v_old=1,g=2,β=0.9 → v=2.9। θ=3,η=0.1 → θ_new=2.71।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "adam-adaptive-update",
+     "name": "Adam — adaptive update",
+     "definition": "এমন optimizer যা প্রতি parameter-এর জন্য দুটো জিনিস মনে রাখে: gradient-এর চলমান গড় (দিক) আর gradient-এর বর্গের চলমান গড় (সে সাধারণত কত বড়)। দিক-গড়কে বর্গ-গড়ের বর্গমূল দিয়ে ভাগ করে ধাপ ঠিক হয়, তাই gradient-এর মাপ বড় বা ছোট যা-ই হোক ধাপ প্রায় একই মাপের থাকে; যার gradient বারবার দিক বদলায়, তার ধাপ ছোট হয়। শুরুতে গড় শূন্য থেকে ওঠে বলে প্রথম দিকের মান আসলের চেয়ে ছোট আসে, bias correction তা ঠিক করে।",
+     "insight": {
+      "fact": "প্রথম ধাপে চলমান গড় শূন্য থেকে শুরু হওয়ায় correction লাগে। এটি সব task-এ SGD-এর চেয়ে ভালো—এমন নিয়ম নেই।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "adamw-decoupled-weight-decay",
+     "name": "AdamW — decoupled weight decay",
+     "definition": "Adam-এর এমন সংস্করণ, যেখানে weight decay (প্রতি ধাপে প্রতিটা weight-কে তার মানের সামান্য অংশ ছোট করা, যাতে weight বড় না হয়) gradient-এর হিসাবে না ঢুকিয়ে আলাদাভাবে সরাসরি weight-এ করা হয়। Loss-এ L2 penalty হিসেবে জুড়লে Adam-এর প্রতি-parameter scaling তাকে বদলে দেয়, ফলে বড় gradient-এর weight কম ছোট হয়; আলাদা করলে সব weight একই অনুপাতে ছোট হয়। বড় model-এ বহুল প্রচলিত।",
+     "insight": {
+      "fact": "Adam-এ loss-এর L2 penalty আর decoupled weight decay সাধারণভাবে একই update নয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "weight-decay",
+     "name": "Weight Decay",
+     "kind": "info",
+     "definition": "প্রতি update-এ weight-গুলোকে একটু একটু শূন্যের দিকে টেনে ছোট রাখা, যাতে model অতি-জটিল হয়ে training data মুখস্থ না করে। SGD-তে এটা L2 regularization-এর সমান, কিন্তু Adam-এ সমান নয়, তাই AdamW decay-কে gradient থেকে আলাদা করে সরাসরি weight-এ বসায়।",
+     "mathDetail": {
+      "formula": "w ← w − lr · ( Adam-এর step + λ · w )",
+      "meaning": "λ হলো weight decay-এর মান। আলাদা পদটা λ · w সব weight-কে একই হারে ছোট করে, gradient-এর ইতিহাস যাই হোক।",
+      "example": "w = 2, lr = 0.1, λ = 0.1, Adam-এর step ০ ধরলে (শুধু decay দেখাতে): w = 2 − 0.1 × (0 + 0.1 × 2) = 1.98।"
+     },
+     "insight": {
+      "fact": "GPT-3 আর Llama 2, দুটোই weight decay ০.১ ব্যবহার করেছে। AdamW paper: সেরা মান training-এর মোট update-সংখ্যার ওপর নির্ভর করে, লম্বা training-এ কম decay ভালো।",
+      "sources": [
+       {
+        "title": "AdamW paper (Loshchilov, Hutter), ২০১৭",
+        "url": "https://arxiv.org/abs/1711.05101"
+       },
+       {
+        "title": "GPT-3 paper, Appendix B",
+        "url": "https://arxiv.org/abs/2005.14165"
+       },
+       {
+        "title": "Llama 2 paper",
+        "url": "https://arxiv.org/abs/2307.09288"
+       }
+      ]
+     }
+    }
+   ],
+   "kind": "info"
+  },
+  {
+   "id": "learning-rate",
+   "name": "Learning Rate",
+   "definition": "প্রতি update-এ parameter কতটা সরবে, সেই ধাপের মাপ নিয়ন্ত্রণ করা একটা সংখ্যা। খুব ছোট হলে training অনেক ধীর; খুব বড় হলে ভালো জায়গা ছাড়িয়ে লাফালাফি করে, আরও বড় হলে loss বাড়তেই থাকে (diverge)। এটা model শেখে না, আমরা বেছে দিই; model ও data ভেদে সঠিক মান আলাদা, তাই কয়েকটা চেষ্টা করে validation দেখে ঠিক করতে হয়।",
+   "mathDetail": {
+    "formula": "θ_new = θ_old − η × gradient",
+    "meaning": "θ হলো parameter; η (eta) হলো learning rate।",
+    "example": "θ=2, gradient=4, η=0.1 হলে θ_new=1.6। খুব বড় step loss বাড়াতে পারে।"
+   },
+   "seq": "১০",
+   "children": [
+    {
+     "id": "constant-learning-rate",
+     "name": "Constant Learning Rate",
+     "definition": "Training-এর শুরু থেকে শেষ পর্যন্ত একই learning rate রাখা, কোনো পরিবর্তন ছাড়া। যেমন সারা সময় ০.০১। এটা সবচেয়ে সরল ব্যবস্থা; তবে শেষ দিকেও ধাপ বড় থাকায় loss সর্বনিম্ন বিন্দুর চারপাশে ঘুরঘুর করতে পারে, ঠিক জায়গায় বসতে চায় না।",
+     "insight": {
+      "fact": "সহজ baseline; বেশি হলে unstable, খুব কম হলে শেখা ধীর হতে পারে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "learning-rate-decay",
+     "name": "Learning-rate Decay",
+     "definition": "Training এগোনোর সাথে সাথে নির্ধারিত নিয়মে learning rate কমানো: শুরুতে বড় ধাপে দ্রুত এগোনো, শেষে ছোট ধাপে ঠিক জায়গায় বসা। নিয়মগুলোকে schedule বলে; step schedule নির্দিষ্ট সময়ে হঠাৎ কমায়, cosine schedule কোসাইন বক্ররেখা ধরে মসৃণভাবে কমায়। Schedule শুধু ধাপের মাপ বদলায়, optimizer-এর বদলি নয়।",
+     "insight": {
+      "fact": "Step বা cosine schedule ভিন্নভাবে rate বদলায়; schedule optimizer-এর বদলি নয়।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "warmup",
+     "name": "Warmup",
+     "definition": "Training-এর প্রথম কিছু step-এ learning rate খুব ছোট থেকে শুরু করে ধীরে ধীরে নির্ধারিত মানে তোলা। শুরুতে weight এলোমেলো থাকায় বড় ধাপ নিলে model ছিটকে যেতে পারে; ছোট দিয়ে শুরু করলে প্রথম update-গুলো স্থিতিশীল হতে সাহায্য করে। এরপর learning rate ধ্রুব থাকতে পারে বা decay শুরু হতে পারে।",
+     "insight": {
+      "fact": "শুরুর update স্থিতিশীল করতে সাহায্য করতে পারে; পরে constant বা decay schedule আসতে পারে।"
+     },
+     "kind": "info"
+    },
+    {
+     "id": "cosine-decay",
+     "name": "Cosine Decay",
+     "kind": "info",
+     "definition": "Learning rate শুরুতে সর্বোচ্চ, তারপর cosine বক্ররেখা ধরে নেমে শেষে সর্বোচ্চের ১০%-এ পৌঁছায়: প্রথমে ধীরে, মাঝে দ্রুত, শেষে আবার ধীরে নামে। বড় language model-এর সবচেয়ে প্রচলিত schedule, সাধারণত warmup-এর পরে।",
+     "mathDetail": {
+      "formula": "lr(t) = lr_min + ½ · (lr_max − lr_min) · (1 + cos(π · t ÷ T))",
+      "meaning": "t এখন কততম step, T মোট step। t = 0-তে lr_max, t = T-তে lr_min। এখানে এক চক্র, restart ছাড়া।",
+      "example": "lr_max = 1, lr_min = 0.1, T = 100: t = 0-তে 1.0; t = 50-এ 0.1 + 0.45 × (1 + 0) = 0.55; t = 100-এ 0.1।"
+     },
+     "insight": {
+      "fact": "Chinchilla paper: চক্রের দৈর্ঘ্য training step-এর সংখ্যার কাছাকাছি রাখা সেরা; চক্র step-সংখ্যাকে ২৫%-এর বেশি ছাড়ালে মান লক্ষণীয়ভাবে নামে।",
+      "sources": [
+       {
+        "title": "SGDR paper (Loshchilov, Hutter), ২০১৬",
+        "url": "https://arxiv.org/abs/1608.03983"
+       },
+       {
+        "title": "Chinchilla paper, Appendix D",
+        "url": "https://arxiv.org/abs/2203.15556"
+       },
+       {
+        "title": "Llama 2 paper",
+        "url": "https://arxiv.org/abs/2307.09288"
+       }
+      ]
+     }
+    },
+    {
+     "id": "wsd-schedule",
+     "name": "Warmup–Stable–Decay (WSD)",
+     "kind": "info",
+     "definition": "তিন ভাগ: শুরুতে warmup, তারপর লম্বা সময় ধ্রুবক learning rate, শেষে ছোট একটা decay। Stable ভাগের যেকোনো checkpoint থেকে training চালিয়ে যাওয়া যায়, তাই মোট কত step লাগবে আগে ঠিক করতে হয় না।",
+     "insight": {
+      "fact": "MiniCPM paper: প্রায় ১০% token-এ decay করলে cosine-এর সমান বা কম loss; ২.৫% যথেষ্ট ছিল না। লেখকরা নিজেই বলেন পরীক্ষা ছোট model-এ, বড় LLM-এ পুরো পরীক্ষিত নয়।",
+      "sources": [
+       {
+        "title": "MiniCPM paper (Hu et al.), ২০২৪",
+        "url": "https://arxiv.org/abs/2404.06395"
+       }
+      ]
+     }
+    }
+   ],
+   "kind": "info"
+  }
+ ]
+}

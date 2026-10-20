@@ -1120,6 +1120,130 @@
    "lessons": [
     "12/04"
    ]
+  },
+  {
+   "names": [
+    "Hybrid — একাধিক mixer একই model-এ",
+    "DeltaNet — delta rule",
+    "Gated DeltaNet",
+    "Linear Attention — Transformers are RNNs"
+   ],
+   "lessons": [
+    "12/09"
+   ]
+  },
+  {
+   "names": [
+    "Batch size ও learning rate"
+   ],
+   "lessons": [
+    "10/06"
+   ]
+  },
+  {
+   "names": [
+    "Early Stopping"
+   ],
+   "lessons": [
+    "07/03"
+   ]
+  },
+  {
+   "names": [
+    "Hyperparameter খোঁজা — grid বনাম random"
+   ],
+   "lessons": [
+    "07/05"
+   ]
+  },
+  {
+   "names": [
+    "Teacher ও Student"
+   ],
+   "lessons": [
+    "18/01"
+   ]
+  },
+  {
+   "names": [
+    "Response ও Sequence Distillation"
+   ],
+   "lessons": [
+    "18/02"
+   ]
+  },
+  {
+   "names": [
+    "Soft target ও temperature"
+   ],
+   "lessons": [
+    "18/03"
+   ]
+  },
+  {
+   "names": [
+    "Distillation loss — KL divergence"
+   ],
+   "lessons": [
+    "18/04"
+   ]
+  },
+  {
+   "names": [
+    "Feature ও intermediate distillation"
+   ],
+   "lessons": [
+    "18/05"
+   ]
+  },
+  {
+   "names": [
+    "On-policy বনাম offline distillation"
+   ],
+   "lessons": [
+    "18/06"
+   ]
+  },
+  {
+   "names": [
+    "Teacher-এর ভুল ঠেকানো — বাছাই ও যাচাই"
+   ],
+   "lessons": [
+    "18/07"
+   ]
+  },
+  {
+   "names": [
+    "Distillation, quantization ও LoRA — কখন কোনটা"
+   ],
+   "lessons": [
+    "18/08"
+   ]
+  },
+  {
+   "names": [
+    "Knowledge Distillation"
+   ],
+   "lessons": [
+    "18/README"
+   ]
+  },
+  {
+   "names": [
+    "Leakage"
+   ],
+   "lessons": [
+    "05/04"
+   ]
+  },
+  {
+   "names": [
+    "Fine-tuning বনাম Distillation: একই লুপ, শুধু লক্ষ্য আলাদা"
+   ],
+   "lessons": [
+    "18/01",
+    "18/04"
+   ]
   }
  ]
 }
